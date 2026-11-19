@@ -73,10 +73,21 @@ jobs:
       - name: Android NDK
         if: matrix.target == 'android'
         id: ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r27c
-          local-cache: true
+        run: |
+          set -euo pipefail
+          NDK_VERSION=27.2.12479018
+          NDK_DIR="$ANDROID_HOME/ndk/$NDK_VERSION"
+          CLANG="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
+          if [ ! -x "$CLANG" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+            yes | "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null
+          fi
+          test -x "$CLANG"
+          test -d "$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android"
+          "$CLANG" --version | head -n 1
+          echo "ndk-path=$NDK_DIR" >> "$GITHUB_OUTPUT"
+          echo "ANDROID_NDK_ROOT=$NDK_DIR" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$NDK_DIR" >> "$GITHUB_ENV"
 
       - name: Haxe
         uses: krdlab/setup-haxe@v2
