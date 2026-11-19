@@ -186,7 +186,7 @@ class Project extends HXProject
 		addHaxelib("tjson");
 
 		if (hasDefine("LUA_ALLOWED")) addHaxelib("linc_luajit");
-		if (hasDefine("HSCRIPT_ALLOWED")) addHaxelib("hscript-iris");
+		if (hasDefine("HSCRIPT_ALLOWED")) addHaxelib("hscript");
 		if (hasDefine("VIDEOS_ALLOWED")) addHaxelib("hxvlc");
 		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
 		addHaxelib("flxanimate");
@@ -229,7 +229,12 @@ class Project extends HXProject
 
 		setHaxedef("no-deprecation-warnings");
 		setHaxedef("message.reporting", "pretty");
-		if (hasDefine("HSCRIPT_ALLOWED")) setHaxedef("hscriptPos");
+		if (hasDefine("HSCRIPT_ALLOWED"))
+		{
+			setHaxedef("hscriptPos");
+			for (keep in ["StringTools", "Lambda", "Std", "Math", "Reflect", "Type", "DateTools", "haxe.io.Path", "haxe.Json"])
+				haxeflags.push("--macro keep('" + keep + "')");
+		}
 
 		haxeflags.push("--macro allowPackage('flash')");
 		haxeflags.push("--macro include('my.pack')");

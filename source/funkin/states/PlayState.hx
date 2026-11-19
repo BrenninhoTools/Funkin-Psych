@@ -49,10 +49,7 @@ import funkin.psychlua.HScript;
 #end
 
 #if HSCRIPT_ALLOWED
-import funkin.psychlua.HScript.HScriptInfos;
-import crowplexus.iris.Iris;
-import crowplexus.hscript.Expr.Error as IrisError;
-import crowplexus.hscript.Printer;
+import funkin.psychlua.HScript.ScriptError;
 #end
 
 /**
@@ -845,7 +842,7 @@ class PlayState extends MusicBeatState
 
 		if(doPush)
 		{
-			if(Iris.instances.exists(scriptFile))
+			if(HScript.instances.exists(scriptFile))
 				doPush = false;
 
 			if(doPush) initHScript(scriptFile);
@@ -3276,7 +3273,7 @@ class PlayState extends MusicBeatState
 		#end
 
 		#if HSCRIPT_ALLOWED
-		for (script in hscriptArray)
+		for (script in hscriptArray.copy())
 			if(script != null)
 			{
 				if(script.exists('onDestroy')) script.call('onDestroy');
@@ -3436,7 +3433,7 @@ class PlayState extends MusicBeatState
 
 		if(FileSystem.exists(scriptToLoad))
 		{
-			if (Iris.instances.exists(scriptToLoad)) return false;
+			if (HScript.instances.exists(scriptToLoad)) return false;
 
 			initHScript(scriptToLoad);
 			return true;
@@ -3451,16 +3448,14 @@ class PlayState extends MusicBeatState
 		{
 			newScript = new HScript(null, file);
 			if (newScript.exists('onCreate')) newScript.call('onCreate');
-			trace('initialized hscript interp successfully: $file');
-			hscriptArray.push(newScript);
+			if(newScript.active) hscriptArray.push(newScript);
 		}
-		catch(e:IrisError)
+		catch(e:ScriptError)
 		{
-			var pos:HScriptInfos = cast {fileName: file, showLine: false};
-			Iris.error(Printer.errorToString(e, false), pos);
-			var newScript:HScript = cast (Iris.instances.get(file), HScript);
-			if(newScript != null)
-				newScript.destroy();
+			HScript.reportError(e, file);
+			var failed:HScript = HScript.instances.get(file);
+			if(failed != null)
+				failed.destroy();
 		}
 	}
 	#end
@@ -3527,10 +3522,9 @@ class PlayState extends MusicBeatState
 		if (len < 1)
 			return returnVal;
 
-		for(script in hscriptArray)
+		for(script in hscriptArray.copy())
 		{
-			@:privateAccess
-			if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
+			if(script == null || !script.active || !script.exists(funcToCall) || exclusions.contains(script.origin))
 				continue;
 
 			var callValue = script.call(funcToCall, args);

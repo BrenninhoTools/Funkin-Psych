@@ -10,12 +10,10 @@ import funkin.psychlua.FunkinLua;
 #end
 
 #if HSCRIPT_ALLOWED
-import crowplexus.iris.Iris;
-import crowplexus.iris.IrisConfig;
-import crowplexus.hscript.Expr.Error as IrisError;
-import crowplexus.hscript.Printer;
-
-import haxe.ValueException;
+import hscript.Expr;
+import funkin.scripting.ScriptParser;
+import funkin.scripting.ScriptInterp;
+import funkin.scripting.ScriptImports;
 
 typedef HScriptInfos = {
 	> haxe.PosInfos,
@@ -26,127 +24,253 @@ typedef HScriptInfos = {
 	#end
 }
 
-class HScript extends Iris
+typedef HScriptCall = {
+	var funName:String;
+	var signature:Dynamic;
+	var returnValue:Dynamic;
+}
+
+typedef ScriptError = hscript.Expr.Error;
+
+class HScript
 {
+	public static var instances:Map<String, HScript> = new Map();
+
 	public var filePath:String;
 	public var modFolder:String;
+	public var origin:String;
+	public var scriptName:String;
+	public var scriptCode:String;
 	public var returnValue:Dynamic;
+	public var active(default, null):Bool = true;
+	public var interp(default, null):ScriptInterp;
+	public var program(default, null):Expr;
 
 	#if LUA_ALLOWED
 	public var parentLua:FunkinLua;
+
 	public static function initHaxeModule(parent:FunkinLua)
 	{
-		if(parent.hscript == null)
-		{
-			trace('initializing haxe interp for: ${parent.scriptName}');
+		if (parent.hscript == null)
 			parent.hscript = new HScript(parent);
-		}
 	}
 
 	public static function initHaxeModuleCode(parent:FunkinLua, code:String, ?varsToBring:Any = null)
 	{
-		var hs:HScript = try parent.hscript catch (e) null;
-		if(hs == null)
-		{
-			trace('initializing haxe interp for: ${parent.scriptName}');
-			try {
-				parent.hscript = new HScript(parent, code, varsToBring);
-			}
-			catch(e:IrisError) {
-				var pos:HScriptInfos = cast {fileName: parent.scriptName, isLua: true};
-				if(parent.lastCalledFunction != '') pos.funcName = parent.lastCalledFunction;
-				Iris.error(Printer.errorToString(e, false), pos);
-				parent.hscript = null;
-			}
-		}
-		else
+		var hs:HScript = parent.hscript;
+		if (hs == null)
 		{
 			try
 			{
-				hs.scriptCode = code;
-				hs.varsToBring = varsToBring;
-				hs.parse(true);
-				var ret:Dynamic = hs.execute();
-				hs.returnValue = ret;
+				parent.hscript = new HScript(parent, code, varsToBring);
 			}
-			catch(e:IrisError)
+			catch (e:ScriptError)
 			{
-				var pos:HScriptInfos = cast hs.interp.posInfos();
+				var pos:HScriptInfos = errorPos(e, parent.lastCalledFunction != '' ? parent.lastCalledFunction : null);
 				pos.isLua = true;
-				if(parent.lastCalledFunction != '') pos.funcName = parent.lastCalledFunction;
-				Iris.error(Printer.errorToString(e, false), pos);
-				hs.returnValue = null;
+				error(errorMessage(e), pos);
+				parent.hscript = null;
 			}
+			return;
+		}
+
+		try
+		{
+			hs.scriptCode = code;
+			hs.varsToBring = varsToBring;
+			hs.parse(true);
+			hs.returnValue = hs.execute();
+		}
+		catch (e:ScriptError)
+		{
+			var pos:HScriptInfos = errorPos(e, parent.lastCalledFunction != '' ? parent.lastCalledFunction : null);
+			pos.isLua = true;
+			error(errorMessage(e), pos);
+			hs.returnValue = null;
 		}
 	}
 	#end
 
-	public var origin:String;
-	override public function new(?parent:Dynamic, ?file:String, ?varsToBring:Any = null, ?manualRun:Bool = false)
+	public function new(?parent:Dynamic, ?file:String, ?varsToBring:Any = null, ?manualRun:Bool = false)
 	{
-		if (file == null)
-			file = '';
+		if (file == null) file = '';
 
 		filePath = file;
-		if (filePath != null && filePath.length > 0)
+		scriptCode = file;
+		if (filePath.length > 0)
 		{
-			this.origin = filePath;
+			origin = filePath;
 			#if MODS_ALLOWED
 			var modsPath:String = Paths.mods();
-			if(filePath.startsWith(modsPath))
+			if (filePath.startsWith(modsPath))
 			{
 				var modName:String = filePath.substr(modsPath.length).split('/')[0];
-				if(Mods.currentModDirectory == modName || Mods.getGlobalMods().contains(modName))
-					this.modFolder = modName;
+				if (Mods.currentModDirectory == modName || Mods.getGlobalMods().contains(modName))
+					modFolder = modName;
 			}
 			#end
 		}
-		var scriptThing:String = file;
-		var scriptName:String = null;
-		if(parent == null && file != null)
+
+		if (parent == null && file.length > 0)
 		{
-			var f:String = file.replace('\\', '/');
-			if(f.contains('/') && !f.contains('\n')) {
-				scriptThing = File.getContent(f);
-				scriptName = f;
+			var path:String = file.replace('\\', '/');
+			if (path.contains('/') && !path.contains('\n'))
+			{
+				#if sys
+				scriptCode = File.getContent(path);
+				#else
+				scriptCode = openfl.Assets.getText(path);
+				#end
+				scriptName = path;
 			}
 		}
-		#if LUA_ALLOWED
-		if (scriptName == null && parent != null)
-			scriptName = parent.scriptName;
-		#end
-		super(scriptThing, new IrisConfig(scriptName, false, false));
-		var customInterp:CustomInterp = new CustomInterp();
-		customInterp.parentInstance = FlxG.state;
-		customInterp.showPosOnLog = false;
-		this.interp = customInterp;
+
 		#if LUA_ALLOWED
 		parentLua = parent;
 		if (parent != null)
 		{
-			this.origin = parent.scriptName;
-			this.modFolder = parent.modFolder;
+			origin = parent.scriptName;
+			modFolder = parent.modFolder;
+			if (scriptName == null) scriptName = parent.scriptName;
 		}
 		#end
+		if (scriptName == null) scriptName = 'hscript';
+
+		interp = new ScriptInterp();
+		interp.parentInstance = FlxG.state;
+		interp.onWarning = function(message:String, pos:haxe.PosInfos) warn(message, cast pos);
 		preset();
 		this.varsToBring = varsToBring;
-		if (!manualRun) {
-			try {
-				var ret:Dynamic = execute();
-				returnValue = ret;
-			} catch(e:IrisError) {
+
+		if (parent == null && filePath.length > 0 && scriptName != 'hscript')
+			instances.set(scriptName, this);
+
+		if (!manualRun)
+		{
+			try
+			{
+				returnValue = execute();
+			}
+			catch (e:ScriptError)
+			{
 				returnValue = null;
-				this.destroy();
+				destroy();
 				throw e;
 			}
 		}
 	}
 
-	var varsToBring(default, set):Any = null;
-	override function preset() {
-		super.preset();
+	public function parse(force:Bool = false):Expr
+	{
+		if (program != null && !force) return program;
+		program = toScriptError(function() return new ScriptParser().parseScript(scriptCode, scriptName));
+		return program;
+	}
 
-		// Some very commonly used classes
+	public function execute():Dynamic
+	{
+		if (!active || interp == null) return null;
+		if (program == null) parse();
+		return toScriptError(function() return interp.execute(program));
+	}
+
+	public function set(name:String, value:Dynamic):Void
+	{
+		if (interp != null) interp.variables.set(name, value);
+	}
+
+	public function get(name:String):Dynamic
+	{
+		if (interp == null) return null;
+		return interp.variables.get(name);
+	}
+
+	public function exists(name:String):Bool
+		return interp != null && interp.variables.exists(name);
+
+	public function remove(name:String):Bool
+		return interp != null && interp.variables.remove(name);
+
+	public function posInfos():HScriptInfos
+	{
+		var pos:HScriptInfos = interp != null ? cast interp.posInfos() : cast {fileName: scriptName, lineNumber: 0};
+		#if LUA_ALLOWED
+		if (parentLua != null)
+		{
+			pos.isLua = true;
+			if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
+		}
+		#end
+		return pos;
+	}
+
+	public function call(funcToRun:String, ?args:Array<Dynamic>):HScriptCall
+	{
+		if (funcToRun == null || interp == null || !active) return null;
+
+		if (!exists(funcToRun))
+		{
+			error('No function named: $funcToRun', posInfos());
+			return null;
+		}
+
+		var func:Dynamic = interp.variables.get(funcToRun);
+		if (!Reflect.isFunction(func))
+		{
+			error('$funcToRun is not a function', posInfos());
+			return null;
+		}
+
+		try
+		{
+			var ret:Dynamic = Reflect.callMethod(null, func, args != null ? args : []);
+			return {funName: funcToRun, signature: func, returnValue: ret};
+		}
+		catch (e:ScriptError)
+		{
+			var pos:HScriptInfos = errorPos(e, funcToRun);
+			#if LUA_ALLOWED
+			if (parentLua != null)
+			{
+				pos.isLua = true;
+				if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
+			}
+			#end
+			error(errorMessage(e), pos);
+		}
+		catch (e:Dynamic)
+		{
+			var pos:HScriptInfos = posInfos();
+			if (pos.funcName == null) pos.funcName = funcToRun;
+			error(Std.string(e), pos);
+		}
+		return null;
+	}
+
+	public function callIfExists(funcToRun:String, ?args:Array<Dynamic>):Dynamic
+	{
+		if (!exists(funcToRun)) return null;
+		var result:HScriptCall = call(funcToRun, args);
+		return result != null ? result.returnValue : null;
+	}
+
+	public function destroy()
+	{
+		if (!active) return;
+		active = false;
+		if (scriptName != null && instances.get(scriptName) == this) instances.remove(scriptName);
+		if (PlayState.instance != null && PlayState.instance.hscriptArray != null)
+			PlayState.instance.hscriptArray.remove(this);
+		#if LUA_ALLOWED parentLua = null; #end
+		origin = null;
+		program = null;
+		interp = null;
+	}
+
+	var varsToBring(default, set):Any = null;
+
+	function preset()
+	{
 		set('Type', Type);
 		#if sys
 		set('File', File);
@@ -156,15 +280,6 @@ class HScript extends Iris
 		set('FlxMath', flixel.math.FlxMath);
 		set('FlxSprite', flixel.FlxSprite);
 		set('FlxText', flixel.text.FlxText);
-		funkin.backend.LegacyClasses.registerProxies();
-		crowplexus.iris.Iris.addProxyImport('flixel.FlxCamera', funkin.backend.PsychCamera);
-		#if mobile
-		crowplexus.iris.Iris.addProxyImport('mobile.TouchInput', funkin.mobile.input.TouchInput);
-		crowplexus.iris.Iris.addProxyImport('mobile.VirtualPad', funkin.mobile.controls.VirtualPad);
-		crowplexus.iris.Iris.addProxyImport('mobile.MobileButton', funkin.mobile.controls.MobileButton);
-		crowplexus.iris.Iris.addProxyImport('mobile.Hitbox', funkin.mobile.controls.Hitbox);
-		crowplexus.iris.Iris.addProxyImport('mobile.StorageUtil', funkin.mobile.storage.StorageUtil);
-		#end
 		set('FlxCamera', funkin.backend.PsychCamera);
 		set('PsychCamera', funkin.backend.PsychCamera);
 		set('FlxTimer', flixel.util.FlxTimer);
@@ -200,7 +315,6 @@ class HScript extends Iris
 		set('FlxAnimate', FlxAnimate);
 		#end
 
-		// Functions & Variables
 		set('setVar', function(name:String, value:Dynamic) {
 			MusicBeatState.getVariables().set(name, value);
 			return value;
@@ -228,7 +342,7 @@ class HScript extends Iris
 			{
 				if(this.modFolder == null)
 				{
-					Iris.error('getModSetting: Argument #2 is null and script is not inside a packed Mod folder!', this.interp.posInfos());
+					error('getModSetting: Argument #2 is null and script is not inside a packed Mod folder!', posInfos());
 					return null;
 				}
 				modName = this.modFolder;
@@ -236,7 +350,6 @@ class HScript extends Iris
 			return LuaUtils.getModSetting(saveTag, modName);
 		});
 
-		// Keyboard & Gamepads
 		set('keyboardJustPressed', function(name:String) return Reflect.getProperty(FlxG.keys.justPressed, name));
 		set('keyboardPressed', function(name:String) return Reflect.getProperty(FlxG.keys.pressed, name));
 		set('keyboardReleased', function(name:String) return Reflect.getProperty(FlxG.keys.justReleased, name));
@@ -315,8 +428,6 @@ class HScript extends Iris
 			return false;
 		});
 
-		// For adding your own callbacks
-		// not very tested but should work
 		#if LUA_ALLOWED
 		set('createGlobalCallback', function(name:String, func:Dynamic)
 		{
@@ -327,27 +438,35 @@ class HScript extends Iris
 			FunkinLua.customFunctions.set(name, func);
 		});
 
-		// this one was tested
 		set('createCallback', function(name:String, func:Dynamic, ?funk:FunkinLua = null)
 		{
 			if(funk == null) funk = parentLua;
 			
 			if(funk != null) funk.addLocalCallback(name, func);
-			else Iris.error('createCallback ($name): 3rd argument is null', this.interp.posInfos());
+			else error('createCallback ($name): 3rd argument is null', posInfos());
 		});
 		#end
 
 		set('addHaxeLibrary', function(libName:String, ?libPackage:String = '') {
-			try {
-				var str:String = '';
-				if(libPackage.length > 0)
-					str = libPackage + '.';
-
-				set(libName, funkin.backend.LegacyClasses.resolveClass(str + libName));
+			var path:String = (libPackage != null && libPackage.length > 0) ? libPackage + '.' + libName : libName;
+			var value:Dynamic = ScriptImports.resolve(path);
+			if (value == null)
+			{
+				error('addHaxeLibrary: Could not find $path', posInfos());
+				return;
 			}
-			catch (e:IrisError) {
-				Iris.error(Printer.errorToString(e, false), this.interp.posInfos());
-			}
+			set(libName, value);
+		});
+		set('importClass', function(path:String, ?alias:String) return interp.importPath(path, alias));
+		set('addImportProxy', function(path:String, value:Dynamic) ScriptImports.addProxy(path, value));
+		set('getScript', function(path:String) return instances.get(path));
+		set('callOnScripts', function(funcName:String, ?args:Array<Dynamic>) {
+			if (PlayState.instance == null) return null;
+			return PlayState.instance.callOnScripts(funcName, args);
+		});
+		set('setOnScripts', function(name:String, value:Dynamic) {
+			if (PlayState.instance != null) PlayState.instance.setOnScripts(name, value);
+			return value;
 		});
 		#if LUA_ALLOWED
 		set('parentLua', parentLua);
@@ -364,148 +483,177 @@ class HScript extends Iris
 
 		set('Function_Stop', LuaUtils.Function_Stop);
 		set('Function_Continue', LuaUtils.Function_Continue);
-		set('Function_StopLua', LuaUtils.Function_StopLua); //doesnt do much cuz HScript has a lower priority than Lua
+		set('Function_StopLua', LuaUtils.Function_StopLua);
 		set('Function_StopHScript', LuaUtils.Function_StopHScript);
 		set('Function_StopAll', LuaUtils.Function_StopAll);
 	}
 
+	function set_varsToBring(values:Any):Any
+	{
+		if (varsToBring != null)
+			for (key in Reflect.fields(varsToBring))
+				remove(key.trim());
+
+		if (values != null)
+			for (key in Reflect.fields(values))
+				set(key.trim(), Reflect.field(values, key));
+
+		return varsToBring = values;
+	}
+
+	function toScriptError<T>(run:Void->T):T
+	{
+		try
+		{
+			return run();
+		}
+		catch (e:ScriptError)
+		{
+			throw e;
+		}
+		catch (e:Dynamic)
+		{
+			var pos:haxe.PosInfos = interp != null ? interp.posInfos() : null;
+			#if hscriptPos
+			throw new ScriptError(ECustom(Std.string(e)), 0, 0, pos != null ? pos.fileName : scriptName, pos != null ? pos.lineNumber : 0);
+			#else
+			throw ECustom(Std.string(e));
+			#end
+		}
+	}
+
+	public static function errorMessage(e:ScriptError):String
+	{
+		return switch (#if hscriptPos e.e #else e #end)
+		{
+			case EInvalidChar(c): 'Invalid character: \'' + (StringTools.isEof(c) ? 'EOF' : String.fromCharCode(c)) + '\' ($c)';
+			case EUnexpected(s): 'Unexpected token: "$s"';
+			case EUnterminatedString: 'Unterminated string';
+			case EUnterminatedComment: 'Unterminated comment';
+			case EInvalidPreprocessor(msg): 'Invalid preprocessor ($msg)';
+			case EUnknownVariable(v): 'Unknown variable: $v';
+			case EInvalidIterator(v): 'Invalid iterator: $v';
+			case EInvalidOp(op): 'Invalid operator: $op';
+			case EInvalidAccess(f): 'Invalid access to field $f';
+			case ECustom(msg): msg;
+		}
+	}
+
+	public static function errorPos(e:ScriptError, ?funcName:String):HScriptInfos
+	{
+		#if hscriptPos
+		var pos:HScriptInfos = cast {fileName: e.origin, lineNumber: e.line, className: '', methodName: ''};
+		#else
+		var pos:HScriptInfos = cast {fileName: 'hscript', lineNumber: 0, className: '', methodName: ''};
+		#end
+		if (funcName != null) pos.funcName = funcName;
+		return pos;
+	}
+
+	public static function reportError(e:ScriptError, ?file:String)
+	{
+		var pos:HScriptInfos = errorPos(e);
+		if (file != null && (pos.fileName == null || pos.fileName == 'hscript')) pos.fileName = file;
+		error(errorMessage(e), pos);
+	}
+
+	public static function warn(message:String, ?pos:HScriptInfos)
+		report('WARNING', FlxColor.YELLOW, message, pos);
+
+	public static function error(message:String, ?pos:HScriptInfos)
+		report('ERROR', FlxColor.RED, message, pos);
+
+	public static function fatal(message:String, ?pos:HScriptInfos)
+		report('FATAL', 0xFFBB0000, message, pos);
+
+	static function report(level:String, color:FlxColor, message:String, ?pos:HScriptInfos)
+	{
+		var info:String = '';
+		if (pos != null)
+		{
+			var showLine:Bool = pos.showLine != false;
+			if (pos.funcName != null) info += '(${pos.funcName}) - ';
+			info += '${pos.fileName}:';
+			#if LUA_ALLOWED
+			if (pos.isLua == true)
+			{
+				info += 'HScript:';
+				showLine = false;
+			}
+			#end
+			if (showLine) info += '${pos.lineNumber}:';
+			info += ' ';
+		}
+		var text:String = '$level: $info$message';
+		#if sys
+		Sys.println(text);
+		#end
+		if (PlayState.instance != null)
+			PlayState.instance.addTextToDebug(text, color);
+	}
+
 	#if LUA_ALLOWED
-	public static function implement(funk:FunkinLua) {
+	public static function implement(funk:FunkinLua)
+	{
 		funk.addLocalCallback("runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null):Dynamic {
 			initHaxeModuleCode(funk, codeToRun, varsToBring);
 			if (funk.hscript != null)
 			{
-				final retVal:IrisCall = funk.hscript.call(funcToRun, funcArgs);
-				if (retVal != null)
+				if (funcToRun != null)
 				{
-					return (LuaUtils.isLuaSupported(retVal.returnValue)) ? retVal.returnValue : null;
+					var retVal:HScriptCall = funk.hscript.call(funcToRun, funcArgs);
+					if (retVal != null)
+						return LuaUtils.isLuaSupported(retVal.returnValue) ? retVal.returnValue : null;
 				}
 				else if (funk.hscript.returnValue != null)
 				{
-					return funk.hscript.returnValue;
+					return LuaUtils.isLuaSupported(funk.hscript.returnValue) ? funk.hscript.returnValue : null;
 				}
 			}
 			return null;
 		});
-		
+
 		funk.addLocalCallback("runHaxeFunction", function(funcToRun:String, ?funcArgs:Array<Dynamic> = null) {
 			if (funk.hscript != null)
 			{
-				final retVal:IrisCall = funk.hscript.call(funcToRun, funcArgs);
+				var retVal:HScriptCall = funk.hscript.call(funcToRun, funcArgs);
 				if (retVal != null)
-				{
-					return (LuaUtils.isLuaSupported(retVal.returnValue)) ? retVal.returnValue : null;
-				}
+					return LuaUtils.isLuaSupported(retVal.returnValue) ? retVal.returnValue : null;
 			}
 			else
 			{
 				var pos:HScriptInfos = cast {fileName: funk.scriptName, showLine: false};
 				if (funk.lastCalledFunction != '') pos.funcName = funk.lastCalledFunction;
-				Iris.error("runHaxeFunction: HScript has not been initialized yet! Use \"runHaxeCode\" to initialize it", pos);
+				error("runHaxeFunction: HScript has not been initialized yet! Use \"runHaxeCode\" to initialize it", pos);
 			}
 			return null;
 		});
-		// This function is unnecessary because import already exists in HScript as a native feature
-		funk.addLocalCallback("addHaxeLibrary", function(libName:String, ?libPackage:String = '') {
-			var str:String = '';
-			if (libPackage.length > 0)
-				str = libPackage + '.';
-			else if (libName == null)
-				libName = '';
 
-			var c:Dynamic = funkin.backend.LegacyClasses.resolveClass(str + libName);
-			if (c == null)
-				c = funkin.backend.LegacyClasses.resolveEnum(str + libName);
+		funk.addLocalCallback("addHaxeLibrary", function(libName:String, ?libPackage:String = '') {
+			if (libName == null) libName = '';
+			var path:String = (libPackage != null && libPackage.length > 0) ? libPackage + '.' + libName : libName;
+			var value:Dynamic = ScriptImports.resolve(path);
 
 			if (funk.hscript == null)
 				initHaxeModule(funk);
 
-			var pos:HScriptInfos = cast funk.hscript.interp.posInfos();
+			var pos:HScriptInfos = funk.hscript.posInfos();
 			pos.showLine = false;
-			if (funk.lastCalledFunction != '')
-				 pos.funcName = funk.lastCalledFunction;
+			if (funk.lastCalledFunction != '') pos.funcName = funk.lastCalledFunction;
 
-			try {
-				if (c != null)
-					funk.hscript.set(libName, c);
-			}
-			catch (e:IrisError) {
-				Iris.error(Printer.errorToString(e, false), pos);
-			}
+			if (value != null) funk.hscript.set(libName, value);
+			else error('addHaxeLibrary: Could not find $path', pos);
+
 			FunkinLua.lastCalledScript = funk;
 			if (FunkinLua.getBool('luaDebugMode') && FunkinLua.getBool('luaDeprecatedWarnings'))
-				Iris.warn("addHaxeLibrary is deprecated! Import classes through \"import\" in HScript!", pos);
+				warn("addHaxeLibrary is deprecated! Import classes through \"import\" in HScript!", pos);
 		});
 	}
 	#end
-
-	override function call(funcToRun:String, ?args:Array<Dynamic>):IrisCall {
-		if (funcToRun == null || interp == null) return null;
-
-		if (!exists(funcToRun)) {
-			Iris.error('No function named: $funcToRun', this.interp.posInfos());
-			return null;
-		}
-
-		try {
-			var func:Dynamic = interp.variables.get(funcToRun); // function signature
-			final ret = Reflect.callMethod(null, func, args ?? []);
-			return {funName: funcToRun, signature: func, returnValue: ret};
-		}
-		catch(e:IrisError) {
-			var pos:HScriptInfos = cast this.interp.posInfos();
-			pos.funcName = funcToRun;
-			#if LUA_ALLOWED
-			if (parentLua != null)
-			{
-				pos.isLua = true;
-				if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
-			}
-			#end
-			Iris.error(Printer.errorToString(e, false), pos);
-		}
-		catch (e:ValueException) {
-			var pos:HScriptInfos = cast this.interp.posInfos();
-			pos.funcName = funcToRun;
-			#if LUA_ALLOWED
-			if (parentLua != null)
-			{
-				pos.isLua = true;
-				if (parentLua.lastCalledFunction != '') pos.funcName = parentLua.lastCalledFunction;
-			}
-			#end
-			Iris.error('$e', pos);
-		}
-		return null;
-	}
-
-	override public function destroy()
-	{
-		origin = null;
-		#if LUA_ALLOWED parentLua = null; #end
-		super.destroy();
-	}
-
-	function set_varsToBring(values:Any) {
-		if (varsToBring != null)
-			for (key in Reflect.fields(varsToBring))
-				if (exists(key.trim()))
-					interp.variables.remove(key.trim());
-
-		if (values != null)
-		{
-			for (key in Reflect.fields(values))
-			{
-				key = key.trim();
-				set(key, Reflect.field(values, key));
-			}
-		}
-
-		return varsToBring = values;
-	}
 }
 
-class CustomFlxColor {
+class CustomFlxColor
+{
 	public static var TRANSPARENT(default, null):Int = FlxColor.TRANSPARENT;
 	public static var BLACK(default, null):Int = FlxColor.BLACK;
 	public static var WHITE(default, null):Int = FlxColor.WHITE;
@@ -544,76 +692,12 @@ class CustomFlxColor {
 	public static function fromString(str:String):Int
 		return cast FlxColor.fromString(str);
 }
-
-class CustomInterp extends crowplexus.hscript.Interp
-{
-	public var parentInstance(default, set):Dynamic = [];
-	private var _instanceFields:Array<String>;
-	function set_parentInstance(inst:Dynamic):Dynamic
-	{
-		parentInstance = inst;
-		if(parentInstance == null)
-		{
-			_instanceFields = [];
-			return inst;
-		}
-		_instanceFields = Type.getInstanceFields(Type.getClass(inst));
-		return inst;
-	}
-
-	public function new()
-	{
-		super();
-	}
-
-	override function fcall(o:Dynamic, funcToRun:String, args:Array<Dynamic>):Dynamic {
-		for (_using in usings) {
-			var v = _using.call(o, funcToRun, args);
-			if (v != null)
-				return v;
-		}
-
-		var f = get(o, funcToRun);
-
-		if (f == null) {
-			Iris.error('Tried to call null function $funcToRun', posInfos());
-			return null;
-		}
-
-		return Reflect.callMethod(o, f, args);
-	}
-
-	override function resolve(id: String): Dynamic {
-		if (locals.exists(id)) {
-			var l = locals.get(id);
-			return l.r;
-		}
-
-		if (variables.exists(id)) {
-			var v = variables.get(id);
-			return v;
-		}
-
-		if (imports.exists(id)) {
-			var v = imports.get(id);
-			return v;
-		}
-
-		if(parentInstance != null && _instanceFields.contains(id)) {
-			var v = Reflect.getProperty(parentInstance, id);
-			return v;
-		}
-
-		error(EUnknownVariable(id));
-
-		return null;
-	}
-}
 #else
 class HScript
 {
 	#if LUA_ALLOWED
-	public static function implement(funk:FunkinLua) {
+	public static function implement(funk:FunkinLua)
+	{
 		funk.addLocalCallback("runHaxeCode", function(codeToRun:String, ?varsToBring:Any = null, ?funcToRun:String = null, ?funcArgs:Array<Dynamic> = null):Dynamic {
 			PlayState.instance.addTextToDebug('HScript is not supported on this platform!', FlxColor.RED);
 			return null;

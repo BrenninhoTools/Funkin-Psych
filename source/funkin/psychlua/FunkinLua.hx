@@ -362,11 +362,11 @@ class FunkinLua {
 			if(scriptPath != null)
 			{
 				var foundAny:Bool = false;
-				for (script in game.hscriptArray)
+				for (script in game.hscriptArray.copy())
 				{
 					if(script.origin == scriptPath)
 					{
-						trace('Closing hscript $scriptPath');
+						if(script.exists('onDestroy')) script.call('onDestroy');
 						script.destroy();
 						foundAny = true;
 					}

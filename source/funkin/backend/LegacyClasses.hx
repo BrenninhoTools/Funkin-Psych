@@ -110,7 +110,6 @@ class LegacyClasses
 		'options.VisualsSettingsSubState' => 'funkin.options.VisualsSettingsSubState',
 		'psychlua.CallbackHandler' => 'funkin.psychlua.CallbackHandler',
 		'psychlua.CustomFlxColor' => 'funkin.psychlua.CustomFlxColor',
-		'psychlua.CustomInterp' => 'funkin.psychlua.CustomInterp',
 		'psychlua.CustomSubstate' => 'funkin.psychlua.CustomSubstate',
 		'psychlua.DebugLuaText' => 'funkin.psychlua.DebugLuaText',
 		'psychlua.DeprecatedFunctions' => 'funkin.psychlua.DeprecatedFunctions',
@@ -214,8 +213,6 @@ class LegacyClasses
 		'substates.ResetScoreSubState' => 'funkin.substates.ResetScoreSubState'
 	];
 
-	static var proxiesRegistered:Bool = false;
-
 	public static function resolveClass(name:String):Class<Dynamic>
 	{
 		if (name == null) return null;
@@ -231,19 +228,4 @@ class LegacyClasses
 		if (en == null && PATHS.exists(name)) en = Type.resolveEnum(PATHS.get(name));
 		return en;
 	}
-
-	#if HSCRIPT_ALLOWED
-	public static function registerProxies()
-	{
-		if (proxiesRegistered) return;
-		proxiesRegistered = true;
-		for (oldPath => newPath in PATHS)
-		{
-			if (crowplexus.iris.Iris.proxyImports.exists(oldPath)) continue;
-			var value:Dynamic = Type.resolveClass(newPath);
-			if (value == null) value = Type.resolveEnum(newPath);
-			if (value != null) crowplexus.iris.Iris.addProxyImport(oldPath, value);
-		}
-	}
-	#end
 }

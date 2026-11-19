@@ -25,9 +25,7 @@ import funkin.objects.NoteSplash;
 
 #if HSCRIPT_ALLOWED
 import funkin.psychlua.HScript;
-import crowplexus.iris.Iris;
-import crowplexus.hscript.Expr.Error as IrisError;
-import crowplexus.hscript.Printer;
+import funkin.psychlua.HScript.ScriptError;
 #end
 
 #if cpp
@@ -122,7 +120,6 @@ class LoadingState extends MusicBeatState
 					if(hscript.exists('onCreate'))
 					{
 						hscript.call('onCreate');
-						trace('initialized hscript interp successfully: $scriptPath');
 						return super.create();
 					}
 					else
@@ -130,11 +127,9 @@ class LoadingState extends MusicBeatState
 						trace('"$scriptPath" contains no \"onCreate" function, stopping script.');
 					}
 				}
-				catch(e:IrisError)
+				catch(e:ScriptError)
 				{
-					var pos:HScriptInfos = cast {fileName: scriptPath, showLine: false};
-					Iris.error(Printer.errorToString(e, false), pos);
-					var hscript:HScript = cast (Iris.instances.get(scriptPath), HScript);
+					HScript.reportError(e, scriptPath);
 				}
 				if(hscript != null) hscript.destroy();
 				hscript = null;
