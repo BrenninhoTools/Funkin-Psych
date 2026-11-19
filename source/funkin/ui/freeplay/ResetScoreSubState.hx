@@ -4,7 +4,7 @@ import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 
 import flixel.FlxSubState;
-import funkin.objects.HealthIcon;
+import funkin.play.components.HealthIcon;
 
 class ResetScoreSubState extends MusicBeatSubstate
 {

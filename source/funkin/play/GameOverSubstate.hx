@@ -2,7 +2,7 @@ package funkin.play;
 
 import funkin.backend.WeekData;
 
-import funkin.objects.Character;
+import funkin.play.character.Character;
 import flixel.FlxObject;
 import flixel.FlxSubState;
 import flixel.math.FlxPoint;

@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.graphics.video;
 
 import flixel.addons.display.FlxPieDial;
 

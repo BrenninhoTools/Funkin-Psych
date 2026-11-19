@@ -15,9 +15,9 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.utils.Assets;
 
-import funkin.objects.Character;
-import funkin.objects.HealthIcon;
-import funkin.objects.Bar;
+import funkin.play.character.Character;
+import funkin.play.components.HealthIcon;
+import funkin.ui.components.Bar;
 
 import funkin.ui.debug.content.Prompt;
 import funkin.ui.debug.content.PsychJsonPrinter;

@@ -38,8 +38,8 @@ import funkin.backend.Language;
 
 import funkin.backend.ui.*; //Psych-UI
 
-import funkin.objects.Alphabet;
-import funkin.objects.BGSprite;
+import funkin.ui.text.Alphabet;
+import funkin.graphics.BGSprite;
 
 import funkin.play.PlayState;
 import funkin.ui.transition.LoadingState;

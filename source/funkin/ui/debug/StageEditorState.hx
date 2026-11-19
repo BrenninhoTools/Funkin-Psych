@@ -2,7 +2,7 @@ package funkin.ui.debug;
 
 import funkin.backend.StageData;
 import funkin.backend.PsychCamera;
-import funkin.objects.Character;
+import funkin.play.character.Character;
 import funkin.scripting.luascript.LuaUtils;
 
 import flixel.FlxObject;

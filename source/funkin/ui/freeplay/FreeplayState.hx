@@ -9,8 +9,8 @@ import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 import funkin.backend.Song;
 
-import funkin.objects.HealthIcon;
-import funkin.objects.MusicPlayer;
+import funkin.play.components.HealthIcon;
+import funkin.ui.freeplay.MusicPlayer;
 
 import funkin.ui.options.GameplayChangersSubstate;
 import funkin.ui.freeplay.ResetScoreSubState;
@@ -596,7 +596,7 @@ class FreeplayState extends MusicBeatState
 	{
 		try
 		{
-			var character:funkin.objects.Character.CharacterFile = funkin.data.character.CharacterParser.load(char);
+			var character:funkin.play.character.Character.CharacterFile = funkin.data.character.CharacterParser.load(char);
 			return character != null ? character.vocals_file : null;
 		}
 		catch (e:Dynamic) {}

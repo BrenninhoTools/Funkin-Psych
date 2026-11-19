@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.ui.options;
 
 class CheckboxThingie extends FlxSprite
 {

@@ -31,10 +31,10 @@ import funkin.backend.StageData;
 import funkin.backend.Highscore;
 import funkin.backend.Difficulty;
 
-import funkin.objects.Character;
-import funkin.objects.HealthIcon;
-import funkin.objects.Note;
-import funkin.objects.StrumNote;
+import funkin.play.character.Character;
+import funkin.play.components.HealthIcon;
+import funkin.play.notes.Note;
+import funkin.play.notes.StrumNote;
 
 using DateTools;
 

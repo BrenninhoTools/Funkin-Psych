@@ -4,7 +4,7 @@ import funkin.ui.transition.LoadingState;
 
 import funkin.backend.WeekData;
 
-import funkin.objects.Character;
+import funkin.play.character.Character;
 
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.freeplay.FreeplayState;

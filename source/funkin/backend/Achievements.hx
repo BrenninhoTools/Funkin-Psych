@@ -1,7 +1,7 @@
 package funkin.backend;
 
 #if ACHIEVEMENTS_ALLOWED
-import funkin.objects.AchievementPopup;
+import funkin.ui.achievements.AchievementPopup;
 import haxe.Exception;
 import haxe.Json;
 
@@ -176,7 +176,7 @@ class Achievements {
 	inline public static function isUnlocked(name:String)
 		return achievementsUnlocked.contains(name);
 
-	@:allow(funkin.objects.AchievementPopup)
+	@:allow(funkin.ui.achievements.AchievementPopup)
 	private static var _popups:Array<AchievementPopup> = [];
 
 	public static var showingPopups(get, never):Bool;

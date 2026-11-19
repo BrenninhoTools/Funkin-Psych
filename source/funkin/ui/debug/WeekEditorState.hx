@@ -14,9 +14,9 @@ import flash.net.FileFilter;
 import lime.system.Clipboard;
 import haxe.Json;
 
-import funkin.objects.HealthIcon;
-import funkin.objects.MenuCharacter;
-import funkin.objects.MenuItem;
+import funkin.play.components.HealthIcon;
+import funkin.ui.story.MenuCharacter;
+import funkin.ui.story.MenuItem;
 
 import funkin.ui.debug.MasterEditorMenu;
 import funkin.ui.debug.content.Prompt;

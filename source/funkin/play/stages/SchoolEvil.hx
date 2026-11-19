@@ -60,7 +60,7 @@ class SchoolEvil extends BaseStage
 				}
 		}
 	}
-	override function eventPushed(event:funkin.objects.Note.EventNote)
+	override function eventPushed(event:funkin.play.notes.Note.EventNote)
 	{
 		// used for preloading assets used on events
 		switch(event.event)

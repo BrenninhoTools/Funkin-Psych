@@ -3,7 +3,7 @@ package funkin.backend;
 import haxe.Json;
 import lime.utils.Assets;
 
-import funkin.objects.Note;
+import funkin.play.notes.Note;
 
 typedef SwagSong =
 {

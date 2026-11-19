@@ -1,9 +1,9 @@
 package funkin.ui.options;
 
-import funkin.objects.Note;
-import funkin.objects.StrumNote;
-import funkin.objects.NoteSplash;
-import funkin.objects.Alphabet;
+import funkin.play.notes.Note;
+import funkin.play.notes.StrumNote;
+import funkin.play.notes.NoteSplash;
+import funkin.ui.text.Alphabet;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {

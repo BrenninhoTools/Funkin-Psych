@@ -1,5 +1,5 @@
 import funkin.backend.BaseStage;
-import funkin.objects.BGSprite;
+import funkin.graphics.BGSprite;
 
 class ExampleStage extends BaseStage
 {

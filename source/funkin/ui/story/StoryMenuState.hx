@@ -12,8 +12,8 @@ import funkin.backend.Song;
 import flixel.group.FlxGroup;
 import flixel.graphics.FlxGraphic;
 
-import funkin.objects.MenuItem;
-import funkin.objects.MenuCharacter;
+import funkin.ui.story.MenuItem;
+import funkin.ui.story.MenuCharacter;
 
 import funkin.ui.options.GameplayChangersSubstate;
 import funkin.ui.freeplay.ResetScoreSubState;

@@ -1,7 +1,7 @@
 package funkin.scripting.luascript;
 
 import funkin.backend.WeekData;
-import funkin.objects.Character;
+import funkin.play.character.Character;
 import funkin.backend.StageData;
 
 import openfl.display.BlendMode;

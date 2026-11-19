@@ -5,9 +5,9 @@ import funkin.play.PlayState;
 import funkin.backend.Song;
 import funkin.backend.Rating;
 
-import funkin.objects.Note;
-import funkin.objects.NoteSplash;
-import funkin.objects.StrumNote;
+import funkin.play.notes.Note;
+import funkin.play.notes.NoteSplash;
+import funkin.play.notes.StrumNote;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;

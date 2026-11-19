@@ -1,7 +1,7 @@
 package funkin.scripting.hscript;
 
 import flixel.FlxBasic;
-import funkin.objects.Character;
+import funkin.play.character.Character;
 import funkin.scripting.luascript.LuaUtils;
 import funkin.scripting.luascript.CustomSubstate;
 
@@ -297,7 +297,7 @@ class HScript
 		#end
 		set('Character', Character);
 		set('Alphabet', Alphabet);
-		set('Note', funkin.objects.Note);
+		set('Note', funkin.play.notes.Note);
 		set('CustomSubstate', CustomSubstate);
 		#if (!flash && sys)
 		set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);

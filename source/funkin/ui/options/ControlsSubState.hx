@@ -3,7 +3,7 @@ package funkin.ui.options;
 import funkin.backend.InputFormatter;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
-import funkin.objects.AttachedSprite;
+import funkin.graphics.AttachedSprite;
 
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepad;

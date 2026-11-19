@@ -3,7 +3,7 @@ package funkin.play.cutscenes;
 import haxe.Json;
 import openfl.utils.Assets;
 
-import funkin.objects.TypedAlphabet;
+import funkin.ui.text.TypedAlphabet;
 import funkin.play.cutscenes.DialogueCharacter;
 
 typedef DialogueFile = {

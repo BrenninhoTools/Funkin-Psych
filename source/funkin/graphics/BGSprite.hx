@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.graphics;
 
 class BGSprite extends FlxSprite
 {

@@ -10,7 +10,7 @@ import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 import haxe.Json;
 
-import funkin.objects.MenuCharacter;
+import funkin.ui.story.MenuCharacter;
 
 import funkin.ui.debug.content.Prompt;
 import funkin.ui.debug.content.PsychJsonPrinter;

@@ -18,10 +18,10 @@ import flixel.addons.display.FlxRuntimeShader;
 
 import funkin.play.cutscenes.DialogueBoxPsych;
 
-import funkin.objects.StrumNote;
-import funkin.objects.Note;
-import funkin.objects.NoteSplash;
-import funkin.objects.Character;
+import funkin.play.notes.StrumNote;
+import funkin.play.notes.Note;
+import funkin.play.notes.NoteSplash;
+import funkin.play.character.Character;
 
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.story.StoryMenuState;

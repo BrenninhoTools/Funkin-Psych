@@ -5,8 +5,8 @@ import flixel.input.gamepad.FlxGamepad;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.gamepad.FlxGamepadManager;
 
-import funkin.objects.CheckboxThingie;
-import funkin.objects.AttachedText;
+import funkin.ui.options.CheckboxThingie;
+import funkin.ui.text.AttachedText;
 import funkin.ui.options.Option;
 import funkin.backend.InputFormatter;
 

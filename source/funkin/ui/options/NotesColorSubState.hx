@@ -9,8 +9,8 @@ import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 import lime.system.Clipboard;
 import flixel.util.FlxGradient;
-import funkin.objects.StrumNote;
-import funkin.objects.Note;
+import funkin.play.notes.StrumNote;
+import funkin.play.notes.Note;
 
 import funkin.shaders.RGBPalette;
 import funkin.shaders.RGBPalette.RGBShaderReference;

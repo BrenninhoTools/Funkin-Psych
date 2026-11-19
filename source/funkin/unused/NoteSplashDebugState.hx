@@ -1,8 +1,8 @@
 package funkin.unused;
 
-import funkin.objects.Note;
-import funkin.objects.StrumNote;
-import funkin.objects.NoteSplash;
+import funkin.play.notes.Note;
+import funkin.play.notes.StrumNote;
+import funkin.play.notes.NoteSplash;
 
 class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {

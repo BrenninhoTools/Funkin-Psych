@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.ui.components;
 
 import flixel.math.FlxRect;
 

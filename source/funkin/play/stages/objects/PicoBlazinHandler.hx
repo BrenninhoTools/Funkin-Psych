@@ -2,8 +2,8 @@ package funkin.play.stages.objects;
 
 import funkin.play.PlayState;
 
-import funkin.objects.Note;
-import funkin.objects.Character;
+import funkin.play.notes.Note;
+import funkin.play.character.Character;
 
 // Pico Note functions
 class PicoBlazinHandler

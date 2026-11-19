@@ -13,7 +13,7 @@ import flash.geom.Rectangle;
 import haxe.Json;
 
 import flixel.util.FlxSpriteUtil;
-import funkin.objects.AttachedSprite;
+import funkin.graphics.AttachedSprite;
 import funkin.ui.options.ModSettingsSubState;
 
 import openfl.display.BitmapData;

@@ -3,8 +3,8 @@ package funkin.data.character;
 import funkin.data.DataUtil;
 import openfl.utils.AssetType;
 import funkin.graphics.FrameLoader;
-import funkin.objects.Character.CharacterFile;
-import funkin.objects.Character.AnimArray;
+import funkin.play.character.Character.CharacterFile;
+import funkin.play.character.Character.AnimArray;
 
 class CharacterParser
 {

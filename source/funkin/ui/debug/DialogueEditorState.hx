@@ -10,7 +10,7 @@ import openfl.events.IOErrorEvent;
 import flash.net.FileFilter;
 import haxe.Json;
 
-import funkin.objects.TypedAlphabet;
+import funkin.ui.text.TypedAlphabet;
 
 import funkin.play.cutscenes.DialogueBoxPsych;
 import funkin.play.cutscenes.DialogueCharacter;

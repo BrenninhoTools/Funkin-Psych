@@ -17,13 +17,13 @@ import flash.media.Sound;
 
 import funkin.backend.Song;
 import funkin.backend.StageData;
-import funkin.objects.Character;
+import funkin.play.character.Character;
 
 import sys.thread.Thread;
 import sys.thread.Mutex;
 
-import funkin.objects.Note;
-import funkin.objects.NoteSplash;
+import funkin.play.notes.Note;
+import funkin.play.notes.NoteSplash;
 
 #if HSCRIPT_ALLOWED
 import funkin.scripting.hscript.HScript;
@@ -724,7 +724,7 @@ class LoadingState extends MusicBeatState
 	{
 		try
 		{
-			var character:funkin.objects.Character.CharacterFile = funkin.data.character.CharacterParser.load(char);
+			var character:funkin.play.character.Character.CharacterFile = funkin.data.character.CharacterParser.load(char);
 			if (character == null) return;
 
 			var img:String = funkin.graphics.FrameLoader.joinImages(character.image);

@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.ui.text;
 
 class AttachedText extends Alphabet
 {

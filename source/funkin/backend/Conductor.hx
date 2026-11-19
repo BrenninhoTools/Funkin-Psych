@@ -1,7 +1,7 @@
 package funkin.backend;
 
 import funkin.backend.Song;
-import funkin.objects.Note;
+import funkin.play.notes.Note;
 
 typedef BPMChangeEvent =
 {

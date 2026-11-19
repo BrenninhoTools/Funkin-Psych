@@ -1,7 +1,7 @@
 package funkin.ui.options;
 
-import funkin.objects.AttachedText;
-import funkin.objects.CheckboxThingie;
+import funkin.ui.text.AttachedText;
+import funkin.ui.options.CheckboxThingie;
 
 import funkin.ui.options.Option.OptionType;
 

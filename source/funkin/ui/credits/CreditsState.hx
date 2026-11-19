@@ -2,7 +2,7 @@ package funkin.ui.credits;
 
 import funkin.ui.mainmenu.MainMenuState;
 
-import funkin.objects.AttachedSprite;
+import funkin.graphics.AttachedSprite;
 
 class CreditsState extends MusicBeatState
 {

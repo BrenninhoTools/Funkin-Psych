@@ -3,7 +3,7 @@ package funkin.ui.debug.content;
 import funkin.play.PlayState;
 import funkin.ui.debug.ChartingState;
 
-import funkin.objects.Note;
+import funkin.play.notes.Note;
 import funkin.shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
 

@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.play.notes;
 
 import funkin.backend.animation.PsychAnimationController;
 import funkin.backend.NoteTypesConfig;
@@ -6,7 +6,7 @@ import funkin.backend.NoteTypesConfig;
 import funkin.shaders.RGBPalette;
 import funkin.shaders.RGBPalette.RGBShaderReference;
 
-import funkin.objects.StrumNote;
+import funkin.play.notes.StrumNote;
 
 import flixel.math.FlxRect;
 

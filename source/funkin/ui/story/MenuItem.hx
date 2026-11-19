@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.ui.story;
 
 class MenuItem extends FlxSprite
 {

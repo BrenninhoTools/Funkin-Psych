@@ -3,7 +3,7 @@ package funkin.play.stages;
 import funkin.play.stages.objects.*;
 import funkin.play.cutscenes.CutsceneHandler;
 import funkin.play.GameOverSubstate;
-import funkin.objects.Character;
+import funkin.play.character.Character;
 
 class Tank extends BaseStage
 {

@@ -11,7 +11,7 @@ import flash.net.FileFilter;
 import haxe.Json;
 import lime.system.Clipboard;
 
-import funkin.objects.TypedAlphabet;
+import funkin.ui.text.TypedAlphabet;
 
 import funkin.play.cutscenes.DialogueBoxPsych;
 import funkin.play.cutscenes.DialogueCharacter;

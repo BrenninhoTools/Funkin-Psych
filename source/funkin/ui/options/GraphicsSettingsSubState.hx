@@ -1,6 +1,6 @@
 package funkin.ui.options;
 
-import funkin.objects.Character;
+import funkin.play.character.Character;
 
 class GraphicsSettingsSubState extends BaseOptionsMenu
 {

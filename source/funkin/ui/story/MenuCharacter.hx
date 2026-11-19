@@ -1,4 +1,4 @@
-package funkin.objects;
+package funkin.ui.story;
 
 import openfl.utils.Assets;
 import haxe.Json;

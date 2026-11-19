@@ -1,8 +1,8 @@
 package funkin.ui.options;
 
 import funkin.backend.StageData;
-import funkin.objects.Character;
-import funkin.objects.Bar;
+import funkin.play.character.Character;
+import funkin.ui.components.Bar;
 import flixel.addons.display.shapes.FlxShapeCircle;
 
 import funkin.play.stages.StageWeek1 as BackgroundStage;

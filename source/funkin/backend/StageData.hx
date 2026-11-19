@@ -156,7 +156,7 @@ class StageData {
 						
 						if(data.type == 'animatedSprite' && data.animations != null)
 						{
-							var anims:Array<funkin.objects.Character.AnimArray> = cast data.animations;
+							var anims:Array<funkin.play.character.Character.AnimArray> = cast data.animations;
 							for (key => anim in anims)
 							{
 								funkin.graphics.FrameLoader.addAnimation(spr, anim.anim, anim.name, anim.indices, anim.fps, anim.loop, renderType);

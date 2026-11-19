@@ -3,7 +3,7 @@ package funkin.ui.options;
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
 
-import funkin.objects.Character;
+import funkin.play.character.Character;
 
 import funkin.ui.options.Option.OptionType;
 

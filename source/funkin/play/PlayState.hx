@@ -37,9 +37,8 @@ import openfl.filters.ShaderFilter;
 
 import funkin.shaders.ErrorHandledShader;
 
-import funkin.objects.VideoSprite;
-import funkin.objects.Note.EventNote;
-import funkin.objects.*;
+import funkin.graphics.video.VideoSprite;
+import funkin.play.notes.Note.EventNote;
 import funkin.play.stages.*;
 import funkin.play.stages.objects.*;
 
@@ -52,6 +51,12 @@ import funkin.scripting.hscript.HScript;
 
 #if HSCRIPT_ALLOWED
 import funkin.scripting.hscript.HScript.ScriptError;
+import funkin.play.character.Character;
+import funkin.play.notes.Note;
+import funkin.play.notes.NoteSplash;
+import funkin.play.notes.StrumNote;
+import funkin.play.components.HealthIcon;
+import funkin.ui.components.Bar;
 #end
 
 /**

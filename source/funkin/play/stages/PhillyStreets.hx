@@ -11,7 +11,7 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.play.GameOverSubstate;
 import funkin.play.stages.objects.*;
 
-import funkin.objects.Note;
+import funkin.play.notes.Note;
 
 import funkin.play.cutscenes.CutsceneHandler;
 
