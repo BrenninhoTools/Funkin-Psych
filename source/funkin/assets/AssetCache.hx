@@ -11,7 +11,7 @@ class AssetCache
 	public static var graphics:Map<String, FlxGraphic> = [];
 	public static var sounds:Map<String, Sound> = [];
 	public static var localKeys:Array<String> = [];
-	public static var exclusions:Array<String> = ['assets/shared/music/freakyMenu.${Paths.SOUND_EXT}'];
+	public static var exclusions:Array<String> = ['assets/preload/music/freakyMenu.${Paths.SOUND_EXT}'];
 
 	public static function exclude(key:String)
 	{

@@ -20,6 +20,8 @@ class Paths
 	inline public static var SOUND_EXT = #if web "mp3" #else "ogg" #end;
 	inline public static var VIDEO_EXT = "mp4";
 	inline public static var IMAGE_EXT = "png";
+	inline public static var SHARED_FOLDER = "shared";
+	inline public static var PRELOAD_FOLDER = "preload";
 
 	public static var dumpExclusions(get, set):Array<String>;
 	public static var localTrackedAssets(get, set):Array<String>;
@@ -54,25 +56,52 @@ class Paths
 
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
 	{
+		var alias:Null<String> = AssetAliases.get(file);
+
 		#if MODS_ALLOWED
 		if (modsAllowed)
 		{
 			var modded:String = modFolders(parentfolder != null ? '$parentfolder/$file' : file);
 			if (FileSystem.exists(modded)) return modded;
+			if (alias != null && parentfolder == null)
+			{
+				var moddedAlias:String = modFolders(alias);
+				if (FileSystem.exists(moddedAlias)) return moddedAlias;
+			}
 		}
 		#end
 
 		if (parentfolder != null)
-			return getFolderPath(file, parentfolder);
-
-		if (currentLevel != null && currentLevel != 'shared')
 		{
-			var levelPath:String = getFolderPath(file, currentLevel);
-			if (assetExists(levelPath, type))
-				return levelPath;
+			var folderPath:String = getFolderPath(file, parentfolder);
+			if (alias != null && !assetExists(folderPath, type))
+			{
+				var aliasPath:String = getFolderPath(alias, parentfolder);
+				if (assetExists(aliasPath, type)) return aliasPath;
+			}
+			return folderPath;
+		}
+
+		var folders:Array<String> = [];
+		if (currentLevel != null && currentLevel != SHARED_FOLDER && currentLevel != PRELOAD_FOLDER) folders.push(currentLevel);
+		folders.push(SHARED_FOLDER);
+		folders.push(PRELOAD_FOLDER);
+
+		for (folder in folders)
+		{
+			var path:String = getFolderPath(file, folder);
+			if (assetExists(path, type)) return path;
+			if (alias != null)
+			{
+				var aliasPath:String = getFolderPath(alias, folder);
+				if (assetExists(aliasPath, type)) return aliasPath;
+			}
 		}
 		return getSharedPath(file);
 	}
+
+	inline public static function getPreloadPath(file:String = '')
+		return 'assets/$PRELOAD_FOLDER/$file';
 
 	inline static public function getFolderPath(file:String, folder = "shared")
 		return 'assets/$folder/$file';
