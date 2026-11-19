@@ -550,8 +550,9 @@ class LoadingState extends MusicBeatState
 					for (sprite in stageData.objects)
 					{
 						if(sprite.type == 'sprite' || sprite.type == 'animatedSprite')
-							if((sprite.filters < 0 || StageData.validateVisibility(sprite.filters)) && !imgs.contains(sprite.image))
-								imgs.push(sprite.image);
+							if(sprite.filters < 0 || StageData.validateVisibility(sprite.filters))
+								for (img in funkin.graphics.FrameLoader.splitImages(sprite.image))
+									if(!imgs.contains(img)) imgs.push(img);
 					}
 				}
 				prepare(imgs, snds, mscs);
@@ -719,24 +720,17 @@ class LoadingState extends MusicBeatState
 		});
 	}
 
-	inline private static function preloadCharacter(char:String, ?prefixVocals:String)
+	private static function preloadCharacter(char:String, ?prefixVocals:String)
 	{
 		try
 		{
-			var path:String = Paths.getPath('characters/$char.json', TEXT);
-			#if MODS_ALLOWED
-			var character:Dynamic = Json.parse(File.getContent(path));
-			#else
-			var character:Dynamic = Json.parse(Assets.getText(path));
-			#end
+			var character:funkin.objects.Character.CharacterFile = funkin.data.character.CharacterParser.load(char);
+			if (character == null) return;
 
+			var img:String = funkin.graphics.FrameLoader.joinImages(character.image);
 			var isAnimateAtlas:Bool = false;
-			var img:String = character.image;
-			img = img.trim();
 			#if flxanimate
-			var animToFind:String = Paths.getPath('images/$img/Animation.json', TEXT);
-			if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind))
-				isAnimateAtlas = true;
+			isAnimateAtlas = funkin.graphics.FrameLoader.isAnimateAtlas(img, character.render_type);
 			#end
 
 			if(!isAnimateAtlas)
@@ -771,10 +765,7 @@ class LoadingState extends MusicBeatState
 				if(char == PlayState.SONG.player1) dontPreloadDefaultVoices = true;
 			}
 		}
-		catch(e:haxe.Exception)
-		{
-			trace(e.details());
-		}
+		catch(e:haxe.Exception) {}
 	}
 
 	// thread safe sound loader

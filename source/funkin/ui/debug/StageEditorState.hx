@@ -370,10 +370,15 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				try
 				{
 					var fld:Dynamic = Reflect.getProperty(spr, field);
-					if(fld is Array)
+					if(fld is Array && field != 'animations')
 					{
 						var arr:Array<Dynamic> = fld;
-						arr = arr.copy();
+						fld = arr.copy();
+					}
+					else if(fld is Array)
+					{
+						var arr:Array<Dynamic> = fld;
+						fld = arr = arr.copy();
 						if(arr != null)
 						{
 							for (k => v in arr)
@@ -412,10 +417,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				{
 					if(anim == null || anim.anim == null) continue;
 	
-					if(anim.indices != null && anim.indices.length > 0)
-						copiedSpr.animation.addByIndices(anim.anim, anim.name, anim.indices, '', anim.fps, anim.loop);
-					else
-						copiedSpr.animation.addByPrefix(anim.anim, anim.name, anim.fps, anim.loop);
+					funkin.graphics.FrameLoader.addAnimation(copiedSpr, anim.anim, anim.name, anim.indices, anim.fps, anim.loop, copiedMeta.resolvedType());
 	
 					if(anim.offsets != null && anim.offsets.length > 1)
 						copiedSpr.addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);
@@ -1613,7 +1615,7 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		if(_file != null) return;
 
 		saveObjectsToJson();
-		var data = haxe.Json.stringify(stageJson, '\t');
+		var data:String = funkin.data.stage.StageParser.stringify(stageJson);
 		if (data.length > 0)
 		{
 			_file = new FileReference();
@@ -1905,6 +1907,16 @@ class StageEditorMetaSprite
 		sprite.color = CoolUtil.colorFromString(v);
 		return (color = v);
 	}
+	public var renderType:String = null;
+	public var frameSize:Array<Int> = null;
+
+	public function resolvedType():String
+	{
+		var kind:String = renderType;
+		if (kind == null && type == 'sprite') kind = 'image';
+		return funkin.graphics.FrameLoader.resolveType(image, kind);
+	}
+
 	public var image(default, set):String = 'unknown';
 	function set_image(v:String)
 	{
@@ -1912,10 +1924,12 @@ class StageEditorMetaSprite
 		{
 			switch(type)
 			{
-				case 'sprite':
-					sprite.loadGraphic(Paths.image(v));
-				case 'animatedSprite':
-					sprite.frames = Paths.getAtlas(v);
+				case 'sprite', 'animatedSprite':
+					var kind:String = renderType;
+					if (kind == null && type == 'sprite') kind = 'image';
+					kind = funkin.graphics.FrameLoader.resolveType(v, kind);
+					if (!funkin.graphics.FrameLoader.apply(sprite, v, kind, frameSize))
+						sprite.loadGraphic(Paths.image(v));
 			}
 		}
 		catch (e:Dynamic) {}
@@ -1967,6 +1981,8 @@ class StageEditorMetaSprite
 		switch(this.type)
 		{
 			case 'sprite', 'square', 'animatedSprite':
+				this.renderType = data.render_type;
+				this.frameSize = data.frame_size;
 				for (v in ['name', 'image', 'scale', 'scroll', 'color', 'filters', 'antialiasing'])
 				{
 					var dat:Dynamic = Reflect.field(data, v);
@@ -2003,6 +2019,8 @@ class StageEditorMetaSprite
 					obj.flipY = flipY;
 					obj.image = image;
 					obj.antialiasing = antialiasing;
+					if(renderType != null) obj.render_type = renderType;
+					if(frameSize != null) obj.frame_size = frameSize;
 					if(type == 'animatedSprite')
 					{
 						obj.animations = animations;
@@ -2169,10 +2187,7 @@ class StageEditorAnimationSubstate extends MusicBeatSubstate {
 				offsets: lastOffsets
 			};
 
-			if(addedAnim.indices != null && addedAnim.indices.length > 0)
-				target.sprite.animation.addByIndices(addedAnim.anim, addedAnim.name, addedAnim.indices, '', addedAnim.fps, addedAnim.loop);
-			else
-				target.sprite.animation.addByPrefix(addedAnim.anim, addedAnim.name, addedAnim.fps, addedAnim.loop);
+			funkin.graphics.FrameLoader.addAnimation(target.sprite, addedAnim.anim, addedAnim.name, addedAnim.indices, addedAnim.fps, addedAnim.loop, target.resolvedType());
 
 			target.animations.push(addedAnim);
 			reloadAnimList();

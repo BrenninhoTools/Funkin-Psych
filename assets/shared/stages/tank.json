@@ -1,12 +1,23 @@
 {
+	"version": "2.0.0",
 	"directory": "week7",
-	"defaultZoom": 0.9,
-	"stageUI": "",
-
-	"boyfriend": [810, 100],
-	"girlfriend": [200, 65],
-	"opponent": [20, 100],
-
+	"zoom": 0.9,
+	"ui": "normal",
+	"cameraSpeed": 1,
+	"characters": {
+		"boyfriend": {
+			"position": [810, 100],
+			"camera": [0, 0]
+		},
+		"girlfriend": {
+			"position": [200, 65],
+			"camera": [0, 0]
+		},
+		"opponent": {
+			"position": [20, 100],
+			"camera": [0, 0]
+		}
+	},
 	"preload": {
 		"images/tank0": 3,
 		"images/tank1": 2,
@@ -25,10 +36,9 @@
 		"images/tankRuins": 3,
 		"images/tankSky": 3
 	},
-
-	"_editorMeta": {
-		"dad": "tankman",
+	"editor": {
 		"boyfriend": "bf",
-		"gf": "gf-tankmen"
+		"girlfriend": "gf-tankmen",
+		"opponent": "tankman"
 	}
 }

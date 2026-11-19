@@ -1,18 +1,23 @@
 {
+	"version": "2.0.0",
 	"directory": "week5",
-	"defaultZoom": 0.8,
-	"stageUI": "",
-
-	"boyfriend": [970, 100],
-	"girlfriend": [400, 130],
-	"opponent": [100, 100],
-	"hide_girlfriend": false,
-
-	"camera_boyfriend": [0, -100],
-	"camera_opponent": [0, 0],
-	"camera_girlfriend": [0, 0],
-	"camera_speed": 1,
-
+	"zoom": 0.8,
+	"ui": "normal",
+	"cameraSpeed": 1,
+	"characters": {
+		"boyfriend": {
+			"position": [970, 100],
+			"camera": [0, -100]
+		},
+		"girlfriend": {
+			"position": [400, 130],
+			"camera": [0, 0]
+		},
+		"opponent": {
+			"position": [100, 100],
+			"camera": [0, 0]
+		}
+	},
 	"preload": {
 		"images/christmas/bgWalls": 3,
 		"images/christmas/bottomBop": 3,
@@ -22,10 +27,9 @@
 		"images/christmas/upperBop": 2,
 		"images/christmas/bgEscalator": 2
 	},
-
-	"_editorMeta": {
-		"dad": "parents-christmas",
+	"editor": {
 		"boyfriend": "bf-christmas",
-		"gf": "gf-christmas"
+		"girlfriend": "gf-christmas",
+		"opponent": "parents-christmas"
 	}
 }

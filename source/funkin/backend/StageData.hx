@@ -78,15 +78,10 @@ class StageData {
 	public static function getStageFile(stage:String):StageFile {
 		try
 		{
-			var path:String = Paths.getPath('stages/' + stage + '.json', TEXT, null, true);
-			#if MODS_ALLOWED
-			if(FileSystem.exists(path))
-				return cast tjson.TJSON.parse(File.getContent(path));
-			#else
-			if(Assets.exists(path))
-				return cast tjson.TJSON.parse(Assets.getText(path));
-			#end
+			var file:StageFile = funkin.data.stage.StageParser.load(stage);
+			if (file != null) return file;
 		}
+		catch (e:Dynamic) {}
 		return dummy();
 	}
 
@@ -153,20 +148,18 @@ class StageData {
 					spr.ID = num;
 					if(data.type != 'square')
 					{
-						if(data.type == 'sprite')
+						var renderType:String = data.render_type;
+						if (renderType == null && data.type == 'sprite') renderType = 'image';
+						renderType = funkin.graphics.FrameLoader.resolveType(data.image, renderType);
+						if (!funkin.graphics.FrameLoader.apply(spr, data.image, renderType, data.frame_size))
 							spr.loadGraphic(Paths.image(data.image));
-						else
-							spr.frames = Paths.getAtlas(data.image);
 						
 						if(data.type == 'animatedSprite' && data.animations != null)
 						{
 							var anims:Array<funkin.objects.Character.AnimArray> = cast data.animations;
 							for (key => anim in anims)
 							{
-								if(anim.indices == null || anim.indices.length < 1)
-									spr.animation.addByPrefix(anim.anim, anim.name, anim.fps, anim.loop);
-								else
-									spr.animation.addByIndices(anim.anim, anim.name, anim.indices, '', anim.fps, anim.loop);
+								funkin.graphics.FrameLoader.addAnimation(spr, anim.anim, anim.name, anim.indices, anim.fps, anim.loop, renderType);
 	
 								if(anim.offsets != null)
 									spr.addOffset(anim.anim, anim.offsets[0], anim.offsets[1]);

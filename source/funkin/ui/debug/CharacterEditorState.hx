@@ -609,6 +609,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	}
 
 	var imageInputText:PsychUIInputText;
+	var renderTypeInputText:PsychUIInputText;
+	var frameSizeInputText:PsychUIInputText;
 	var healthIconInputText:PsychUIInputText;
 	var vocalsInputText:PsychUIInputText;
 
@@ -634,6 +636,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		{
 			var lastAnim = character.getAnimationName();
 			character.imageFile = imageInputText.text;
+			applyRenderSettings();
 			reloadCharacterImage();
 			if(!character.isAnimationNull()) {
 				character.playAnim(lastAnim, true);
@@ -652,6 +655,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		healthIconInputText = new PsychUIInputText(15, imageInputText.y + 35, 75, healthIcon.getCharacter(), 8);
 
 		vocalsInputText = new PsychUIInputText(15, healthIconInputText.y + 35, 75, character.vocalsFile != null ? character.vocalsFile : '', 8);
+
+		renderTypeInputText = new PsychUIInputText(105, healthIconInputText.y, 100, character.renderType, 8);
+		frameSizeInputText = new PsychUIInputText(105, vocalsInputText.y, 100, frameSizeString(), 8);
 
 		singDurationStepper = new PsychUINumericStepper(15, vocalsInputText.y + 45, 0.1, 4, 0, 999, 1);
 
@@ -692,6 +698,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		tab_group.add(new FlxText(15, imageInputText.y - 18, 100, 'Image file name:'));
 		tab_group.add(new FlxText(15, healthIconInputText.y - 18, 100, 'Health icon name:'));
 		tab_group.add(new FlxText(15, vocalsInputText.y - 18, 100, 'Vocals File Postfix:'));
+		tab_group.add(new FlxText(renderTypeInputText.x, renderTypeInputText.y - 18, 110, 'Render Type:'));
+		tab_group.add(new FlxText(frameSizeInputText.x, frameSizeInputText.y - 18, 110, 'Frame Size (W,H):'));
 		tab_group.add(new FlxText(15, singDurationStepper.y - 18, 120, 'Sing Animation length:'));
 		tab_group.add(new FlxText(15, scaleStepper.y - 18, 100, 'Scale:'));
 		tab_group.add(new FlxText(positionXStepper.x, positionXStepper.y - 18, 100, 'Character X/Y:'));
@@ -702,6 +710,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		tab_group.add(decideIconColor);
 		tab_group.add(healthIconInputText);
 		tab_group.add(vocalsInputText);
+		tab_group.add(renderTypeInputText);
+		tab_group.add(frameSizeInputText);
 		tab_group.add(singDurationStepper);
 		tab_group.add(scaleStepper);
 		tab_group.add(flipXCheckBox);
@@ -802,6 +812,22 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 	}
 
+	function frameSizeString():String
+		return character.frameSize != null ? character.frameSize.join(',') : '';
+
+	function applyRenderSettings()
+	{
+		character.renderType = funkin.graphics.FrameLoader.normalizeType(renderTypeInputText.text);
+		var size:Array<Int> = [];
+		for (part in frameSizeInputText.text.split(','))
+		{
+			var value:Null<Int> = Std.parseInt(part.trim());
+			if (value != null && value > 0) size.push(value);
+		}
+		character.frameSize = size.length > 0 ? size : null;
+		renderTypeInputText.text = character.renderType;
+	}
+
 	function reloadCharacterImage()
 	{
 		var lastAnim:String = character.getAnimationName();
@@ -812,13 +838,14 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		character.color = FlxColor.WHITE;
 		character.alpha = 1;
 
-		if(Paths.fileExists('images/' + character.imageFile + '/Animation.json', TEXT))
+		var requested:String = character.renderType;
+		if(funkin.graphics.FrameLoader.isAnimateAtlas(character.imageFile, requested))
 		{
 			character.atlas = new FlxAnimate();
 			character.atlas.showPivot = false;
 			try
 			{
-				Paths.loadAnimateAtlas(character.atlas, character.imageFile);
+				Paths.loadAnimateAtlas(character.atlas, funkin.graphics.FrameLoader.splitImages(character.imageFile)[0]);
 			}
 			catch(e:Dynamic)
 			{
@@ -828,7 +855,10 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 		else
 		{
-			character.frames = Paths.getMultiAtlas(character.imageFile.split(','));
+			var resolved:String = funkin.graphics.FrameLoader.resolveType(character.imageFile, requested);
+			if (!funkin.graphics.FrameLoader.apply(character, character.imageFile, resolved, character.frameSize))
+				character.frames = Paths.getMultiAtlas(funkin.graphics.FrameLoader.splitImages(character.imageFile));
+			loadedRenderType = resolved;
 		}
 
 		for (anim in anims) {
@@ -852,6 +882,9 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 		check_player.checked = character.isPlayer;
 		imageInputText.text = character.imageFile;
+		renderTypeInputText.text = character.renderType;
+		frameSizeInputText.text = frameSizeString();
+		loadedRenderType = null;
 		healthIconInputText.text = character.healthIcon;
 		vocalsInputText.text = character.vocalsFile != null ? character.vocalsFile : '';
 		singDurationStepper.value = character.singDuration;
@@ -1197,14 +1230,13 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				name.endsWith('-opponent') || name.startsWith('gf-') || name.endsWith('-gf') || name == 'gf';
 	}
 
+	var loadedRenderType:String = null;
 	function addAnimation(anim:String, name:String, fps:Float, loop:Bool, indices:Array<Int>)
 	{
 		if(!character.isAnimateAtlas)
 		{
-			if(indices != null && indices.length > 0)
-				character.animation.addByIndices(anim, name, indices, "", fps, loop);
-			else
-				character.animation.addByPrefix(anim, name, fps, loop);
+			var type:String = loadedRenderType != null ? loadedRenderType : funkin.graphics.FrameLoader.resolveType(character.imageFile, character.renderType);
+			funkin.graphics.FrameLoader.addAnimation(character, anim, name, indices, fps, loop, type);
 		}
 		else
 		{
@@ -1296,24 +1328,24 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	function saveCharacter() {
 		if(_file != null) return;
 
-		var json:Dynamic = {
-			"animations": character.animationsArray,
-			"image": character.imageFile,
-			"scale": character.jsonScale,
-			"sing_duration": character.singDuration,
-			"healthicon": character.healthIcon,
-
-			"position":	character.positionArray,
-			"camera_position": character.cameraPosition,
-
-			"flip_x": character.originalFlipX,
-			"no_antialiasing": character.noAntialiasing,
-			"healthbar_colors": character.healthColorArray,
-			"vocals_file": character.vocalsFile,
-			"_editor_isPlayer": character.isPlayer
+		var json:CharacterFile = {
+			animations: character.animationsArray,
+			image: character.imageFile,
+			scale: character.jsonScale,
+			sing_duration: character.singDuration,
+			healthicon: character.healthIcon,
+			position: character.positionArray,
+			camera_position: character.cameraPosition,
+			flip_x: character.originalFlipX,
+			no_antialiasing: character.noAntialiasing,
+			healthbar_colors: character.healthColorArray,
+			vocals_file: character.vocalsFile,
+			_editor_isPlayer: character.isPlayer,
+			render_type: character.renderType,
+			frame_size: character.frameSize
 		};
 
-		var data:String = PsychJsonPrinter.print(json, ['offsets', 'position', 'healthbar_colors', 'camera_position', 'indices']);
+		var data:String = funkin.data.character.CharacterParser.stringify(json, character.isPlayer);
 
 		if (data.length > 0)
 		{

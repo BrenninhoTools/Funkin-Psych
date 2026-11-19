@@ -1,18 +1,23 @@
 {
+	"version": "2.0.0",
 	"directory": "week3",
-	"defaultZoom": 1.05,
-	"stageUI": "",
-
-	"boyfriend": [770, 100],
-	"girlfriend": [400, 130],
-	"opponent": [100, 100],
-	"hide_girlfriend": false,
-
-	"camera_boyfriend": [0, 0],
-	"camera_opponent": [0, 0],
-	"camera_girlfriend": [0, 0],
-	"camera_speed": 1,
-
+	"zoom": 1.05,
+	"ui": "normal",
+	"cameraSpeed": 1,
+	"characters": {
+		"boyfriend": {
+			"position": [770, 100],
+			"camera": [0, 0]
+		},
+		"girlfriend": {
+			"position": [400, 130],
+			"camera": [0, 0]
+		},
+		"opponent": {
+			"position": [100, 100],
+			"camera": [0, 0]
+		}
+	},
 	"preload": {
 		"images/philly/city": 3,
 		"images/philly/street": 3,
@@ -21,10 +26,9 @@
 		"images/philly/behindTrain": 2,
 		"images/philly/sky": 2
 	},
-
-	"_editorMeta": {
-		"dad": "pico",
+	"editor": {
 		"boyfriend": "bf",
-		"gf": "gf"
+		"girlfriend": "gf",
+		"opponent": "pico"
 	}
 }

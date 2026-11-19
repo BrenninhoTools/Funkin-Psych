@@ -27,6 +27,8 @@ typedef CharacterFile = {
 	var healthbar_colors:Array<Int>;
 	var vocals_file:String;
 	@:optional var _editor_isPlayer:Null<Bool>;
+	@:optional var render_type:String;
+	@:optional var frame_size:Array<Int>;
 }
 
 typedef AnimArray = {
@@ -80,6 +82,8 @@ class Character extends FlxSprite
 	public var noAntialiasing:Bool = false;
 	public var originalFlipX:Bool = false;
 	public var editorIsPlayer:Null<Bool> = null;
+	public var renderType:String = 'auto';
+	public var frameSize:Array<Int> = null;
 
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{
@@ -107,33 +111,26 @@ class Character extends FlxSprite
 		animationsArray = [];
 		animOffsets = [];
 		curCharacter = character;
-		var characterPath:String = 'characters/$character.json';
-
-		var path:String = Paths.getPath(characterPath, TEXT);
-		#if MODS_ALLOWED
-		if (!FileSystem.exists(path))
-		#else
-		if (!Assets.exists(path))
-		#end
+		var file:CharacterFile = null;
+		try
 		{
-			path = Paths.getSharedPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
+			file = funkin.data.character.CharacterParser.load(character);
+		}
+		catch (e:Dynamic) {}
+
+		if (file == null)
+		{
 			missingCharacter = true;
 			missingText = new FlxText(0, 0, 300, 'ERROR:\n$character.json', 16);
 			missingText.alignment = CENTER;
+			try
+			{
+				file = funkin.data.character.CharacterParser.load(DEFAULT_CHARACTER);
+			}
+			catch (e:Dynamic) {}
 		}
 
-		try
-		{
-			#if MODS_ALLOWED
-			loadCharacterFile(Json.parse(File.getContent(path)));
-			#else
-			loadCharacterFile(Json.parse(Assets.getText(path)));
-			#end
-		}
-		catch(e:Dynamic)
-		{
-			trace('Error loading character file of "$character": $e');
-		}
+		if (file != null) loadCharacterFile(file);
 
 		skipDance = false;
 		hasMissAnimations = hasAnimation('singLEFTmiss') || hasAnimation('singDOWNmiss') || hasAnimation('singUPmiss') || hasAnimation('singRIGHTmiss');
@@ -144,11 +141,11 @@ class Character extends FlxSprite
 	public function loadCharacterFile(json:Dynamic)
 	{
 		isAnimateAtlas = false;
+		renderType = funkin.graphics.FrameLoader.normalizeType(json.render_type);
+		frameSize = json.frame_size;
 
 		#if flxanimate
-		var animToFind:String = Paths.getPath('images/' + json.image + '/Animation.json', TEXT);
-		if (#if MODS_ALLOWED FileSystem.exists(animToFind) || #end Assets.exists(animToFind))
-			isAnimateAtlas = true;
+		isAnimateAtlas = funkin.graphics.FrameLoader.isAnimateAtlas(json.image, renderType);
 		#end
 
 		scale.set(1, 1);
@@ -156,21 +153,23 @@ class Character extends FlxSprite
 
 		if(!isAnimateAtlas)
 		{
-			frames = Paths.getMultiAtlas(json.image.split(','));
+			renderType = funkin.graphics.FrameLoader.resolveType(json.image, renderType);
+			if (!funkin.graphics.FrameLoader.apply(this, json.image, renderType, frameSize))
+				frames = Paths.getMultiAtlas(funkin.graphics.FrameLoader.splitImages(json.image));
 		}
 		#if flxanimate
 		else
 		{
+			renderType = 'atlas';
 			atlas = new FlxAnimate();
 			atlas.showPivot = false;
 			try
 			{
-				Paths.loadAnimateAtlas(atlas, json.image);
+				Paths.loadAnimateAtlas(atlas, funkin.graphics.FrameLoader.splitImages(json.image)[0]);
 			}
 			catch(e:haxe.Exception)
 			{
 				FlxG.log.warn('Could not load atlas ${json.image}: $e');
-				trace(e.stack);
 			}
 		}
 		#end
@@ -211,10 +210,7 @@ class Character extends FlxSprite
 
 				if(!isAnimateAtlas)
 				{
-					if(animIndices != null && animIndices.length > 0)
-						animation.addByIndices(animAnim, animName, animIndices, "", animFps, animLoop);
-					else
-						animation.addByPrefix(animAnim, animName, animFps, animLoop);
+					funkin.graphics.FrameLoader.addAnimation(this, animAnim, animName, animIndices, animFps, animLoop, renderType);
 				}
 				#if flxanimate
 				else

@@ -1,27 +1,31 @@
 {
+	"version": "2.0.0",
 	"directory": "week6",
-	"defaultZoom": 1.05,
-	"stageUI": "pixel",
-
-	"boyfriend": [970, 320],
-	"girlfriend": [580, 430],
-	"opponent": [100, 100],
-	"hide_girlfriend": false,
-
-	"camera_boyfriend": [-100, -100],
-	"camera_opponent": [0, 0],
-	"camera_girlfriend": [0, 0],
-	"camera_speed": 1,
-
+	"zoom": 1.05,
+	"ui": "pixel",
+	"cameraSpeed": 1,
+	"characters": {
+		"boyfriend": {
+			"position": [970, 320],
+			"camera": [-100, -100]
+		},
+		"girlfriend": {
+			"position": [580, 430],
+			"camera": [0, 0]
+		},
+		"opponent": {
+			"position": [100, 100],
+			"camera": [0, 0]
+		}
+	},
 	"preload": {
 		"images/weeb/animatedEvilSchool_low": 1,
 		"images/weeb/animatedEvilSchool": 2,
 		"images/weeb/bgGhouls": 2
 	},
-
-	"_editorMeta": {
-		"dad": "spirit",
+	"editor": {
 		"boyfriend": "bf-pixel",
-		"gf": "gf-pixel"
+		"girlfriend": "gf-pixel",
+		"opponent": "spirit"
 	}
 }

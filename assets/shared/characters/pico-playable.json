@@ -1,135 +1,127 @@
 {
+	"version": "2.0.0",
+	"render": {
+		"type": "auto",
+		"image": ["characters/Pico_FNF_assetss", "characters/picoAnims/Pico_Intro", "characters/picoAnims/Pico_Shooting"],
+		"scale": 1,
+		"flipX": true,
+		"antialiasing": true
+	},
+	"position": [0, 300],
+	"camera": [200, 40],
+	"healthIcon": {
+		"id": "pico",
+		"color": "#B7D855"
+	},
+	"singDuration": 4,
 	"animations": [
 		{
-			"offsets": [3, 0],
-			"loop": false,
+			"name": "idle",
+			"prefix": "Pico Idle Dance",
 			"fps": 24,
-			"anim": "idle",
-			"indices": [],
-			"name": "Pico Idle Dance"
+			"loop": false,
+			"offset": [3, 0]
 		},
 		{
-			"offsets": [21, 27],
-			"loop": false,
+			"name": "singUP",
+			"prefix": "pico Up note0",
 			"fps": 24,
-			"anim": "singUP",
-			"indices": [],
-			"name": "pico Up note0"
+			"loop": false,
+			"offset": [21, 27]
 		},
 		{
-			"offsets": [84, -80],
-			"loop": false,
+			"name": "singDOWN",
+			"prefix": "Pico Down Note0",
 			"fps": 24,
-			"anim": "singDOWN",
-			"indices": [],
-			"name": "Pico Down Note0"
+			"loop": false,
+			"offset": [84, -80]
 		},
 		{
-			"offsets": [80, -38],
-			"loop": false,
+			"name": "singDOWNmiss",
+			"prefix": "Pico Down Note MISS",
 			"fps": 24,
-			"anim": "singDOWNmiss",
-			"indices": [],
-			"name": "Pico Down Note MISS"
+			"loop": false,
+			"offset": [80, -38]
 		},
 		{
-			"offsets": [28, 67],
-			"loop": false,
+			"name": "singUPmiss",
+			"prefix": "pico Up note miss",
 			"fps": 24,
-			"anim": "singUPmiss",
-			"indices": [],
-			"name": "pico Up note miss"
+			"loop": false,
+			"offset": [28, 67]
 		},
 		{
-			"loop": false,
-			"offsets": [-48, 2],
-			"anim": "singRIGHT",
+			"name": "singRIGHT",
+			"prefix": "Pico Note Right0",
 			"fps": 24,
-			"name": "Pico Note Right0",
-			"indices": []
+			"loop": false,
+			"offset": [-48, 2]
 		},
 		{
-			"loop": false,
-			"offsets": [85, -10],
-			"anim": "singLEFT",
+			"name": "singLEFT",
+			"prefix": "Pico NOTE LEFT0",
 			"fps": 24,
-			"name": "Pico NOTE LEFT0",
-			"indices": []
+			"loop": false,
+			"offset": [85, -10]
 		},
 		{
-			"loop": false,
-			"offsets": [-45, 50],
-			"anim": "singRIGHTmiss",
+			"name": "singRIGHTmiss",
+			"prefix": "Pico Note Right Miss",
 			"fps": 24,
-			"name": "Pico Note Right Miss",
-			"indices": []
+			"loop": false,
+			"offset": [-45, 50]
 		},
 		{
-			"loop": false,
-			"offsets": [83, 28],
-			"anim": "singLEFTmiss",
+			"name": "singLEFTmiss",
+			"prefix": "Pico NOTE LEFT miss",
 			"fps": 24,
-			"name": "Pico NOTE LEFT miss",
-			"indices": []
+			"loop": false,
+			"offset": [83, 28]
 		},
 		{
-			"offsets": [256, 232],
-			"indices": [],
+			"name": "shoot",
+			"prefix": "Pico Shoot Hip Full0",
 			"fps": 24,
-			"anim": "shoot",
 			"loop": false,
-			"name": "Pico Shoot Hip Full0"
+			"offset": [256, 232]
 		},
 		{
-			"offsets": [0, 0],
-			"indices": [],
+			"name": "shootMISS",
+			"prefix": "Pico Hit Can0",
 			"fps": 24,
-			"anim": "shootMISS",
 			"loop": false,
-			"name": "Pico Hit Can0"
+			"offset": [0, 0]
 		},
 		{
-			"offsets": [0, 0],
-			"indices": [],
+			"name": "cock",
+			"prefix": "Pico Reload0",
 			"fps": 24,
-			"anim": "cock",
 			"loop": false,
-			"name": "Pico Reload0"
+			"offset": [0, 0]
 		},
 		{
-			"offsets": [60, 0],
-			"indices": [],
+			"name": "intro1",
+			"prefix": "Pico Gets Pissed0",
 			"fps": 24,
-			"anim": "intro1",
 			"loop": false,
-			"name": "Pico Gets Pissed0"
+			"offset": [60, 0]
 		},
 		{
-			"offsets": [0, 0],
-			"indices": [],
+			"name": "cockCutscene",
+			"prefix": "cutscene cock0",
 			"fps": 24,
-			"anim": "cockCutscene",
 			"loop": false,
-			"name": "cutscene cock0"
+			"offset": [0, 0]
 		},
 		{
-			"offsets": [255, 231],
-			"indices": [],
+			"name": "intro2",
+			"prefix": "shoot and return0",
 			"fps": 24,
-			"anim": "intro2",
 			"loop": false,
-			"name": "shoot and return0"
+			"offset": [255, 231]
 		}
 	],
-	"vocals_file": "",
-	"no_antialiasing": false,
-	"image": "characters/Pico_FNF_assetss, characters/picoAnims/Pico_Intro, characters/picoAnims/Pico_Shooting",
-	"position": [0, 300],
-	"healthicon": "pico",
-	"flip_x": true,
-	"healthbar_colors": [183, 216, 85],
-	"camera_position": [200, 40],
-	"sing_duration": 4,
-	"scale": 1,
-	"_editor_isPlayer": true
+	"editor": {
+		"isPlayer": true
+	}
 }
