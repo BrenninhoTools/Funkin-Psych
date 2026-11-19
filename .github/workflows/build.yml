@@ -1,0 +1,318 @@
+name: Build
+
+on:
+  push:
+    branches: [main, experimental]
+    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**']
+  pull_request:
+    branches: [main, experimental]
+    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HAXE_VERSION: '4.3.7'
+  CACHE_REV: 'v5'
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: android
+            os: ubuntu-latest
+            host: linux
+            artifact: androidBuild
+          - target: linux
+            os: ubuntu-latest
+            host: linux
+            artifact: linuxBuild
+          - target: windows
+            os: windows-latest
+            host: windows
+            artifact: windowsBuild
+          - target: mac
+            os: macos-15
+            host: mac
+            artifact: macBuild
+          - target: ios
+            os: macos-15
+            host: mac
+            artifact: iOSBuild
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Linux packages
+        if: matrix.host == 'linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq g++ pkg-config libx11-dev libxi-dev libxext-dev libxinerama-dev libxrandr-dev libgl-dev libgl1-mesa-dev libasound2-dev libpulse-dev libwayland-bin libwayland-dev wayland-protocols libxkbcommon-dev libegl-dev libdecor-0-dev libxcursor-dev libxss-dev libxtst-dev libdbus-1-dev libudev-dev
+          if [ '${{ matrix.target }}' = linux ]; then
+            sudo apt-get install -y -qq libvlc-dev libvlccore-dev
+          fi
+
+      - name: Java 17
+        if: matrix.target == 'android'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android NDK
+        if: matrix.target == 'android'
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+          local-cache: true
+
+      - name: Haxe
+        uses: krdlab/setup-haxe@v2
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Prepare environment
+        run: |
+          set -euo pipefail
+          CACHE_DIR="${RUNNER_TEMP//\\//}/hxcpp_cache"
+          mkdir -p "$CACHE_DIR"
+          echo "HXCPP_COMPILE_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
+          echo "HXCPP_CACHE_MB=4096" >> "$GITHUB_ENV"
+          case '${{ matrix.host }}' in
+            linux) THREADS="$(nproc)" ;;
+            mac) THREADS="$(sysctl -n hw.ncpu)" ;;
+            windows) THREADS="$NUMBER_OF_PROCESSORS" ;;
+          esac
+          echo "HXCPP_COMPILE_THREADS=$THREADS" >> "$GITHUB_ENV"
+          git config --global core.longpaths true
+          git config --global advice.detachedHead false
+
+      - name: Cache Haxelibs
+        id: haxelib-cache
+        uses: actions/cache@v6
+        with:
+          path: .haxelib
+          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+
+      - name: Cache hxcpp
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/hxcpp_cache
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-
+
+      - name: Cache Gradle
+        if: matrix.target == 'android'
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ env.CACHE_REV }}-${{ hashFiles('project.hxp', 'project/android/**/*.gradle') }}
+          restore-keys: |
+            gradle-${{ env.CACHE_REV }}-
+
+      - name: Install Haxelibs
+        run: |
+          set -euo pipefail
+          haxelib --global --always install hmm --quiet
+          if [ '${{ steps.haxelib-cache.outputs.cache-hit }}' != 'true' ]; then
+            haxelib --global --always run hmm install
+          fi
+          haxelib list
+
+      - name: Fetch Lime submodules
+        run: |
+          set -euo pipefail
+          LIME="$(haxelib libpath lime | head -n 1 | tr -d '\r')"
+          LIME="${LIME//\\//}"
+          LIME="${LIME%/}"
+          echo "LIME_DIR=$LIME" >> "$GITHUB_ENV"
+          test -d "$LIME/.git"
+          git -C "$LIME" submodule sync --recursive
+          for TRY in 1 2 3; do
+            if git -C "$LIME" submodule update --init --recursive --depth 1 --jobs 8; then
+              break
+            fi
+            if [ "$TRY" = 3 ]; then
+              exit 1
+            fi
+            sleep 10
+          done
+          git -C "$LIME" submodule status --recursive
+          for FILE in project/Build.xml project/lib/cairo-files.xml project/lib/cairo/src/cairo.h project/lib/pixman/pixman/pixman.h project/lib/dr_libs/dr_flac.h project/lib/sdl/include project/lib/openal/include project/lib/freetype/include project/lib/harfbuzz/src; do
+            if [ ! -e "$LIME/$FILE" ]; then
+              echo "::error::Lime is missing $FILE"
+              exit 1
+            fi
+          done
+
+      - name: Compile hxcpp tools
+        run: |
+          set -euo pipefail
+          HXCPP="$(haxelib libpath hxcpp | head -n 1 | tr -d '\r')"
+          HXCPP="${HXCPP//\\//}"
+          cd "${HXCPP%/}/tools/hxcpp"
+          haxe compile.hxml
+
+      - name: Build Lime host library
+        run: |
+          set -euo pipefail
+          case '${{ matrix.host }}' in
+            linux) HOST=linux; ARCH=-64 ;;
+            windows) HOST=windows; ARCH=-64 ;;
+            mac)
+              HOST=mac
+              if [ "$(uname -m)" = arm64 ]; then ARCH=-arm64; else ARCH=-64; fi
+              ;;
+          esac
+          MARKER="$LIME_DIR/ndll/.psych-host-$HOST$ARCH"
+          if [ ! -f "$MARKER" ]; then
+            haxelib run lime rebuild "$HOST" "$ARCH" -release 2>&1 | tee lime-host.log
+            touch "$MARKER"
+          fi
+          find "$LIME_DIR/ndll" \( -name 'lime.ndll' -o -name 'lime.hdll' \) -print
+
+      - name: Configure Android
+        if: matrix.target == 'android'
+        env:
+          NDK_PATH: ${{ steps.ndk.outputs.ndk-path }}
+        run: |
+          set -euo pipefail
+          haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
+          haxelib run lime config ANDROID_NDK_ROOT "$NDK_PATH"
+          haxelib run lime config JAVA_HOME "$JAVA_HOME"
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Build Lime target library
+        if: matrix.target == 'android' || matrix.target == 'ios'
+        run: |
+          set -euo pipefail
+          MARKER="$LIME_DIR/ndll/.psych-${{ matrix.target }}"
+          if [ ! -f "$MARKER" ]; then
+            if [ '${{ matrix.target }}' = android ]; then
+              haxelib run lime rebuild android -arm64 -release 2>&1 | tee lime-target.log
+            else
+              haxelib run lime rebuild ios -release 2>&1 | tee lime-target.log
+            fi
+            touch "$MARKER"
+          fi
+
+      - name: Use bundled Lua
+        if: matrix.host != 'windows'
+        run: |
+          set -euo pipefail
+          LUA="$(haxelib libpath linc_luajit | head -n 1 | tr -d '\r')"
+          LUA="${LUA//\\//}"
+          LUA="${LUA%/}/lib/lua/lib"
+          case '${{ matrix.target }}' in
+            android) DIRS=(Android) ;;
+            ios) DIRS=(iPhone) ;;
+            linux) DIRS=(Linux64) ;;
+            mac) DIRS=(Mac) ;;
+          esac
+          for DIR in "${DIRS[@]}"; do
+            mkdir -p "$LUA/$DIR"
+            find "$LUA/$DIR" -maxdepth 1 -name '*.a' -print | while read -r LIB; do
+              printf '!<arch>\n' > "$LIB"
+            done
+          done
+          if [ '${{ matrix.target }}' = ios ]; then
+            printf '!<arch>\n' > "$LUA/iPhone/libluajit.iphoneos-64.a"
+            printf '!<arch>\n' > "$LUA/iPhone/libluajit.iphonesim-64.a"
+          fi
+
+      - name: Compile
+        if: matrix.target != 'ios'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          FLAGS=(-release -D officialBuild)
+          if [ '${{ matrix.target }}' = android ] && [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > release.keystore
+            FLAGS+=(-D ANDROID_SIGNING)
+          fi
+          haxelib run lime build '${{ matrix.target }}' "${FLAGS[@]}" 2>&1 | tee compile.log
+
+      - name: Generate Xcode project
+        if: matrix.target == 'ios'
+        run: |
+          set -euo pipefail
+          haxelib run lime update ios -release -D officialBuild 2>&1 | tee compile.log
+          test -n "$(find export/release/ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
+
+      - name: Build iOS
+        if: matrix.target == 'ios'
+        run: |
+          set -euo pipefail
+          PROJECT="$(find export/release/ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
+          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -arch arm64 -jobs "$HXCPP_COMPILE_THREADS" \
+            ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' build 2>&1 | tee xcode.log
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          case '${{ matrix.target }}' in
+            android)
+              find export/release/android/bin/app/build/outputs/apk -type f -name '*.apk' -exec cp {} dist/ \;
+              ;;
+            linux)
+              tar -czf dist/PsychEngine-Linux.tar.gz -C export/release/linux/bin .
+              ;;
+            windows)
+              cp -R export/release/windows/bin/. dist/
+              ;;
+            mac)
+              APP="$(find export/release/macos/bin -maxdepth 1 -type d -name '*.app' -print -quit)"
+              test -n "$APP"
+              ditto -c -k --keepParent "$APP" dist/PsychEngine-macOS.zip
+              ;;
+            ios)
+              APP="$(find export/release/ios -type d -name '*.app' -path '*iphoneos*' -print -quit)"
+              test -n "$APP"
+              mkdir -p ipa/Payload
+              cp -R "$APP" ipa/Payload/
+              (cd ipa && zip -qry ../dist/PsychEngine.ipa Payload)
+              ;;
+          esac
+          test -n "$(ls -A dist)"
+          ls -la dist
+
+      - name: Upload build
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/
+          if-no-files-found: error
+          compression-level: ${{ matrix.target == 'windows' && 6 || 0 }}
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.target }}
+          path: |
+            lime-host.log
+            lime-target.log
+            compile.log
+            xcode.log
+          if-no-files-found: ignore
