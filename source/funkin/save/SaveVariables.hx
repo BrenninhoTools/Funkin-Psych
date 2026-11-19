@@ -7,7 +7,7 @@ import flixel.input.gamepad.FlxGamepadInputID;
 	public var downScroll:Bool = false;
 	public var middleScroll:Bool = false;
 	public var opponentStrums:Bool = true;
-	public var showFPS:Bool = true;
+	public var fpsStyle:String = 'Simple';
 	public var hitboxMode:String = 'Four Lanes';
 	public var touchCursor:Bool = true;
 	public var haptics:Bool = true;

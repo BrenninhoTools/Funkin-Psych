@@ -121,10 +121,11 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		addOption(option);
 		
-		var option:Option = new Option('FPS Counter',
-			'If unchecked, hides FPS Counter.',
-			'showFPS',
-			BOOL);
+		var option:Option = new Option('FPS Counter:',
+			"Disable hides the counter, Simple shows FPS and Memory,\nAdvanced also shows Task, System and the Audio Mixer graph.",
+			'fpsStyle',
+			STRING,
+			funkin.util.debug.FPSCounter.FPSStyle.ALL);
 		addOption(option);
 		option.onChange = onChangeFPSCounter;
 		
@@ -288,6 +289,6 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	function onChangeFPSCounter()
 	{
 		if(Main.fpsVar != null)
-			Main.fpsVar.visible = Save.data.showFPS;
+			Main.fpsVar.style = Save.data.fpsStyle;
 	}
 }

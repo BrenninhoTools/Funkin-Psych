@@ -139,8 +139,10 @@ class Save {
 		}
 		#end
 		
+		if (!main.has('fpsStyle') && main.has('showFPS'))
+			data.fpsStyle = main.get('showFPS') == false ? 'Disable' : 'Simple';
 		if(Main.fpsVar != null)
-			Main.fpsVar.visible = data.showFPS;
+			Main.fpsVar.style = data.fpsStyle;
 
 		#if (!html5 && !switch)
 		FlxG.autoPause = data.autoPause;

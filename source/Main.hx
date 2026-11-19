@@ -135,13 +135,10 @@ class Main extends Sprite
 		funkin.mobile.native.NativeCrash.reportPrevious();
 		#end
 
-		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);
+		fpsVar = new FPSCounter(10, 3, 0xFFFFFF, Save.data.fpsStyle);
 		addChild(fpsVar);
 		Lib.current.stage.align = "tl";
 		Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
-		if(fpsVar != null) {
-			fpsVar.visible = Save.data.showFPS;
-		}
 		#if mobile
 		scaleFPSCounter();
 		#end
