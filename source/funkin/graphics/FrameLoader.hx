@@ -103,6 +103,16 @@ class FrameLoader
 		}
 	}
 
+	public static function gridSize(image:String, frameCount:Array<Int>, ?parentFolder:String, ?allowGPU:Bool = true):Array<Int>
+	{
+		if (frameCount == null || frameCount.length < 1) return null;
+		var graphic:FlxGraphic = Paths.image(image, parentFolder, allowGPU);
+		if (graphic == null) return null;
+		var columns:Int = frameCount[0] > 0 ? frameCount[0] : 1;
+		var rows:Int = frameCount.length > 1 && frameCount[1] > 0 ? frameCount[1] : 1;
+		return [Math.floor(graphic.width / columns), Math.floor(graphic.height / rows)];
+	}
+
 	public static function loadGrid(image:String, ?frameSize:Array<Int>, ?parentFolder:String, ?allowGPU:Bool = true):FlxFramesCollection
 	{
 		var graphic:FlxGraphic = Paths.image(image, parentFolder, allowGPU);

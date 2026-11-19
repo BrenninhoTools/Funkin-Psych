@@ -374,6 +374,7 @@ class PlayState extends MusicBeatState
 			stageUI = stageData.stageUI;
 		else if (stageData.isPixelStage == true) //Backward compatibility
 			stageUI = "pixel";
+		funkin.play.notes.notestyle.NoteStyle.clearCache();
 
 		BF_X = stageData.boyfriend[0];
 		BF_Y = stageData.boyfriend[1];
@@ -457,7 +458,7 @@ class PlayState extends MusicBeatState
 			add(boyfriendGroup);
 		}
 		
-		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+		#if (LUA_ALLOWED || HSCRIPT_ALLOWED || CPPIA_ALLOWED)
 		// "SCRIPTS FOLDER" SCRIPTS
 		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'scripts/'))
 			for (file in FileSystem.readDirectory(folder))
@@ -470,6 +471,11 @@ class PlayState extends MusicBeatState
 				#if HSCRIPT_ALLOWED
 				if(file.toLowerCase().endsWith('.hx'))
 					initHScript(folder + file);
+				#end
+
+				#if CPPIA_ALLOWED
+				if(funkin.scripting.cppia.CppiaHandler.isScript(file))
+					initCppia(folder + file);
 				#end
 			}
 		#end
@@ -614,8 +620,8 @@ class PlayState extends MusicBeatState
 		eventsPushed = null;
 
 		// SONG SPECIFIC SCRIPTS
-		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/$songName/'))
+		#if (LUA_ALLOWED || HSCRIPT_ALLOWED || CPPIA_ALLOWED)
+		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/songs/$songName/'))
 			for (file in FileSystem.readDirectory(folder))
 			{
 				#if LUA_ALLOWED
@@ -626,6 +632,11 @@ class PlayState extends MusicBeatState
 				#if HSCRIPT_ALLOWED
 				if(file.toLowerCase().endsWith('.hx'))
 					initHScript(folder + file);
+				#end
+
+				#if CPPIA_ALLOWED
+				if(funkin.scripting.cppia.CppiaHandler.isScript(file))
+					initCppia(folder + file);
 				#end
 			}
 		#end
@@ -798,7 +809,7 @@ class PlayState extends MusicBeatState
 		// Lua
 		#if LUA_ALLOWED
 		var doPush:Bool = false;
-		var luaFile:String = 'characters/$name.lua';
+		var luaFile:String = 'data/characters/$name.lua';
 		#if MODS_ALLOWED
 		var replacePath:String = Paths.modFolders(luaFile);
 		if(FileSystem.exists(replacePath))
@@ -834,7 +845,7 @@ class PlayState extends MusicBeatState
 		// HScript
 		#if HSCRIPT_ALLOWED
 		var doPush:Bool = false;
-		var scriptFile:String = 'characters/' + name + '.hx';
+		var scriptFile:String = 'data/characters/' + name + '.hx';
 		#if MODS_ALLOWED
 		var replacePath:String = Paths.modFolders(scriptFile);
 		if(FileSystem.exists(replacePath))
@@ -3272,6 +3283,15 @@ class PlayState extends MusicBeatState
 			resetSubState();
 		}
 
+		#if CPPIA_ALLOWED
+		for (script in cppiaArray)
+		{
+			script.call('onDestroy');
+			script.destroy();
+		}
+		cppiaArray = [];
+		#end
+
 		#if LUA_ALLOWED
 		for (lua in luaArray)
 		{
@@ -3478,7 +3498,59 @@ class PlayState extends MusicBeatState
 
 		var result:Dynamic = callOnLuas(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		if(result == null || excludeValues.contains(result)) result = callOnHScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
+		if(result == null || excludeValues.contains(result)) result = callOnCppia(funcToCall, args, ignoreStops, exclusions, excludeValues);
 		return result;
+	}
+
+	#if CPPIA_ALLOWED
+	public var cppiaArray:Array<funkin.scripting.cppia.CppiaModule> = [];
+
+	public function initCppia(file:String):funkin.scripting.cppia.CppiaModule
+	{
+		for (script in cppiaArray)
+			if(script.path == file) return script;
+
+		var script:funkin.scripting.cppia.CppiaModule = funkin.scripting.cppia.CppiaHandler.start(file);
+		if(script == null) return null;
+		cppiaArray.push(script);
+		script.call('onCreate');
+		return script;
+	}
+	#end
+
+	public function callOnCppia(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		var returnVal:Dynamic = LuaUtils.Function_Continue;
+		#if CPPIA_ALLOWED
+		if(exclusions == null) exclusions = [];
+		if(excludeValues == null) excludeValues = [];
+		if(!excludeValues.contains(LuaUtils.Function_Continue)) excludeValues.push(LuaUtils.Function_Continue);
+
+		var scripts:Array<funkin.scripting.cppia.CppiaModule> = cppiaArray.copy();
+		for (script in funkin.scripting.cppia.CppiaHandler.globalModules) scripts.push(script);
+
+		for (script in scripts)
+		{
+			if(script == null || !script.active || exclusions.contains(script.path)) continue;
+
+			var myValue:Dynamic = script.call(funcToCall, args);
+			if(myValue == LuaUtils.Function_StopAll && !excludeValues.contains(myValue) && !ignoreStops)
+			{
+				returnVal = myValue;
+				break;
+			}
+			if(myValue != null && !excludeValues.contains(myValue))
+				returnVal = myValue;
+		}
+		#end
+		return returnVal;
+	}
+
+	public function setOnCppia(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		#if CPPIA_ALLOWED
+		if(exclusions == null) exclusions = [];
+		for (script in cppiaArray)
+			if(!exclusions.contains(script.path)) script.set(variable, arg);
+		#end
 	}
 
 	public function callOnLuas(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
@@ -3561,6 +3633,7 @@ class PlayState extends MusicBeatState
 		if(exclusions == null) exclusions = [];
 		setOnLuas(variable, arg, exclusions);
 		setOnHScript(variable, arg, exclusions);
+		setOnCppia(variable, arg, exclusions);
 	}
 
 	public function setOnLuas(variable:String, arg:Dynamic, exclusions:Array<String> = null) {

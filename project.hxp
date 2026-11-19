@@ -60,6 +60,7 @@ class Project extends HXProject
 			enable("HSCRIPT_ALLOWED");
 			enable("LUA_ALLOWED");
 			enable("POLYMOD_ALLOWED");
+			if (!hasDefine("NO_CPPIA")) enable("CPPIA_ALLOWED");
 		}
 		enable("ACHIEVEMENTS_ALLOWED");
 		if (isDesktop()) enable("DISCORD_ALLOWED");
@@ -257,6 +258,13 @@ class Project extends HXProject
 			setHaxedef("POLYMOD_MOD_ICON_FILE", "_polymod_icon.png");
 			if (debug) setHaxedef("POLYMOD_DEBUG");
 			haxeflags.push("--macro include('funkin.modding.base')");
+		}
+
+		if (hasDefine("CPPIA_ALLOWED"))
+		{
+			setHaxedef("scriptable");
+			setHaxedef("dll_export", "export_classes.info");
+			haxeflags.push("--macro include('funkin.scripting.cppia')");
 		}
 
 		haxeflags.push("--macro allowPackage('flash')");

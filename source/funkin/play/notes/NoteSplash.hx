@@ -63,9 +63,9 @@ class NoteSplash extends FlxSprite
 		config = null;
 		maxAnims = 0;
 
-		if(splash == null)
+		if(splash == null || splash.length == 0)
 		{
-			splash = defaultNoteSplash + getSplashSkinPostfix();
+			splash = defaultSplashTexture();
 			if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) splash = PlayState.SONG.splashSkin;
 		}
 
@@ -197,8 +197,8 @@ class NoteSplash extends FlxSprite
 
 		if (!inEditor)
 		{
-			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
-			if (note != null && note.noteSplashData.texture != null) loadedTexture = note.noteSplashData.texture;
+			var loadedTexture:String = defaultSplashTexture();
+			if (note != null && note.noteSplashData.texture != null && note.noteSplashData.texture.length > 0) loadedTexture = note.noteSplashData.texture;
 			else if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) loadedTexture = PlayState.SONG.splashSkin;
 
 			if (texture != loadedTexture) loadSplash(loadedTexture);
@@ -359,7 +359,21 @@ class NoteSplash extends FlxSprite
 		super.update(elapsed);
 	}
 
-	public static function getSplashSkinPostfix()
+	public static function defaultSplashTexture():String
+	{
+		if (ClientPrefs.data.splashSkin == ClientPrefs.defaultData.splashSkin)
+		{
+			var style:funkin.play.notes.notestyle.NoteStyle = funkin.play.notes.notestyle.NoteStyle.current();
+			if (style != null)
+			{
+				var texture:String = style.splashTexture();
+				if (texture != null) return texture;
+			}
+		}
+		return defaultNoteSplash + getSplashSkinPostfix();
+	}
+
+		public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
 		if (ClientPrefs.data.splashSkin != ClientPrefs.defaultData.splashSkin)

@@ -293,7 +293,7 @@ class Note extends FlxSprite
 
 			offsetX -= width / 2;
 
-			if (PlayState.isPixelStage)
+			if (pixelNote)
 				offsetX += 30;
 
 			if (prevNote.isSustainNote)
@@ -303,7 +303,7 @@ class Note extends FlxSprite
 				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
 				if(createdFrom != null && createdFrom.songSpeed != null) prevNote.scale.y *= createdFrom.songSpeed;
 
-				if(PlayState.isPixelStage) {
+				if(pixelNote) {
 					prevNote.scale.y *= 1.19;
 					prevNote.scale.y *= (6 / height); //Auto adjust note size
 				}
@@ -311,7 +311,7 @@ class Note extends FlxSprite
 				// prevNote.setGraphicSize();
 			}
 
-			if(PlayState.isPixelStage)
+			if(pixelNote)
 			{
 				scale.y *= PlayState.daPixelZoom;
 				updateHitbox();
@@ -354,11 +354,18 @@ class Note extends FlxSprite
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
+	public var pixelNote:Bool = false;
+	public var noteStyle:funkin.play.notes.notestyle.NoteStyle = null;
 	public var correctionOffset:Float = 0; //dont mess with this
 	public function reloadNote(texture:String = '', postfix:String = '') {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
 
+		if(texture.length < 1 && postfix.length < 1 && loadNoteStyle(funkin.play.notes.notestyle.NoteStyle.current()))
+			return;
+
+		noteStyle = null;
+		pixelNote = PlayState.isPixelStage;
 		var skin:String = texture + postfix;
 		if(texture.length < 1)
 		{
@@ -420,6 +427,56 @@ class Note extends FlxSprite
 
 		if(animName != null)
 			animation.play(animName, true);
+	}
+
+	function loadNoteStyle(style:funkin.play.notes.notestyle.NoteStyle):Bool
+	{
+		if(style == null) return false;
+		var asset = isSustainNote ? style.hold : style.note;
+		if(asset == null) return false;
+
+		var animName:String = animation.curAnim != null ? animation.curAnim.name : null;
+		var lastScaleY:Float = scale.y;
+		if(!style.loadFrames(this, asset)) return false;
+
+		noteStyle = style;
+		pixelNote = style.pixel;
+
+		if(noteData > -1 && noteData < colArray.length)
+		{
+			var dir:String = funkin.play.notes.notestyle.NoteStyle.direction(noteData);
+			if(isSustainNote)
+			{
+				style.addAnimation(this, asset, colArray[noteData] + 'holdend', dir + 'End');
+				style.addAnimation(this, asset, colArray[noteData] + 'hold', dir);
+			}
+			else style.addAnimation(this, asset, colArray[noteData] + 'Scroll', dir);
+		}
+
+		style.applyScale(this, asset);
+
+		if(style.pixel)
+		{
+			if(isSustainNote)
+			{
+				originalHeight = frameHeight;
+				offsetX += _lastNoteOffX;
+				_lastNoteOffX = (frameWidth - 7) * (asset.scale / 2);
+				offsetX -= _lastNoteOffX;
+			}
+		}
+		else if(!isSustainNote)
+		{
+			centerOffsets();
+			centerOrigin();
+		}
+
+		if(isSustainNote) scale.y = lastScaleY;
+		updateHitbox();
+
+		if(animName != null && animation.exists(animName))
+			animation.play(animName, true);
+		return true;
 	}
 
 	public static function getNoteSkinPostfix()

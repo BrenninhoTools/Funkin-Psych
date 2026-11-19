@@ -1,6 +1,15 @@
+Folders inside data:
+
+data/characters/   character .json files (plus optional .lua / .hx scripts)
+data/songs/        song charts, events and song scripts
+data/weeks/        week .json files and weekList.txt
+data/notestyles/   note style .json files
+
+-----------------------------
+
 For song charts, it should look something like this:
 
-assets/shared/data/your-song-name/
+data/songs/your-song-name/
 ---- ./your-song-name-easy.json
 ---- ./your-song-name.json
 ---- ./your-song-name-hard.json

@@ -112,6 +112,15 @@ class Mods
 	public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true):Array<String>
 	{
 		var foldersToCheck:Array<String> = [];
+		for (name in funkin.assets.AssetAliases.variants(fileToFind))
+			for (folder in directoriesWithExactFile(path, name, mods))
+				if (!foldersToCheck.contains(folder)) foldersToCheck.push(folder);
+		return foldersToCheck;
+	}
+
+	static function directoriesWithExactFile(path:String, fileToFind:String, mods:Bool = true):Array<String>
+	{
+		var foldersToCheck:Array<String> = [];
 		if (FileSystem.exists(path + fileToFind))
 			foldersToCheck.push(path + fileToFind);
 
@@ -291,6 +300,9 @@ class Mods
 		loadTopMod();
 		#if POLYMOD_ALLOWED
 		PolymodHandler.loadEnabledMods();
+		#end
+		#if CPPIA_ALLOWED
+		funkin.scripting.cppia.CppiaHandler.reloadGlobal();
 		#end
 	}
 

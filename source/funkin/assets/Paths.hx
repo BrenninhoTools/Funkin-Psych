@@ -506,7 +506,30 @@ class Paths
 		}
 
 		var rootFile:String = resolveModPath(mods(key));
-		return rootFile != null ? rootFile : mods(key);
+		if (rootFile != null) return rootFile;
+
+		var alias:Null<String> = AssetAliases.folderAlias(key);
+		if (alias != null)
+		{
+			var aliased:String = findModFile(alias);
+			if (aliased != null) return aliased;
+		}
+		return mods(key);
+	}
+
+	static function findModFile(key:String):String
+	{
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
+		{
+			var fileToCheck:String = resolveModPath(mods(Mods.currentModDirectory + '/' + key));
+			if (fileToCheck != null) return fileToCheck;
+		}
+		for (mod in Mods.getGlobalMods())
+		{
+			var fileToCheck:String = resolveModPath(mods(mod + '/' + key));
+			if (fileToCheck != null) return fileToCheck;
+		}
+		return resolveModPath(mods(key));
 	}
 
 	#if mobile

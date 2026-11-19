@@ -266,6 +266,8 @@ class VSlice
 				format: 'psych_v1_convert'
 			}
 
+			var vsliceStyle:String = metadata.playData.noteStyle;
+			if(vsliceStyle != null && vsliceStyle.length > 0 && vsliceStyle != 'funkin' && vsliceStyle != 'pixel') swagSong.noteStyle = vsliceStyle;
 			Reflect.setField(swagSong, 'artist', metadata.artist);
 			Reflect.setField(swagSong, 'charter', metadata.charter);
 			Reflect.setField(swagSong, 'generatedBy', 'Psych Engine v${MainMenuState.psychEngineVersion} - Chart Editor V-Slice Importer');
@@ -450,7 +452,7 @@ class VSlice
 					girlfriend: songData.gfVersion != null ? songData.gfVersion : '', //there is no problem if gf don't exist with it 
 					opponent: songData.player2
 				},
-				noteStyle: !PlayState.isPixelStage ? 'funkin' : 'pixel',
+				noteStyle: songData.noteStyle != null && songData.noteStyle.length > 0 ? songData.noteStyle : (!PlayState.isPixelStage ? 'funkin' : 'pixel'),
 				stage: stage
 			},
 			timeFormat: 'ms',

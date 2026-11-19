@@ -62,6 +62,9 @@ class AssetAliases
 		'images/unknownMod.png' => 'images/menus/unknownMod.png'
 	];
 
+	public static final DATA_FOLDERS:Array<String> = ['characters', 'weeks', 'notestyles'];
+	public static final RESERVED_DATA_FOLDERS:Array<String> = ['characters', 'weeks', 'notestyles', 'songs', 'stages', 'scripts', 'dialogue'];
+
 	static var reverse:Map<String, String>;
 
 	public static function get(path:String):Null<String>
@@ -73,7 +76,34 @@ class AssetAliases
 			reverse = new Map();
 			for (oldPath => newPath in RENAMED) reverse.set(newPath, oldPath);
 		}
-		return reverse.get(path);
+		var found:Null<String> = reverse.get(path);
+		return found != null ? found : folderAlias(path);
+	}
+
+	public static function folderAlias(path:String):Null<String>
+	{
+		if (path == null) return null;
+		for (folder in DATA_FOLDERS)
+		{
+			if (path.startsWith('$folder/')) return 'data/$path';
+			if (path.startsWith('data/$folder/')) return path.substr(5);
+		}
+		if (path.startsWith('data/songs/')) return 'data/' + path.substr(11);
+		if (path.startsWith('data/'))
+		{
+			var rest:String = path.substr(5);
+			var slash:Int = rest.indexOf('/');
+			if (slash > 0 && !RESERVED_DATA_FOLDERS.contains(rest.substr(0, slash))) return 'data/songs/$rest';
+		}
+		return null;
+	}
+
+	public static function variants(path:String):Array<String>
+	{
+		var list:Array<String> = [path];
+		var alias:Null<String> = get(path);
+		if (alias != null && alias != path) list.push(alias);
+		return list;
 	}
 
 	public static function add(oldPath:String, newPath:String)

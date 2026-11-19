@@ -4,6 +4,7 @@ import funkin.backend.animation.PsychAnimationController;
 
 import funkin.shaders.RGBPalette;
 import funkin.shaders.RGBPalette.RGBShaderReference;
+import funkin.play.notes.notestyle.NoteStyle;
 
 class StrumNote extends FlxSprite
 {
@@ -51,14 +52,20 @@ class StrumNote extends FlxSprite
 		this.ID = noteData;
 		super(x, y);
 
-		var skin:String = null;
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
-		else skin = Note.defaultNoteSkin;
+		var style:NoteStyle = NoteStyle.current();
+		if(style != null && style.strum != null)
+			texture = '';
+		else
+		{
+			var skin:String = null;
+			if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+			else skin = Note.defaultNoteSkin;
 
-		var customSkin:String = skin + Note.getNoteSkinPostfix();
-		if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+			var customSkin:String = skin + Note.getNoteSkinPostfix();
+			if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 
-		texture = skin; //Load texture and anims
+			texture = skin;
+		}
 		scrollFactor.set();
 		playAnim('static');
 	}
@@ -68,6 +75,13 @@ class StrumNote extends FlxSprite
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 
+		if((texture == null || texture.length < 1) && loadNoteStyle(NoteStyle.current()))
+		{
+			if(lastAnim != null && animation.exists(lastAnim)) playAnim(lastAnim, true);
+			return;
+		}
+
+		noteStyle = null;
 		if(PlayState.isPixelStage)
 		{
 			loadGraphic(Paths.image('pixelUI/' + texture));
@@ -139,6 +153,24 @@ class StrumNote extends FlxSprite
 		{
 			playAnim(lastAnim, true);
 		}
+	}
+
+	public var noteStyle:NoteStyle = null;
+
+	function loadNoteStyle(style:NoteStyle):Bool
+	{
+		if(style == null || style.strum == null) return false;
+		var asset = style.strum;
+		if(!style.loadFrames(this, asset)) return false;
+		noteStyle = style;
+
+		var dir:String = NoteStyle.direction(noteData);
+		style.addAnimation(this, asset, 'static', dir);
+		style.addAnimation(this, asset, 'pressed', dir + 'Press');
+		style.addAnimation(this, asset, 'confirm', dir + 'Confirm');
+
+		style.applyScale(this, asset);
+		return true;
 	}
 
 	public function playerPosition()

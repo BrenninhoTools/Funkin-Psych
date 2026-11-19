@@ -52,6 +52,9 @@ class ScriptImports
 			value = Type.resolveClass(newPath);
 			if (value == null) value = Type.resolveEnum(newPath);
 		}
+		#if CPPIA_ALLOWED
+		if (value == null) return funkin.scripting.cppia.CppiaHandler.resolveClass(path);
+		#end
 		if (value != null) cache.set(path, value);
 		return value;
 	}

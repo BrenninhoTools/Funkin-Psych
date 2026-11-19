@@ -30,6 +30,7 @@ typedef SwagSong =
 
 	@:optional var arrowSkin:String;
 	@:optional var splashSkin:String;
+	@:optional var noteStyle:String;
 }
 
 typedef SwagSection =
@@ -52,6 +53,7 @@ class Song
 	public var needsVoices:Bool = true;
 	public var arrowSkin:String;
 	public var splashSkin:String;
+	public var noteStyle:String;
 	public var gameOverChar:String;
 	public var gameOverSound:String;
 	public var gameOverLoop:String;
@@ -143,7 +145,7 @@ class Song
 		
 		var formattedFolder:String = Paths.formatToSongPath(folder);
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
-		_lastPath = Paths.json('$formattedFolder/$formattedSong');
+		_lastPath = Paths.json('songs/$formattedFolder/$formattedSong');
 
 		#if MODS_ALLOWED
 		if(FileSystem.exists(_lastPath))

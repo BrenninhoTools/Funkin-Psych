@@ -460,7 +460,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		updateGridVisibility();
 
 		// CHARACTERS FOR THE DROP DOWNS
-		var gameOverCharacters:Array<String> = loadFileList('characters/', 'data/characterList.txt');
+		var gameOverCharacters:Array<String> = loadFileList('data/characters/', 'data/characterList.txt');
 		var characterList:Array<String> = gameOverCharacters.filter((name:String) -> (!name.endsWith('-dead') && !name.endsWith('-death')));
 		playerDropDown.list = characterList;
 		opponentDropDown.list = characterList;
@@ -661,6 +661,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		noteTextureInputText.text = PlayState.SONG.arrowSkin;
 		noteSplashesInputText.text = PlayState.SONG.splashSkin;
+		noteStyleInputText.text = PlayState.SONG.noteStyle != null ? PlayState.SONG.noteStyle : '';
 	}
 	
 	var noteSelectionSine:Float = 0;
@@ -2426,6 +2427,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var noRGBCheckBox:PsychUICheckBox;
 	var noteTextureInputText:PsychUIInputText;
 	var noteSplashesInputText:PsychUIInputText;
+	var noteStyleInputText:PsychUIInputText;
 	function addDataTab()
 	{
 		var tab_group = mainBox.getTab('Data').menu;
@@ -2462,6 +2464,35 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		objY += 35;
 		noRGBCheckBox = new PsychUICheckBox(objX, objY, 'Disable Note RGB', 100, updateNotesRGB);
+
+		noteStyleInputText = new PsychUIInputText(objX + 140, objY, 120, '');
+		noteStyleInputText.unfocus = function()
+		{
+			var style:String = noteStyleInputText.text.trim();
+			var previous:String = PlayState.SONG.noteStyle;
+			PlayState.SONG.noteStyle = style.length > 0 ? style : null;
+			if(PlayState.SONG.noteStyle == null) Reflect.deleteField(PlayState.SONG, 'noteStyle');
+			if(previous == PlayState.SONG.noteStyle) return;
+
+			if(style.length > 0 && !funkin.play.notes.notestyle.NoteStyle.exists(style))
+			{
+				showOutput('ERROR: Note style "$style" not found.', true);
+				return;
+			}
+
+			funkin.play.notes.notestyle.NoteStyle.clearCache();
+			for (note in notes)
+			{
+				if(note == null) continue;
+				note.reloadNote(note.texture);
+				if(note.width > note.height)
+					note.setGraphicSize(GRID_SIZE);
+				else
+					note.setGraphicSize(0, GRID_SIZE);
+				note.updateHitbox();
+			}
+			showOutput(style.length > 0 ? 'Reloaded notes to style: "$style"' : 'Reloaded notes to default style');
+		};
 		
 		objY += 40;
 		noteTextureInputText = new PsychUIInputText(objX, objY, 120, '');
@@ -2512,6 +2543,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		tab_group.add(gameOverLoopInputText);
 		tab_group.add(gameOverRetryInputText);
 		tab_group.add(noRGBCheckBox);
+		tab_group.add(new FlxText(noteStyleInputText.x, noteStyleInputText.y - 15, 120, 'Note Style:'));
+		tab_group.add(noteStyleInputText);
 
 		tab_group.add(new FlxText(noteTextureInputText.x, noteTextureInputText.y - 15, 100, 'Note Texture:'));
 		tab_group.add(new FlxText(noteSplashesInputText.x, noteSplashesInputText.y - 15, 120, 'Note Splashes Texture:'));

@@ -12,7 +12,7 @@ class CharacterParser
 	public static final INLINE_KEYS:Array<String> = ['offset', 'position', 'camera', 'color', 'indices', 'frameSize'];
 
 	public static function path(name:String):String
-		return Paths.getPath('characters/$name.json', TEXT, null, true);
+		return Paths.getPath('data/characters/$name.json', TEXT, null, true);
 
 	public static function exists(name:String):Bool
 		return name != null && Paths.exists(path(name), TEXT);

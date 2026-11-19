@@ -86,11 +86,11 @@ class WeekData {
 		var originalLength:Int = directories.length;
 		#end
 
-		var sexList:Array<String> = CoolUtil.coolTextFile(Paths.getSharedPath('weeks/weekList.txt'));
+		var sexList:Array<String> = CoolUtil.coolTextFile(Paths.getSharedPath('data/weeks/weekList.txt'));
 		for (i in 0...sexList.length) {
 			for (j in 0...directories.length) {
-				var fileToCheck:String = directories[j] + 'weeks/' + sexList[i] + '.json';
-				if(!weeksLoaded.exists(sexList[i])) {
+				var fileToCheck:String = findWeekFile(directories[j], sexList[i]);
+				if(fileToCheck != null && !weeksLoaded.exists(sexList[i])) {
 					var week:WeekFile = getWeekFile(fileToCheck);
 					if(week != null) {
 						var weekFile:WeekData = new WeekData(week, sexList[i]);
@@ -112,8 +112,7 @@ class WeekData {
 
 		#if MODS_ALLOWED
 		for (i in 0...directories.length) {
-			var directory:String = directories[i] + 'weeks/';
-			if(FileSystem.exists(directory)) {
+			for (directory in weekFolders(directories[i])) {
 				var listOfWeeks:Array<String> = CoolUtil.coolTextFile(directory + 'weekList.txt');
 				for (daWeek in listOfWeeks)
 				{
@@ -135,6 +134,37 @@ class WeekData {
 			}
 		}
 		#end
+	}
+
+	public static final WEEK_FOLDERS:Array<String> = ['data/weeks/', 'weeks/'];
+
+	public static function weekFolders(directory:String):Array<String>
+	{
+		var folders:Array<String> = [];
+		for (folder in WEEK_FOLDERS)
+		{
+			var path:String = directory + folder;
+			#if MODS_ALLOWED
+			if (FileSystem.exists(path) && FileSystem.isDirectory(path)) folders.push(path);
+			#else
+			folders.push(path);
+			#end
+		}
+		return folders;
+	}
+
+	public static function findWeekFile(directory:String, week:String):String
+	{
+		for (folder in WEEK_FOLDERS)
+		{
+			var path:String = directory + folder + week + '.json';
+			#if MODS_ALLOWED
+			if (FileSystem.exists(path)) return path;
+			#else
+			if (OpenFlAssets.exists(path)) return path;
+			#end
+		}
+		return null;
 	}
 
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)

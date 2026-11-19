@@ -109,6 +109,9 @@ class Main extends Sprite
 		#if POLYMOD_ALLOWED
 		funkin.modding.PolymodHandler.loadEnabledMods();
 		#end
+		#if CPPIA_ALLOWED
+		funkin.scripting.cppia.CppiaHandler.reloadGlobal();
+		#end
 
 		FlxG.save.bind('funkin', CoolUtil.getSavePath());
 		Highscore.load();
