@@ -39,7 +39,7 @@ class Project extends HXProject
 		meta.company = COMPANY;
 
 		app.file = FILE;
-		app.main = "Main";
+		app.main = "funkin.Main";
 		app.preloader = "flixel.system.FlxPreloader";
 		setDefine("SWF_VERSION", "11.8");
 		app.path = hasDefine("32bits") ? "export/32bit" : (debug ? "export/debug" : "export/release");
