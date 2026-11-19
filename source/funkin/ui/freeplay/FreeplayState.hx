@@ -20,6 +20,7 @@ import flixel.util.FlxDestroyUtil;
 import openfl.utils.Assets;
 
 import haxe.Json;
+import funkin.data.DataUtil;
 
 class FreeplayState extends MusicBeatState
 {
@@ -55,6 +56,21 @@ class FreeplayState extends MusicBeatState
 	var bottomBG:FlxSprite;
 
 	var player:MusicPlayer;
+	var menu:funkin.data.menu.MenuData;
+
+	public static function defaultData():Dynamic
+	{
+		return {
+			version: funkin.data.menu.MenuData.VERSION,
+			sounds: {scroll: 'scrollMenu', cancel: 'cancelMenu'},
+			background: {image: 'menuDesat', songColors: true, color: '#9271FD', colorTween: 1},
+			list: {position: [90, 320], spacing: [20, 120], verticalMultiplier: 1.3, maxWidth: 980, drawDistance: 4, lerpSpeed: 9.6, selectedAlpha: 1, unselectedAlpha: 0.6, icons: true},
+			score: {font: 'vcr.ttf', size: 32, position: [896, 5], alignment: 'right', border: 'none', background: {color: '#000000', alpha: 0.6, height: 66}, format: null},
+			difficulty: {size: 24, offset: 36, format: '< {difficulty} >', singleFormat: '{difficulty}'},
+			bottom: {visible: true, height: 26, size: 16, color: '#000000', alpha: 0.6, text: null, border: 'none'},
+			sprites: []
+		};
+	}
 
 	override function create()
 	{
@@ -107,22 +123,33 @@ class FreeplayState extends MusicBeatState
 		}
 		Mods.loadTopMod();
 
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		menu = funkin.data.menu.MenuData.load('freeplay', defaultData());
+		_drawDistance = menu.int('list', 'drawDistance', 4);
+
+		bg = new FlxSprite().loadGraphic(Paths.image(menu.image('background', 'menuDesat')));
+		bg.antialiasing = Save.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
 		funkin.mobile.screen.WideScreen.fit(bg);
 
+		var back:FlxSpriteGroup = new FlxSpriteGroup();
+		menu.createSprites(back, null, false, variables);
+		add(back);
+
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		add(grpSongs);
 
+		var listPos:Array<Float> = menu.vector('list', 'position', 90, 320);
+		var listSpacing:Array<Float> = menu.vector('list', 'spacing', 20, 120);
+		var maxWidth:Float = menu.float('list', 'maxWidth', 980);
 		for (i in 0...songs.length)
 		{
-			var songText:Alphabet = new Alphabet(90, 320, songs[i].songName, true);
+			var songText:Alphabet = new Alphabet(listPos[0], listPos[1], songs[i].songName, true);
 			songText.targetY = i;
+			songText.distancePerItem.set(listSpacing[0], listSpacing[1]);
 			grpSongs.add(songText);
 
-			songText.scaleX = Math.min(1, 980 / songText.width);
+			if (maxWidth > 0) songText.scaleX = Math.min(1, maxWidth / songText.width);
 			songText.snapToPosition();
 
 			Mods.currentModDirectory = songs[i].folder;
@@ -144,15 +171,21 @@ class FreeplayState extends MusicBeatState
 		}
 		LevelData.setDirectoryFromLevel();
 
-		scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
-		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
+		scoreText = menu.createText('score', "", -1, 32);
+		scoreText.fieldWidth = 0;
+		scoreText.visible = menu.visible('score');
 
-		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, 66, 0xFF000000);
-		scoreBG.alpha = 0.6;
+		var scoreBack:Dynamic = menu.element('score').background;
+		scoreBG = new FlxSprite(scoreText.x - 6, 0).makeGraphic(1, scoreBack != null ? DataUtil.toInt(scoreBack.height, 66) : 66, FlxColor.WHITE);
+		scoreBG.color = funkin.data.ui.UIData.parseColor(scoreBack != null ? scoreBack.color : null, FlxColor.BLACK);
+		scoreBG.alpha = scoreBack != null ? DataUtil.toFloat(scoreBack.alpha, 0.6) : 0.6;
+		scoreBG.visible = scoreText.visible;
 		add(scoreBG);
 
-		diffText = new FlxText(scoreText.x, scoreText.y + 36, 0, "", 24);
+		diffText = new FlxText(scoreText.x, scoreText.y + menu.float('difficulty', 'offset', 36), 0, "", menu.int('difficulty', 'size', 24));
 		diffText.font = scoreText.font;
+		diffText.color = menu.colorOf('difficulty', 'color', FlxColor.WHITE);
+		diffText.visible = menu.visible('difficulty');
 		add(diffText);
 
 		add(scoreText);
@@ -170,14 +203,17 @@ class FreeplayState extends MusicBeatState
 		add(missingText);
 
 		if(curSelected >= songs.length) curSelected = 0;
-		bg.color = songs[curSelected].color;
+		bg.color = menu.bool('background', 'songColors', true) ? songs[curSelected].color : menu.colorOf('background', 'color', 0xFF9271FD);
 		intendedColor = bg.color;
 		lerpSelected = curSelected;
 
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 
-		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
-		bottomBG.alpha = 0.6;
+		var bottomHeight:Int = menu.int('bottom', 'height', 26);
+		bottomBG = new FlxSprite(0, FlxG.height - bottomHeight).makeGraphic(FlxG.width, bottomHeight, FlxColor.WHITE);
+		bottomBG.color = menu.colorOf('bottom', 'color', FlxColor.BLACK);
+		bottomBG.alpha = menu.float('bottom', 'alpha', 0.6);
+		bottomBG.visible = menu.visible('bottom');
 		add(bottomBG);
 
 		#if mobile
@@ -185,12 +221,19 @@ class FreeplayState extends MusicBeatState
 		#else
 		var leText:String = Language.getPhrase("freeplay_tip", "Press SPACE to listen to the Song / Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.");
 		#end
+		var customBottom:Dynamic = menu.element('bottom').text;
+		if (customBottom != null) leText = Std.string(customBottom);
 		bottomString = leText;
-		var size:Int = 16;
+		var size:Int = menu.int('bottom', 'size', 16);
 		bottomText = new FlxText(bottomBG.x, bottomBG.y + 4, FlxG.width, leText, size);
-		bottomText.setFormat(Paths.font("vcr.ttf"), size, FlxColor.WHITE, CENTER);
+		bottomText.setFormat(Paths.font(menu.font('bottom')), size, menu.colorOf('bottom', 'textColor', FlxColor.WHITE), CENTER);
 		bottomText.scrollFactor.set();
+		bottomText.visible = bottomBG.visible;
 		add(bottomText);
+
+		var front:FlxSpriteGroup = new FlxSpriteGroup();
+		menu.createSprites(front, null, true, variables);
+		add(front);
 		
 		player = new MusicPlayer(this);
 		add(player);
@@ -347,8 +390,8 @@ class FreeplayState extends MusicBeatState
 		if (FlxG.sound.music.volume < 0.7)
 			FlxG.sound.music.volume += 0.5 * elapsed;
 
-		lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 24)));
-		lerpRating = FlxMath.lerp(intendedRating, lerpRating, Math.exp(-elapsed * 12));
+		lerpScore = Math.floor(MathUtil.smoothLerp(lerpScore, intendedScore, elapsed, 24));
+		lerpRating = MathUtil.smoothLerp(lerpRating, intendedRating, elapsed, 12);
 
 		if (Math.abs(lerpScore - intendedScore) <= 10)
 			lerpScore = intendedScore;
@@ -359,7 +402,7 @@ class FreeplayState extends MusicBeatState
 		if (Math.abs(lerpRating - intendedRating) <= 0.01)
 			lerpRating = intendedRating;
 
-		var ratingSplit:Array<String> = Std.string(CoolUtil.floorDecimal(lerpRating * 100, 2)).split('.');
+		var ratingSplit:Array<String> = Std.string(MathUtil.floorDecimal(lerpRating * 100, 2)).split('.');
 		if(ratingSplit.length < 2) //No decimals, add an empty space
 			ratingSplit.push('');
 		
@@ -371,7 +414,13 @@ class FreeplayState extends MusicBeatState
 
 		if (!player.playingMusic)
 		{
-			scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1} ({2}%)', [lerpScore, ratingSplit.join('.')]);
+			var scoreFormat:Dynamic = menu.element('score').format;
+			if (scoreFormat != null)
+			{
+				var values:Map<String, Dynamic> = ['score' => lerpScore, 'accuracy' => ratingSplit.join('.')];
+				scoreText.text = funkin.data.ui.UIData.format(Std.string(scoreFormat), values);
+			}
+			else scoreText.text = Language.getPhrase('personal_best', 'PERSONAL BEST: {1} ({2}%)', [lerpScore, ratingSplit.join('.')]);
 			positionHighscore();
 			
 			if(songs.length > 1)
@@ -411,7 +460,7 @@ class FreeplayState extends MusicBeatState
 
 				if(FlxG.mouse.wheel != 0)
 				{
-					FunkinSound.playOnce('scrollMenu', 0.2);
+					FunkinSound.playOnce(menu.sound('scroll', 'scrollMenu'), 0.2);
 					changeSelection(-shiftMult * FlxG.mouse.wheel, false);
 				}
 			}
@@ -446,7 +495,7 @@ class FreeplayState extends MusicBeatState
 			else 
 			{
 				persistentUpdate = false;
-				FunkinSound.playOnce('cancelMenu');
+				FunkinSound.playOnce(menu.sound('cancel', 'cancelMenu'));
 				MusicBeatState.switchState(new MainMenuState());
 			}
 		}
@@ -557,7 +606,7 @@ class FreeplayState extends MusicBeatState
 				missingText.screenCenter(Y);
 				missingText.visible = true;
 				missingTextBG.visible = true;
-				FunkinSound.playOnce('cancelMenu');
+				FunkinSound.playOnce(menu.sound('cancel', 'cancelMenu'));
 
 				updateTexts(elapsed);
 				super.update(elapsed);
@@ -584,7 +633,7 @@ class FreeplayState extends MusicBeatState
 		{
 			persistentUpdate = false;
 			openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
-			FunkinSound.playOnce('scrollMenu');
+			FunkinSound.playOnce(menu.sound('scroll', 'scrollMenu'));
 		}
 
 		updateTexts(elapsed);
@@ -624,9 +673,9 @@ class FreeplayState extends MusicBeatState
 		lastDifficultyName = Difficulty.getString(curDifficulty, false);
 		var displayDiff:String = Difficulty.getString(curDifficulty);
 		if (Difficulty.list.length > 1)
-			diffText.text = '< ' + displayDiff.toUpperCase() + ' >';
+			diffText.text = funkin.data.ui.UIData.format(menu.string('difficulty', 'format', '< {difficulty} >'), ['difficulty' => displayDiff.toUpperCase()]);
 		else
-			diffText.text = displayDiff.toUpperCase();
+			diffText.text = funkin.data.ui.UIData.format(menu.string('difficulty', 'singleFormat', '{difficulty}'), ['difficulty' => displayDiff.toUpperCase()]);
 
 		positionHighscore();
 		missingText.visible = false;
@@ -640,26 +689,23 @@ class FreeplayState extends MusicBeatState
 
 		curSelected = FlxMath.wrap(curSelected + change, 0, songs.length-1);
 		_updateSongLastDifficulty();
-		if(playSound) FunkinSound.playOnce('scrollMenu', 0.4);
+		if(playSound) FunkinSound.playOnce(menu.sound('scroll', 'scrollMenu'), 0.4);
 
 		var newColor:Int = songs[curSelected].color;
-		if(newColor != intendedColor)
+		if(menu.bool('background', 'songColors', true) && newColor != intendedColor)
 		{
 			intendedColor = newColor;
 			FlxTween.cancelTweensOf(bg);
-			FlxTween.color(bg, 1, bg.color, intendedColor);
+			FlxTween.color(bg, menu.float('background', 'colorTween', 1), bg.color, intendedColor);
 		}
 
+		var selectedAlpha:Float = menu.float('list', 'selectedAlpha', 1);
+		var unselectedAlpha:Float = menu.float('list', 'unselectedAlpha', 0.6);
 		for (num => item in grpSongs.members)
 		{
 			var icon:HealthIcon = iconArray[num];
-			item.alpha = 0.6;
-			icon.alpha = 0.6;
-			if (item.targetY == curSelected)
-			{
-				item.alpha = 1;
-				icon.alpha = 1;
-			}
+			item.alpha = item.targetY == curSelected ? selectedAlpha : unselectedAlpha;
+			icon.alpha = item.alpha;
 		}
 		
 		Mods.currentModDirectory = songs[curSelected].folder;
@@ -697,7 +743,7 @@ class FreeplayState extends MusicBeatState
 	var _lastVisibles:Array<Int> = [];
 	public function updateTexts(elapsed:Float = 0.0)
 	{
-		lerpSelected = FlxMath.lerp(curSelected, lerpSelected, Math.exp(-elapsed * 9.6));
+		lerpSelected = MathUtil.smoothLerp(lerpSelected, curSelected, elapsed, menu != null ? menu.float('list', 'lerpSpeed', 9.6) : 9.6);
 		for (i in _lastVisibles)
 		{
 			grpSongs.members[i].visible = grpSongs.members[i].active = false;
@@ -712,10 +758,10 @@ class FreeplayState extends MusicBeatState
 			var item:Alphabet = grpSongs.members[i];
 			item.visible = item.active = true;
 			item.x = ((item.targetY - lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
-			item.y = ((item.targetY - lerpSelected) * 1.3 * item.distancePerItem.y) + item.startPosition.y;
+			item.y = ((item.targetY - lerpSelected) * (menu != null ? menu.float('list', 'verticalMultiplier', 1.3) : 1.3) * item.distancePerItem.y) + item.startPosition.y;
 
 			var icon:HealthIcon = iconArray[i];
-			icon.visible = icon.active = true;
+			icon.visible = icon.active = menu == null || menu.bool('list', 'icons', true);
 			_lastVisibles.push(i);
 		}
 	}
@@ -727,7 +773,7 @@ class FreeplayState extends MusicBeatState
 		#end
 		super.destroy();
 
-		FlxG.autoPause = ClientPrefs.data.autoPause;
+		FlxG.autoPause = Save.data.autoPause;
 		if (!FlxG.sound.music.playing && !stopMusicPlay)
 			FunkinSound.playMusic('freakyMenu');
 	}	

@@ -93,7 +93,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 		mainGroup.add(ghostIdle);
 
 		box = new FlxSprite(70, 370);
-		box.antialiasing = ClientPrefs.data.antialiasing;
+		box.antialiasing = Save.data.antialiasing;
 		box.frames = Paths.getSparrowAtlas('speech_bubble');
 		box.scrollFactor.set();
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
@@ -462,7 +462,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 
 		if(PsychUIInputText.focusOn == null)
 		{
-			ClientPrefs.toggleVolumeKeys(true);
+			Save.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.SPACE && UI_mainbox.selectedName == 'Character') {
 				character.playAnim(character.jsonFile.animations[curAnim].anim);
 				daText.resetDialogue();
@@ -621,7 +621,7 @@ class DialogueCharacterEditorState extends MusicBeatState implements PsychUIEven
 			hudGroup.x = mainGroup.x;
 			hudGroup.y = mainGroup.y;
 		}
-		else ClientPrefs.toggleVolumeKeys(false);
+		else Save.toggleVolumeKeys(false);
 	}
 	
 	var _file:FileReference = null;

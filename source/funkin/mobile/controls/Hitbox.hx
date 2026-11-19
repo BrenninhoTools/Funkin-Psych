@@ -80,7 +80,7 @@ class Hitbox extends FlxSpriteGroup
 		{
 			var lane:FlxSprite = new FlxSprite(i * laneWidth, 0);
 			lane.alpha = 0;
-			lane.antialiasing = ClientPrefs.data.antialiasing;
+			lane.antialiasing = Save.data.antialiasing;
 			lanes.push(lane);
 			add(lane);
 		}
@@ -95,24 +95,24 @@ class Hitbox extends FlxSpriteGroup
 		var laneWidth:Int = Std.int(Math.ceil(FlxG.width / TouchInput.LANES));
 		for (i in 0...lanes.length)
 		{
-			var bitmap:BitmapData = createLaneBitmap(ClientPrefs.data.hitboxStyle, laneWidth, FlxG.height, i);
+			var bitmap:BitmapData = createLaneBitmap(Save.data.hitboxStyle, laneWidth, FlxG.height, i);
 			lanes[i].loadGraphic(bitmap, false, 0, 0, true);
-			var imageStyle:Bool = ClientPrefs.data.hitboxStyle == 'Image' && loadImage() != null;
-			lanes[i].color = imageStyle && !ClientPrefs.data.hitboxImageTint ? FlxColor.WHITE : laneColor(i);
+			var imageStyle:Bool = Save.data.hitboxStyle == 'Image' && loadImage() != null;
+			lanes[i].color = imageStyle && !Save.data.hitboxImageTint ? FlxColor.WHITE : laneColor(i);
 		}
-		visible = preview || !ClientPrefs.data.hitboxInvisible;
+		visible = preview || !Save.data.hitboxInvisible;
 	}
 
 	public static function laneColor(lane:Int):FlxColor
 	{
-		return switch (ClientPrefs.data.hitboxColors)
+		return switch (Save.data.hitboxColors)
 		{
 			case 'Notes':
-				var colors:Array<FlxColor> = ClientPrefs.data.arrowRGB[lane % ClientPrefs.data.arrowRGB.length];
+				var colors:Array<FlxColor> = Save.data.arrowRGB[lane % Save.data.arrowRGB.length];
 				colors != null && colors.length > 0 ? colors[0] : CLASSIC[lane % CLASSIC.length];
 			case 'Pastel': PASTEL[lane % PASTEL.length];
 			case 'RGB':
-				var colors:Array<FlxColor> = ClientPrefs.data.hitboxRGB;
+				var colors:Array<FlxColor> = Save.data.hitboxRGB;
 				colors != null && lane < colors.length ? colors[lane] : CLASSIC[lane % CLASSIC.length];
 			case 'White': FlxColor.WHITE;
 			default: CLASSIC[lane % CLASSIC.length];
@@ -214,7 +214,7 @@ class Hitbox extends FlxSpriteGroup
 		var bitmap:BitmapData = new BitmapData(width, height, true, 0);
 		var scaleX:Float = width / image.width;
 		var scaleY:Float = height / image.height;
-		switch (ClientPrefs.data.hitboxImageFit)
+		switch (Save.data.hitboxImageFit)
 		{
 			case 'Fit':
 				scaleX = scaleY = Math.min(scaleX, scaleY);
@@ -240,7 +240,7 @@ class Hitbox extends FlxSpriteGroup
 	{
 		super.update(elapsed);
 
-		var opacity:Float = ClientPrefs.data.hitboxOpacity;
+		var opacity:Float = Save.data.hitboxOpacity;
 		var idle:Float = preview ? opacity * 0.3 : 0;
 		for (i in 0...lanes.length)
 		{

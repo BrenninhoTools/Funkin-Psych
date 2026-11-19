@@ -63,7 +63,7 @@ class AssetAliases
 	];
 
 	public static final DATA_FOLDERS:Array<String> = ['characters', 'weeks', 'notestyles'];
-	public static final RESERVED_DATA_FOLDERS:Array<String> = ['characters', 'weeks', 'levels', 'ui', 'notestyles', 'songs', 'stages', 'scripts', 'dialogue'];
+	public static final RESERVED_DATA_FOLDERS:Array<String> = ['characters', 'weeks', 'levels', 'ui', 'menus', 'notestyles', 'songs', 'stages', 'scripts', 'dialogue'];
 
 	static var reverse:Map<String, String>;
 

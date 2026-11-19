@@ -74,7 +74,7 @@ class ControlsSubState extends MusicBeatSubstate
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = keyboardColor;
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();
 		add(bg);
 		funkin.mobile.screen.WideScreen.fit(bg);
@@ -100,7 +100,7 @@ class ControlsSubState extends MusicBeatSubstate
 		add(grpBinds);
 
 		controllerSpr = new FlxSprite(50, 40).loadGraphic(Paths.image('controllertype'), true, 82, 60);
-		controllerSpr.antialiasing = ClientPrefs.data.antialiasing;
+		controllerSpr.antialiasing = Save.data.antialiasing;
 		controllerSpr.animation.add('keyboard', [0], 1, false);
 		controllerSpr.animation.add('gamepad', [1], 1, false);
 		add(controllerSpr);
@@ -179,13 +179,13 @@ class ControlsSubState extends MusicBeatSubstate
 	}
 	function addKeyText(text:Alphabet, option:Array<Dynamic>, id:Int)
 	{
-		var keys:Array<Null<FlxKey>> = ClientPrefs.keyBinds.get(option[2]);
+		var keys:Array<Null<FlxKey>> = Save.keyBinds.get(option[2]);
 		if(keys == null && onKeyboardMode)
-			keys = ClientPrefs.defaultKeys.get(option[2]).copy();
+			keys = Save.defaultKeys.get(option[2]).copy();
 
-		var gmpds:Array<Null<FlxGamepadInputID>> = ClientPrefs.gamepadBinds.get(option[2]);
+		var gmpds:Array<Null<FlxGamepadInputID>> = Save.gamepadBinds.get(option[2]);
 		if(gmpds == null && !onKeyboardMode)
-			gmpds = ClientPrefs.defaultButtons.get(option[2]).copy();
+			gmpds = Save.defaultButtons.get(option[2]).copy();
 
 		for (n in 0...2)
 		{
@@ -315,14 +315,14 @@ class ControlsSubState extends MusicBeatSubstate
 
 					binding = true;
 					holdingEsc = 0;
-					ClientPrefs.toggleVolumeKeys(false);
+					Save.toggleVolumeKeys(false);
 					FunkinSound.playOnce('scrollMenu');
 				}
 				else
 				{
 					// Reset to Default
-					ClientPrefs.resetKeys(!onKeyboardMode);
-					ClientPrefs.reloadVolumeKeys();
+					Save.resetKeys(!onKeyboardMode);
+					Save.reloadVolumeKeys();
 					var lastSel:Int = curSelected;
 					createTexts();
 					curSelected = lastSel;
@@ -350,10 +350,10 @@ class ControlsSubState extends MusicBeatSubstate
 				if(holdingEsc > 0.5)
 				{
 					if (onKeyboardMode)
-						ClientPrefs.keyBinds.get(curOption[2])[altNum] = NONE;
+						Save.keyBinds.get(curOption[2])[altNum] = NONE;
 					else
-						ClientPrefs.gamepadBinds.get(curOption[2])[altNum] = NONE;
-					ClientPrefs.clearInvalidKeys(curOption[2]);
+						Save.gamepadBinds.get(curOption[2])[altNum] = NONE;
+					Save.clearInvalidKeys(curOption[2]);
 					updateBind(Math.floor(curSelected * 2) + altNum, onKeyboardMode ? InputFormatter.getKeyName(NONE) : InputFormatter.getGamepadName(NONE));
 					FunkinSound.playOnce('cancelMenu');
 					closeBinding();
@@ -363,8 +363,8 @@ class ControlsSubState extends MusicBeatSubstate
 			{
 				holdingEsc = 0;
 				var changed:Bool = false;
-				var curKeys:Array<FlxKey> = ClientPrefs.keyBinds.get(curOption[2]);
-				var curButtons:Array<FlxGamepadInputID> = ClientPrefs.gamepadBinds.get(curOption[2]);
+				var curKeys:Array<FlxKey> = Save.keyBinds.get(curOption[2]);
+				var curButtons:Array<FlxGamepadInputID> = Save.gamepadBinds.get(curOption[2]);
 
 				if(onKeyboardMode)
 				{
@@ -433,18 +433,18 @@ class ControlsSubState extends MusicBeatSubstate
 					}
 
 					var option:String = options[curOptions[curSelected]][2];
-					ClientPrefs.clearInvalidKeys(option);
+					Save.clearInvalidKeys(option);
 					for (n in 0...2)
 					{
 						var key:String = null;
 						if(onKeyboardMode)
 						{
-							var savKey:Array<Null<FlxKey>> = ClientPrefs.keyBinds.get(option);
+							var savKey:Array<Null<FlxKey>> = Save.keyBinds.get(option);
 							key = InputFormatter.getKeyName(savKey[n] != null ? savKey[n] : NONE);
 						}
 						else
 						{
-							var savKey:Array<Null<FlxGamepadInputID>> = ClientPrefs.gamepadBinds.get(option);
+							var savKey:Array<Null<FlxGamepadInputID>> = Save.gamepadBinds.get(option);
 							key = InputFormatter.getGamepadName(savKey[n] != null ? savKey[n] : NONE);
 						}
 						updateBind(Math.floor(curSelected * 2) + n, key);
@@ -468,7 +468,7 @@ class ControlsSubState extends MusicBeatSubstate
 
 		bindingText2.destroy();
 		remove(bindingText2);
-		ClientPrefs.reloadVolumeKeys();
+		Save.reloadVolumeKeys();
 	}
 
 	function updateText(?change:Int = 0)

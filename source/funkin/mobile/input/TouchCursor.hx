@@ -78,7 +78,7 @@ class TouchCursor extends Sprite
 			parent.setChildIndex(this, parent.numChildren - 1);
 
 		graphics.clear();
-		if (!ClientPrefs.data.touchCursor)
+		if (!Save.data.touchCursor)
 		{
 			points.clear();
 			return;

@@ -63,7 +63,7 @@ class OptionsState extends MusicBeatState
 		#end
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();
 
@@ -92,7 +92,7 @@ class OptionsState extends MusicBeatState
 		add(selectorRight);
 
 		changeSelection();
-		ClientPrefs.saveSettings();
+		Save.saveSettings();
 
 		#if mobile
 		add(funkin.mobile.controls.MobileButton.back());
@@ -120,7 +120,7 @@ class OptionsState extends MusicBeatState
 	override function closeSubState()
 	{
 		super.closeSubState();
-		ClientPrefs.saveSettings();
+		Save.saveSettings();
 		#if android
 		if (options.contains('Open Data Folder') != showDataFolder())
 		{
@@ -193,7 +193,7 @@ class OptionsState extends MusicBeatState
 
 	override function destroy()
 	{
-		ClientPrefs.loadPrefs();
+		Save.loadPrefs();
 		super.destroy();
 	}
 }

@@ -120,8 +120,8 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 	}
 
 	function onChangeHitsoundVolume()
-		FunkinSound.playOnce('hitsound', ClientPrefs.data.hitsoundVolume);
+		FunkinSound.playOnce('hitsound', Save.data.hitsoundVolume);
 
 	function onChangeAutoPause()
-		FlxG.autoPause = ClientPrefs.data.autoPause;
+		FlxG.autoPause = Save.data.autoPause;
 }

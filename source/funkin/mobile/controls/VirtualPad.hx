@@ -210,7 +210,7 @@ class VirtualPadButton extends FlxSpriteGroup
 			base.setGraphicSize(size, size);
 		}
 		base.updateHitbox();
-		base.antialiasing = ClientPrefs.data.antialiasing;
+		base.antialiasing = Save.data.antialiasing;
 		add(base);
 		baseScale = base.scale.x;
 

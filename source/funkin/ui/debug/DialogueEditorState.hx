@@ -53,7 +53,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		add(character);
 
 		box = new FlxSprite(70, 370);
-		box.antialiasing = ClientPrefs.data.antialiasing;
+		box.antialiasing = Save.data.antialiasing;
 		box.frames = Paths.getSparrowAtlas('speech_bubble');
 		box.scrollFactor.set();
 		box.animation.addByPrefix('normal', 'speech bubble normal', 24);
@@ -314,7 +314,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 
 		if(PsychUIInputText.focusOn == null)
 		{
-			ClientPrefs.toggleVolumeKeys(true);
+			Save.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.SPACE) {
 				reloadText(false);
 			}
@@ -363,7 +363,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 				changeText(1);
 			}
 		}
-		else ClientPrefs.toggleVolumeKeys(false);
+		else Save.toggleVolumeKeys(false);
 		super.update(elapsed);
 	}
 

@@ -47,7 +47,7 @@ class PauseSubState extends MusicBeatSubstate
 		} else if(PlayState.instance.practiceMode && !PlayState.instance.startingSong)
 			menuItemsOG.insert(3, 'Skip Time');
 		#if mobile
-		if(ClientPrefs.data.pauseChartEditor)
+		if(Save.data.pauseChartEditor)
 			menuItemsOG.insert(menuItemsOG.indexOf('Restart Song') + 1, 'Chart Editor');
 		#end
 		menuItems = menuItemsOG;
@@ -151,7 +151,7 @@ class PauseSubState extends MusicBeatSubstate
 	function getPauseSong()
 	{
 		var formattedSongName:String = (songName != null ? Paths.formatToSongPath(songName) : '');
-		var formattedPauseMusic:String = Paths.formatToSongPath(ClientPrefs.data.pauseMusic);
+		var formattedPauseMusic:String = Paths.formatToSongPath(Save.data.pauseMusic);
 		if(formattedSongName == 'none' || (formattedSongName != 'none' && formattedPauseMusic == 'none')) return null;
 
 		return (formattedSongName != '') ? formattedSongName : formattedPauseMusic;
@@ -350,9 +350,9 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.instance.vocals.volume = 0;
 					PlayState.instance.canResync = false;
 					MusicBeatState.switchState(new OptionsState());
-					if(ClientPrefs.data.pauseMusic != 'None')
+					if(Save.data.pauseMusic != 'None')
 					{
-						FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(ClientPrefs.data.pauseMusic)), pauseMusic.volume);
+						FlxG.sound.playMusic(Paths.music(Paths.formatToSongPath(Save.data.pauseMusic)), pauseMusic.volume);
 						FlxTween.tween(FlxG.sound.music, {volume: 1}, 0.8);
 						FlxG.sound.music.time = pauseMusic.time;
 					}

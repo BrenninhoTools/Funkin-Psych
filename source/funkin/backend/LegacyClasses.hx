@@ -5,7 +5,9 @@ class LegacyClasses
 	public static final PATHS:Map<String, String> = [
 		'backend.Achievements' => 'funkin.backend.Achievements',
 		'backend.BaseStage' => 'funkin.backend.BaseStage',
-		'backend.ClientPrefs' => 'funkin.backend.ClientPrefs',
+		'backend.ClientPrefs' => 'funkin.save.Save',
+		'funkin.backend.ClientPrefs' => 'funkin.save.Save',
+		'ClientPrefs' => 'funkin.save.Save',
 		'backend.Conductor' => 'funkin.backend.Conductor',
 		'backend.Controls' => 'funkin.backend.Controls',
 		'backend.CoolUtil' => 'funkin.backend.CoolUtil',

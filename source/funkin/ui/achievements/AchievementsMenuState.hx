@@ -43,7 +43,7 @@ class AchievementsMenuState extends MusicBeatState
 		add(camFollow);
 
 		var menuBG:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuBGBlue'));
-		menuBG.antialiasing = ClientPrefs.data.antialiasing;
+		menuBG.antialiasing = Save.data.antialiasing;
 		menuBG.setGraphicSize(Std.int(menuBG.width * 1.1));
 		menuBG.updateHitbox();
 		menuBG.screenCenter();
@@ -57,7 +57,7 @@ class AchievementsMenuState extends MusicBeatState
 		options.sort(sortByID);
 		for (option in options)
 		{
-			var hasAntialias:Bool = ClientPrefs.data.antialiasing;
+			var hasAntialias:Bool = Save.data.antialiasing;
 			var graphic = null;
 			if(option.unlocked)
 			{
@@ -232,7 +232,7 @@ class AchievementsMenuState extends MusicBeatState
 		{
 			var val1:Float = options[curSelected].curProgress;
 			var val2:Float = options[curSelected].maxProgress;
-			progressTxt.text = CoolUtil.floorDecimal(val1, options[curSelected].decProgress) + ' / ' + CoolUtil.floorDecimal(val2, options[curSelected].decProgress);
+			progressTxt.text = MathUtil.floorDecimal(val1, options[curSelected].decProgress) + ' / ' + MathUtil.floorDecimal(val2, options[curSelected].decProgress);
 
 			barTween = FlxTween.tween(progressBar, {percent: (val1 / val2) * 100}, 0.5, {ease: FlxEase.quadOut,
 				onComplete: function(twn:FlxTween) progressBar.updateBar(),
@@ -328,7 +328,7 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 				option.name = state.nameText.text = '???';
 				if(option.maxProgress > 0) state.progressTxt.text = '0 / ' + option.maxProgress;
 				state.grpOptions.members[state.curSelected].loadGraphic(Paths.image('achievements/lockedachievement'));
-				state.grpOptions.members[state.curSelected].antialiasing = ClientPrefs.data.antialiasing;
+				state.grpOptions.members[state.curSelected].antialiasing = Save.data.antialiasing;
 
 				if(state.progressBar.visible)
 				{
@@ -339,7 +339,7 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 					});
 				}
 				Achievements.save();
-				FlxG.save.flush();
+				Save.flush();
 
 				FunkinSound.playOnce('cancelMenu');
 			}

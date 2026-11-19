@@ -120,9 +120,9 @@ class LuaUtils
 	public static function getModSetting(saveTag:String, ?modName:String = null)
 	{
 		#if MODS_ALLOWED
-		if(FlxG.save.data.modSettings == null) FlxG.save.data.modSettings = new Map<String, Dynamic>();
+		if(Save.main.data.modSettings == null) Save.main.data.modSettings = new Map<String, Dynamic>();
 
-		var settings:Map<String, Dynamic> = FlxG.save.data.modSettings.get(modName);
+		var settings:Map<String, Dynamic> = Save.main.data.modSettings.get(modName);
 		var path:String = Paths.mods('$modName/data/settings.json');
 		if(FileSystem.exists(path))
 		{
@@ -154,7 +154,7 @@ class LuaUtils
 							}
 						}
 					}
-					FlxG.save.data.modSettings.set(modName, settings);
+					Save.main.data.modSettings.set(modName, settings);
 				}
 				catch(e:Dynamic)
 				{
@@ -169,7 +169,7 @@ class LuaUtils
 		}
 		else
 		{
-			FlxG.save.data.modSettings.remove(modName);
+			Save.main.data.modSettings.remove(modName);
 			#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 			PlayState.instance.addTextToDebug('getModSetting: $path could not be found!', FlxColor.RED);
 			#else

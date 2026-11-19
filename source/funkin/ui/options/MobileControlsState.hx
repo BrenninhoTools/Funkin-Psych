@@ -62,13 +62,13 @@ class MobileControlsState extends MusicBeatState
 		DiscordClient.changePresence("Mobile Controls Menu", null);
 		#end
 
-		if (ClientPrefs.data.hitboxRGB == null || ClientPrefs.data.hitboxRGB.length < 4)
-			ClientPrefs.data.hitboxRGB = ClientPrefs.defaultData.hitboxRGB.copy();
+		if (Save.data.hitboxRGB == null || Save.data.hitboxRGB.length < 4)
+			Save.data.hitboxRGB = Save.defaultData.hitboxRGB.copy();
 		Hitbox.reloadImage();
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFF221A36;
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();
 		add(bg);
 		funkin.mobile.screen.WideScreen.fit(bg);
@@ -134,7 +134,7 @@ class MobileControlsState extends MusicBeatState
 		add(swatch);
 
 		thumbnail = new FlxSprite(infoX + INFO_WIDTH - 16 - 120, listY + 168);
-		thumbnail.antialiasing = ClientPrefs.data.antialiasing;
+		thumbnail.antialiasing = Save.data.antialiasing;
 		add(thumbnail);
 
 		statusText = new FlxText(infoX, listY + 300, INFO_WIDTH, '', 18);
@@ -159,7 +159,7 @@ class MobileControlsState extends MusicBeatState
 
 	function buildSettings()
 	{
-		var rgbMode:Void->Bool = () -> ClientPrefs.data.hitboxColors == 'RGB';
+		var rgbMode:Void->Bool = () -> Save.data.hitboxColors == 'RGB';
 		var imageMode:Void->Bool = () -> Hitbox.hasImage();
 
 		settings = [
@@ -167,34 +167,34 @@ class MobileControlsState extends MusicBeatState
 			{
 				name: 'Hitbox Mode',
 				description: 'Four Lanes: the screen is split into four lanes.\nArrows: tap the arrows at the bottom of the screen.',
-				get: () -> ClientPrefs.data.hitboxMode,
-				change: (dir:Int) -> ClientPrefs.data.hitboxMode = cycle(['Four Lanes', 'Arrows'], ClientPrefs.data.hitboxMode, dir)
+				get: () -> Save.data.hitboxMode,
+				change: (dir:Int) -> Save.data.hitboxMode = cycle(['Four Lanes', 'Arrows'], Save.data.hitboxMode, dir)
 			},
 			{
 				name: 'Style',
 				description: 'How the hitbox lanes look when you touch them.\nPick "Image" to use your own picture.',
-				get: () -> ClientPrefs.data.hitboxStyle,
-				change: (dir:Int) -> ClientPrefs.data.hitboxStyle = cycle(Hitbox.STYLES, ClientPrefs.data.hitboxStyle, dir)
+				get: () -> Save.data.hitboxStyle,
+				change: (dir:Int) -> Save.data.hitboxStyle = cycle(Hitbox.STYLES, Save.data.hitboxStyle, dir)
 			},
 			{
 				name: 'Opacity',
 				description: 'How visible the hitbox lanes are when you touch them.\nHold the arrows to change it faster.',
-				get: () -> Math.round(ClientPrefs.data.hitboxOpacity * 100) + '%',
-				change: (dir:Int) -> ClientPrefs.data.hitboxOpacity = FlxMath.bound(Math.round((ClientPrefs.data.hitboxOpacity + dir * 0.05) * 100) / 100, 0.1, 1),
+				get: () -> Math.round(Save.data.hitboxOpacity * 100) + '%',
+				change: (dir:Int) -> Save.data.hitboxOpacity = FlxMath.bound(Math.round((Save.data.hitboxOpacity + dir * 0.05) * 100) / 100, 0.1, 1),
 				repeat: true
 			},
 			{
 				name: 'Invisible Hitbox',
 				description: 'If on, the hitbox is hidden during gameplay.\nIt still works while hidden.',
-				get: () -> ClientPrefs.data.hitboxInvisible ? 'ON' : 'OFF',
-				change: (dir:Int) -> ClientPrefs.data.hitboxInvisible = !ClientPrefs.data.hitboxInvisible
+				get: () -> Save.data.hitboxInvisible ? 'ON' : 'OFF',
+				change: (dir:Int) -> Save.data.hitboxInvisible = !Save.data.hitboxInvisible
 			},
 			{section: 'COLORS', name: '', description: ''},
 			{
 				name: 'Colors',
 				description: 'Notes: your Note Colors. Classic: default FNF colors.\nPastel: softer colors. White: one color.\nRGB: pick your own color for each lane.',
-				get: () -> ClientPrefs.data.hitboxColors,
-				change: (dir:Int) -> ClientPrefs.data.hitboxColors = cycle(Hitbox.COLOR_MODES, ClientPrefs.data.hitboxColors, dir)
+				get: () -> Save.data.hitboxColors,
+				change: (dir:Int) -> Save.data.hitboxColors = cycle(Hitbox.COLOR_MODES, Save.data.hitboxColors, dir)
 			},
 			{
 				name: 'Lane',
@@ -212,7 +212,7 @@ class MobileControlsState extends MusicBeatState
 				get: () -> '#' + StringTools.hex(laneColorValue() & 0xFFFFFF, 6),
 				action: function()
 				{
-					ClientPrefs.data.hitboxRGB[editLane] = ClientPrefs.defaultData.hitboxRGB[editLane];
+					Save.data.hitboxRGB[editLane] = Save.defaultData.hitboxRGB[editLane];
 					showStatus(LANE_NAMES[editLane] + ' color reset');
 				},
 				visible: rgbMode
@@ -227,15 +227,15 @@ class MobileControlsState extends MusicBeatState
 			{
 				name: 'Image Fit',
 				description: 'Stretch: fills each lane exactly.\nFit: keeps the shape, may leave empty space.\nFill: keeps the shape, may crop the image.',
-				get: () -> ClientPrefs.data.hitboxImageFit,
-				change: (dir:Int) -> ClientPrefs.data.hitboxImageFit = cycle(Hitbox.IMAGE_FITS, ClientPrefs.data.hitboxImageFit, dir),
+				get: () -> Save.data.hitboxImageFit,
+				change: (dir:Int) -> Save.data.hitboxImageFit = cycle(Hitbox.IMAGE_FITS, Save.data.hitboxImageFit, dir),
 				visible: imageMode
 			},
 			{
 				name: 'Tint Image',
 				description: 'If on, the image is tinted with the hitbox colors.\nIf off, it keeps its original colors.',
-				get: () -> ClientPrefs.data.hitboxImageTint ? 'ON' : 'OFF',
-				change: (dir:Int) -> ClientPrefs.data.hitboxImageTint = !ClientPrefs.data.hitboxImageTint,
+				get: () -> Save.data.hitboxImageTint ? 'ON' : 'OFF',
+				change: (dir:Int) -> Save.data.hitboxImageTint = !Save.data.hitboxImageTint,
 				visible: imageMode
 			},
 			{
@@ -245,7 +245,7 @@ class MobileControlsState extends MusicBeatState
 				action: function()
 				{
 					Hitbox.removeImage();
-					if (ClientPrefs.data.hitboxStyle == 'Image') ClientPrefs.data.hitboxStyle = 'Gradient';
+					if (Save.data.hitboxStyle == 'Image') Save.data.hitboxStyle = 'Gradient';
 					updateThumbnail();
 					showStatus('Hitbox image removed');
 				},
@@ -265,7 +265,7 @@ class MobileControlsState extends MusicBeatState
 				var color:Int = laneColorValue();
 				var value:Int = Std.int(FlxMath.bound(((color >> shift) & 0xFF) + dir * 5, 0, 255));
 				color = (color & ~(0xFF << shift)) | (value << shift);
-				ClientPrefs.data.hitboxRGB[editLane] = 0xFF000000 | (color & 0xFFFFFF);
+				Save.data.hitboxRGB[editLane] = 0xFF000000 | (color & 0xFFFFFF);
 			},
 			visible: visible,
 			repeat: true
@@ -289,7 +289,7 @@ class MobileControlsState extends MusicBeatState
 
 	function laneColorValue():Int
 	{
-		var color:Int = ClientPrefs.data.hitboxRGB[editLane];
+		var color:Int = Save.data.hitboxRGB[editLane];
 		return color;
 	}
 
@@ -377,7 +377,7 @@ class MobileControlsState extends MusicBeatState
 		{
 			importing = false;
 			Hitbox.reloadImage();
-			ClientPrefs.data.hitboxStyle = 'Image';
+			Save.data.hitboxStyle = 'Image';
 			hitbox.refresh();
 			updateThumbnail();
 			updateRows();
@@ -478,8 +478,8 @@ class MobileControlsState extends MusicBeatState
 		var entry:ControlSetting = entries[curSelected];
 		infoTitle.text = entry != null ? entry.name : '';
 		descText.text = entry != null ? entry.description : '';
-		swatch.visible = ClientPrefs.data.hitboxColors == 'RGB';
-		swatch.color = ClientPrefs.data.hitboxRGB[editLane];
+		swatch.visible = Save.data.hitboxColors == 'RGB';
+		swatch.color = Save.data.hitboxRGB[editLane];
 	}
 
 	var exiting:Bool = false;
@@ -487,7 +487,7 @@ class MobileControlsState extends MusicBeatState
 	{
 		if (exiting || importing) return;
 		exiting = true;
-		ClientPrefs.saveSettings();
+		Save.saveSettings();
 		FunkinSound.playOnce('cancelMenu');
 		OptionsState.reopenMobileOptions = true;
 		MusicBeatState.switchState(new OptionsState());

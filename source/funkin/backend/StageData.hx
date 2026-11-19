@@ -173,7 +173,7 @@ class StageData {
 							var dat:Dynamic = Reflect.getProperty(data, varName);
 							if(dat != null) Reflect.setProperty(spr, varName, dat);
 						}
-						if(!ClientPrefs.data.antialiasing) spr.antialiasing = false;
+						if(!Save.data.antialiasing) spr.antialiasing = false;
 					}
 					else
 					{
@@ -214,7 +214,7 @@ class StageData {
 		else if((filters & FREEPLAY) == FREEPLAY)
 			if(PlayState.isStoryMode) return false;
 
-		return ((ClientPrefs.data.lowQuality && (filters & LOW_QUALITY) == LOW_QUALITY) ||
-			(!ClientPrefs.data.lowQuality && (filters & HIGH_QUALITY) == HIGH_QUALITY));
+		return ((Save.data.lowQuality && (filters & LOW_QUALITY) == LOW_QUALITY) ||
+			(!Save.data.lowQuality && (filters & HIGH_QUALITY) == HIGH_QUALITY));
 	}
 }

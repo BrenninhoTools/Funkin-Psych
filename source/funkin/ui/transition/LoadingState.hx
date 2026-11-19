@@ -141,7 +141,7 @@ class LoadingState extends MusicBeatState
 
 		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.setGraphicSize(Std.int(FlxG.width));
 		bg.color = 0xFFD16FFF;
 		bg.updateHitbox();
@@ -153,7 +153,7 @@ class LoadingState extends MusicBeatState
 		addBehindBar(loadingText);
 	
 		logo = new FlxSprite(0, 0).loadGraphic(Paths.image('loading_screen/icon'));
-		logo.antialiasing = ClientPrefs.data.antialiasing;
+		logo.antialiasing = Save.data.antialiasing;
 		logo.scale.set(0.75, 0.75);
 		logo.updateHitbox();
 		logo.screenCenter();
@@ -169,7 +169,7 @@ class LoadingState extends MusicBeatState
 		addBehindBar(bg);
 
 		funkay = new FlxSprite(0, 0).loadGraphic(Paths.image('funkay'));
-		funkay.antialiasing = ClientPrefs.data.antialiasing;
+		funkay.antialiasing = Save.data.antialiasing;
 		funkay.setGraphicSize(0, FlxG.height);
 		funkay.updateHitbox();
 		addBehindBar(funkay);
@@ -212,7 +212,7 @@ class LoadingState extends MusicBeatState
 		if (curPercent != intendedPercent)
 		{
 			if (Math.abs(curPercent - intendedPercent) < 0.001) curPercent = intendedPercent;
-			else curPercent = FlxMath.lerp(intendedPercent, curPercent, Math.exp(-elapsed * 15));
+			else curPercent = MathUtil.smoothLerp(curPercent, intendedPercent, elapsed, 15);
 
 			bar.scale.x = barWidth * curPercent;
 			bar.updateHitbox();
@@ -264,7 +264,7 @@ class LoadingState extends MusicBeatState
 				pessy.frames = Paths.getSparrowAtlas('loading_screen/pessy');
 				pessy.animation.addByPrefix('run', 'run', 24, true);
 				pessy.animation.addByPrefix('spin', 'spin', 24, true);
-				pessy.antialiasing = ClientPrefs.data.antialiasing;
+				pessy.antialiasing = Save.data.antialiasing;
 				pessy.flipX = (logo.offset.x > 0);
 				pessy.visible = false;
 

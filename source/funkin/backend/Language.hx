@@ -10,7 +10,7 @@ class Language
 	public static function reloadPhrases()
 	{
 		#if TRANSLATIONS_ALLOWED
-		var langFile:String = ClientPrefs.data.language;
+		var langFile:String = Save.data.language;
 		var loadedText:Array<String> = Mods.mergeAllTextsNamed('data/$langFile.lang');
 		//trace(loadedText);
 
@@ -42,7 +42,7 @@ class Language
 			hasPhrases = true;
 		}
 
-		if(!hasPhrases) ClientPrefs.data.language = ClientPrefs.defaultData.language;
+		if(!hasPhrases) Save.data.language = Save.defaultData.language;
 		
 		var alphaPath:String = getFileTranslation('images/alphabet');
 		if(alphaPath.startsWith('images/')) alphaPath = alphaPath.substr('images/'.length);

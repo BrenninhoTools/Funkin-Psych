@@ -1,6 +1,6 @@
 package funkin.backend;
 
-import funkin.backend.ClientPrefs;
+import funkin.save.Save;
 
 class Rating
 {
@@ -21,7 +21,7 @@ class Rating
 		var window:String = name + 'Window';
 		try
 		{
-			this.hitWindow = Reflect.field(ClientPrefs.data, window);
+			this.hitWindow = Reflect.field(Save.data, window);
 		}
 		catch(e) FlxG.log.error(e);
 	}

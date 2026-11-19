@@ -218,7 +218,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 	override function update(elapsed:Float) {
 		if(PsychUIInputText.focusOn == null)
 		{
-			ClientPrefs.toggleVolumeKeys(true);
+			Save.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.ESCAPE) {
 				if(!unsavedProgress)
 				{
@@ -252,7 +252,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 				grpWeekCharacters.members[characterTypeRadio.checked].animation.play('confirm', true);
 			}
 		}
-		else ClientPrefs.toggleVolumeKeys(false);
+		else Save.toggleVolumeKeys(false);
 
 		var char:MenuCharacter = grpWeekCharacters.members[1];
 		if(char.animation.curAnim != null && char.animation.curAnim.name == 'confirm' && char.animation.curAnim.finished)

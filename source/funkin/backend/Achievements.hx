@@ -79,11 +79,11 @@ class Achievements {
 
 		if(_originalLength < 0) init();
 
-		if(FlxG.save.data != null) {
-			if(FlxG.save.data.achievementsUnlocked != null)
-				achievementsUnlocked = FlxG.save.data.achievementsUnlocked;
+		if(Save.main.data != null) {
+			if(Save.main.data.achievementsUnlocked != null)
+				achievementsUnlocked = Save.main.data.achievementsUnlocked;
 
-			var savedMap:Map<String, Float> = cast FlxG.save.data.achievementsVariables;
+			var savedMap:Map<String, Float> = cast Save.main.data.achievementsVariables;
 			if(savedMap != null)
 			{
 				for (key => value in savedMap)
@@ -97,8 +97,8 @@ class Achievements {
 
 	public static function save():Void
 	{
-		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;
-		FlxG.save.data.achievementsVariables = variables;
+		Save.main.data.achievementsUnlocked = achievementsUnlocked;
+		Save.main.data.achievementsVariables = variables;
 	}
 	
 	public static function getScore(name:String):Float
@@ -138,7 +138,7 @@ class Achievements {
 			variables.set(name, val);
 
 			Achievements.save();
-			if(saveIfNotUnlocked || val >= achievement.maxScore) FlxG.save.flush();
+			if(saveIfNotUnlocked || val >= achievement.maxScore) Save.flush();
 			return val;
 		}
 		return -1;
@@ -167,7 +167,7 @@ class Achievements {
 		}
 
 		Achievements.save();
-		FlxG.save.flush();
+		Save.flush();
 
 		if(autoStartPopup) startPopup(name);
 		return name;

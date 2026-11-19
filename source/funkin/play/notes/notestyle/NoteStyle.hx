@@ -241,7 +241,7 @@ class NoteStyle
 		if (asset.scale != 1)
 			sprite.setGraphicSize(Std.int(sprite.frameWidth * asset.scale));
 		sprite.updateHitbox();
-		sprite.antialiasing = asset.antialiasing && !pixel && ClientPrefs.data.antialiasing;
+		sprite.antialiasing = asset.antialiasing && !pixel && Save.data.antialiasing;
 	}
 
 	public function splashTexture():String

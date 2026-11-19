@@ -15,14 +15,14 @@ class LanguageSubState extends MusicBeatSubstate
 
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();
 		add(bg);
 		funkin.mobile.screen.WideScreen.fit(bg);
 		add(grpLanguages);
 
-		languages.push(ClientPrefs.defaultData.language); //English (US)
-		displayLanguages.set(ClientPrefs.defaultData.language, Language.defaultLangName);
+		languages.push(Save.defaultData.language); //English (US)
+		displayLanguages.set(Save.defaultData.language, Language.defaultLangName);
 		var directories:Array<String> = Mods.directoriesWithFile(Paths.getSharedPath(), 'data/');
 		for (directory in directories)
 		{
@@ -64,13 +64,13 @@ class LanguageSubState extends MusicBeatSubstate
 			return 0;
 		});
 
-		//trace(ClientPrefs.data.language);
-		curSelected = languages.indexOf(ClientPrefs.data.language);
+		//trace(Save.data.language);
+		curSelected = languages.indexOf(Save.data.language);
 		if(curSelected < 0)
 		{
-			//trace('Language not found: ' + ClientPrefs.data.language);
-			ClientPrefs.data.language = ClientPrefs.defaultData.language;
-			curSelected = Std.int(Math.max(0, languages.indexOf(ClientPrefs.data.language)));
+			//trace('Language not found: ' + Save.data.language);
+			Save.data.language = Save.defaultData.language;
+			curSelected = Std.int(Math.max(0, languages.indexOf(Save.data.language)));
 		}
 
 		for (num => lang in languages)
@@ -127,9 +127,9 @@ class LanguageSubState extends MusicBeatSubstate
 		if(controls.ACCEPT)
 		{
 			FunkinSound.playOnce('confirmMenu', 0.6);
-			ClientPrefs.data.language = languages[curSelected];
-			//trace(ClientPrefs.data.language);
-			ClientPrefs.saveSettings();
+			Save.data.language = languages[curSelected];
+			//trace(Save.data.language);
+			Save.saveSettings();
 			Language.reloadPhrases();
 			changedLanguage = true;
 		}

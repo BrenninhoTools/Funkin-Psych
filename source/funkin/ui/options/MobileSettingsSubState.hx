@@ -9,7 +9,7 @@ class MobileSettingsSubState extends BaseOptionsMenu
 
 	public function new()
 	{
-		initialScreenStyle = ClientPrefs.data.screenStyle;
+		initialScreenStyle = Save.data.screenStyle;
 		title = Language.getPhrase('mobile_menu', 'Mobile Options');
 		rpcTitle = 'Mobile Options Menu';
 
@@ -84,8 +84,8 @@ class MobileSettingsSubState extends BaseOptionsMenu
 		option.onChange = funkin.mobile.screen.ScreenStyle.apply;
 
 		#if android
-		ClientPrefs.data.storageType = funkin.mobile.storage.StorageUtil.getStorageType();
-		initialStorage = ClientPrefs.data.storageType;
+		Save.data.storageType = funkin.mobile.storage.StorageUtil.getStorageType();
+		initialStorage = Save.data.storageType;
 		var option:Option = new Option('Storage Type:',
 			'Data: Android/data. Media: Android/media. Obb: Android/obb (all deleted on uninstall).\nExternal: /storage/emulated/0/.PsychEngine, kept after uninstalling.' + storageSpace(),
 			'storageType',
@@ -107,25 +107,25 @@ class MobileSettingsSubState extends BaseOptionsMenu
 
 	function onChangeStorage()
 	{
-		if (ClientPrefs.data.storageType == 'External' && !funkin.mobile.storage.StorageUtil.hasAccess())
+		if (Save.data.storageType == 'External' && !funkin.mobile.storage.StorageUtil.hasAccess())
 		{
 			var option:Option = curOption;
 			funkin.mobile.storage.StorageUtil.requestAccess(function(granted:Bool) {
-				if (granted || ClientPrefs.data.storageType != 'External') return;
-				ClientPrefs.data.storageType = initialStorage == 'External' ? 'Data' : initialStorage;
+				if (granted || Save.data.storageType != 'External') return;
+				Save.data.storageType = initialStorage == 'External' ? 'Data' : initialStorage;
 				if (option != null) updateTextFrom(option);
-				funkin.mobile.MobileAPI.toast('Storage access was denied, keeping ' + ClientPrefs.data.storageType + '.');
+				funkin.mobile.MobileAPI.toast('Storage access was denied, keeping ' + Save.data.storageType + '.');
 			});
 		}
 	}
 
 	function closeStorage():Bool
 	{
-		if (ClientPrefs.data.storageType == initialStorage) return false;
+		if (Save.data.storageType == initialStorage) return false;
 
 		var oldDir:String = funkin.mobile.storage.StorageUtil.getGameDir();
-		funkin.mobile.storage.StorageUtil.setStorageType(ClientPrefs.data.storageType);
-		ClientPrefs.saveSettings();
+		funkin.mobile.storage.StorageUtil.setStorageType(Save.data.storageType);
+		Save.saveSettings();
 		var newDir:String = funkin.mobile.storage.StorageUtil.getGameDir();
 		if (newDir == oldDir) return false;
 
@@ -153,9 +153,9 @@ class MobileSettingsSubState extends BaseOptionsMenu
 		#if android
 		if (closeStorage()) return;
 		#end
-		if (ClientPrefs.data.screenStyle != initialScreenStyle)
+		if (Save.data.screenStyle != initialScreenStyle)
 		{
-			ClientPrefs.saveSettings();
+			Save.saveSettings();
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
 			FlxG.resetState();

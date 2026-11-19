@@ -78,8 +78,8 @@ class MobileAPI
 
 	public static function haptic(strength:Int = HAPTIC_LIGHT, minInterval:Float = 0)
 	{
-		if (!ClientPrefs.data.haptics) return;
-		var intensity:Float = ClientPrefs.data.hapticsIntensity;
+		if (!Save.data.haptics) return;
+		var intensity:Float = Save.data.hapticsIntensity;
 		if (intensity <= 0) return;
 		var now:Float = haxe.Timer.stamp();
 		if (minInterval > 0 && lastHapticTime >= 0 && now - lastHapticTime < minInterval) return;
@@ -258,12 +258,12 @@ class MobileAPI
 
 	public static function getHitboxMode():String
 	{
-		return ClientPrefs.data.hitboxMode;
+		return Save.data.hitboxMode;
 	}
 
 	public static function getScreenStyle():String
 	{
-		return ClientPrefs.data.screenStyle;
+		return Save.data.screenStyle;
 	}
 
 	public static function getWideOffset():Float

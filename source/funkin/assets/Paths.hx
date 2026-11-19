@@ -179,7 +179,7 @@ class Paths
 			}
 		}
 
-		if (allowGPU && ClientPrefs.data.cacheOnGPU && bitmap.image != null)
+		if (allowGPU && Save.data.cacheOnGPU && bitmap.image != null)
 		{
 			bitmap.lock();
 			if (bitmap.__texture == null)

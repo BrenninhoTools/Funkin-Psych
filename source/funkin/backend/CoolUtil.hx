@@ -9,7 +9,7 @@ class CoolUtil
 		if (url == null || url.length == 0)
 			url = "https://raw.githubusercontent.com/ShadowMario/FNF-PsychEngine/main/gitVersion.txt";
 		var version:String = funkin.ui.mainmenu.MainMenuState.psychEngineVersion.trim();
-		if(ClientPrefs.data.checkForUpdates) {
+		if(Save.data.checkForUpdates) {
 			trace('checking for updates...');
 			var http = new haxe.Http(url);
 			http.onData = function (data:String)
@@ -31,12 +31,8 @@ class CoolUtil
 		}
 		return version;
 	}
-	inline public static function quantize(f:Float, snap:Float){
-		// changed so this actually works lol
-		var m:Float = Math.fround(f * snap);
-		//trace(snap);
-		return (m / snap);
-	}
+	inline public static function quantize(f:Float, snap:Float):Float
+		return funkin.util.math.MathUtil.quantize(f, snap);
 
 	inline public static function capitalize(text:String)
 		return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
@@ -74,13 +70,8 @@ class CoolUtil
 		return daList;
 	}
 
-	public static function floorDecimal(value:Float, decimals:Int):Float
-	{
-		if(decimals < 1)
-			return Math.floor(value);
-
-		return Math.floor(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
-	}
+	inline public static function floorDecimal(value:Float, decimals:Int):Float
+		return funkin.util.math.MathUtil.floorDecimal(value, decimals);
 
 	inline public static function dominantColor(sprite:flixel.FlxSprite):Int
 	{
@@ -115,12 +106,7 @@ class CoolUtil
 	}
 
 	inline public static function numberArray(max:Int, ?min = 0):Array<Int>
-	{
-		var dumbArray:Array<Int> = [];
-		for (i in min...max) dumbArray.push(i);
-
-		return dumbArray;
-	}
+		return funkin.util.math.MathUtil.numberArray(max, min);
 
 	inline public static function browserLoad(site:String) {
 		#if linux

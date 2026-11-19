@@ -244,7 +244,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		chartEditorSave.bind('chart_editor_data', CoolUtil.getSavePath());
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.scrollFactor.set();
 		add(bg);
 		funkin.mobile.screen.WideScreen.fit(bg);
@@ -331,7 +331,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(SHOW_EVENT_COLUMN)
 		{
 			eventIcon = new FlxSprite(0, iconY).loadGraphic(Paths.image('editors/eventIcon'));
-			eventIcon.antialiasing = ClientPrefs.data.antialiasing;
+			eventIcon.antialiasing = Save.data.antialiasing;
 			eventIcon.alpha = 0.6;
 			eventIcon.setGraphicSize(30, 30);
 			eventIcon.updateHitbox();
@@ -395,7 +395,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		autoSaveIcon = new FlxSprite(50).loadGraphic(Paths.image('editors/autosave'));
 		autoSaveIcon.screenCenter(Y);
 		autoSaveIcon.scale.set(0.6, 0.6);
-		autoSaveIcon.antialiasing = ClientPrefs.data.antialiasing;
+		autoSaveIcon.antialiasing = Save.data.antialiasing;
 		autoSaveIcon.scrollFactor.set();
 		autoSaveIcon.alpha = 0;
 		add(autoSaveIcon);
@@ -766,7 +766,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			}
 		}
 
-		ClientPrefs.toggleVolumeKeys(PsychUIInputText.focusOn == null);
+		Save.toggleVolumeKeys(PsychUIInputText.focusOn == null);
 
 		var lastTime:Float = Conductor.songPosition;
 		outputAlpha = Math.max(0, outputAlpha - elapsed);
@@ -3698,7 +3698,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					updateChartData();
 					var pack:VSlicePackage = VSlice.export(PlayState.SONG);
 
-					ClientPrefs.toggleVolumeKeys(false);
+					Save.toggleVolumeKeys(false);
 					openSubState(new BasePrompt('Metadata',
 						function(state:BasePrompt)
 						{
@@ -3785,7 +3785,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					return;
 				}
 
-				ClientPrefs.toggleVolumeKeys(false);
+				Save.toggleVolumeKeys(false);
 				openSubState(new BasePrompt('Metadata',
 					function(state:BasePrompt)
 					{
@@ -4244,7 +4244,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		btnY += 20;
 		var btn:PsychUIButton = new PsychUIButton(btnX, btnY, '  Waveform...', function()
 		{
-			ClientPrefs.toggleVolumeKeys(false);
+			Save.toggleVolumeKeys(false);
 			openSubState(new BasePrompt(320, 200, 'Waveform Settings',
 				function(state:BasePrompt) {
 					upperBox.isMinimized = true;
@@ -4862,7 +4862,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		updateChartData();
 		StageData.loadDirectory(PlayState.SONG);
 		LoadingState.loadAndSwitchState(new PlayState());
-		ClientPrefs.toggleVolumeKeys(true);
+		Save.toggleVolumeKeys(true);
 	}
 	
 	override function openSubState(SubState:FlxSubState)
@@ -4873,7 +4873,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	override function closeSubState()
 	{
-		ClientPrefs.toggleVolumeKeys(true);
+		Save.toggleVolumeKeys(true);
 		super.closeSubState();
 		upperBox.isMinimized = true;
 		upperBox.visible = mainBox.visible = infoBox.visible = true;

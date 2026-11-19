@@ -235,8 +235,8 @@ class NoteSplash extends FlxSprite
 						{
 							if (i > 2) break;
 
-							var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData % Note.colArray.length];
-							if (PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData % Note.colArray.length];
+							var arr:Array<FlxColor> = Save.data.arrowRGB[noteData % Note.colArray.length];
+							if (PlayState.isPixelStage) arr = Save.data.arrowRGBPixel[noteData % Note.colArray.length];
 
 							var rgb = colors[i];
 							if (rgb == null)
@@ -292,10 +292,10 @@ class NoteSplash extends FlxSprite
 			spawned = false;
 		}
 
-		alpha = ClientPrefs.data.splashAlpha;
+		alpha = Save.data.splashAlpha;
 		if (note != null) alpha = note.noteSplashData.a;
 
-		antialiasing = ClientPrefs.data.antialiasing;
+		antialiasing = Save.data.antialiasing;
 		if (note != null) antialiasing = note.noteSplashData.antialiasing;
 		if (PlayState.isPixelStage && config.allowPixel) antialiasing = false;
 
@@ -361,7 +361,7 @@ class NoteSplash extends FlxSprite
 
 	public static function defaultSplashTexture():String
 	{
-		if (ClientPrefs.data.splashSkin == ClientPrefs.defaultData.splashSkin)
+		if (Save.data.splashSkin == Save.defaultData.splashSkin)
 		{
 			var style:funkin.play.notes.notestyle.NoteStyle = funkin.play.notes.notestyle.NoteStyle.current();
 			if (style != null)
@@ -376,8 +376,8 @@ class NoteSplash extends FlxSprite
 		public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
-		if (ClientPrefs.data.splashSkin != ClientPrefs.defaultData.splashSkin)
-			skin = '-' + ClientPrefs.data.splashSkin.trim().toLowerCase().replace(' ', '-');
+		if (Save.data.splashSkin != Save.defaultData.splashSkin)
+			skin = '-' + Save.data.splashSkin.trim().toLowerCase().replace(' ', '-');
 		return skin;
 	}
 

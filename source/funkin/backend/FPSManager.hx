@@ -31,7 +31,7 @@ class FPSManager
 
 	public static function mode():String
 	{
-		var value:String = ClientPrefs.data.fpsRework;
+		var value:String = Save.data.fpsRework;
 		return MODES.contains(value) ? value : OFF;
 	}
 
@@ -71,7 +71,7 @@ class FPSManager
 		{
 			case UNLOCKED: UNLOCKED_LIMIT;
 			case DISPLAY, ADAPTIVE: Std.int(Math.max(MIN_FPS, lastDisplayRate));
-			default: ClientPrefs.data.framerate;
+			default: Save.data.framerate;
 		}
 		resetSamples();
 		refreshFramerate();

@@ -39,7 +39,7 @@ class TouchButton extends FlxSpriteGroup
 		bg.loadGraphic(graphic);
 		bg.setGraphicSize(width, height);
 		bg.updateHitbox();
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.setPosition(x, y);
 		label.visible = false;
 		imageMode = true;

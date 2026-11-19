@@ -291,7 +291,8 @@ class HScript
 		set('PlayState', PlayState);
 		set('Paths', Paths);
 		set('Conductor', Conductor);
-		set('ClientPrefs', ClientPrefs);
+		set('Save', funkin.save.Save);
+		set('ClientPrefs', funkin.save.Save);
 		#if ACHIEVEMENTS_ALLOWED
 		set('Achievements', Achievements);
 		#end

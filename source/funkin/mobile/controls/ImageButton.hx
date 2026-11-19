@@ -12,7 +12,7 @@ class ImageButton extends FlxSprite
 		this.scale.set(scale, scale);
 		updateHitbox();
 		scrollFactor.set();
-		antialiasing = ClientPrefs.data.antialiasing;
+		antialiasing = Save.data.antialiasing;
 		TouchInput.addControl(this);
 	}
 

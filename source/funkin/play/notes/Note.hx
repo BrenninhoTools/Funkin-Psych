@@ -116,7 +116,7 @@ class Note extends FlxSprite
 		r: -1,
 		g: -1,
 		b: -1,
-		a: ClientPrefs.data.splashAlpha
+		a: Save.data.splashAlpha
 	};
 
 	public var offsetX:Float = 0;
@@ -151,8 +151,8 @@ class Note extends FlxSprite
 	public var hitsoundForce:Bool = false;
 	public var hitsoundVolume(get, default):Float = 1.0;
 	function get_hitsoundVolume():Float {
-		if(ClientPrefs.data.hitsoundVolume > 0)
-			return ClientPrefs.data.hitsoundVolume;
+		if(Save.data.hitsoundVolume > 0)
+			return Save.data.hitsoundVolume;
 		return hitsoundForce ? hitsoundVolume : 0.0;
 	}
 	public var hitsound:String = 'hitsound';
@@ -182,8 +182,8 @@ class Note extends FlxSprite
 
 	public function defaultRGB()
 	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData];
+		var arr:Array<FlxColor> = Save.data.arrowRGB[noteData];
+		if(PlayState.isPixelStage) arr = Save.data.arrowRGBPixel[noteData];
 
 		if (arr != null && noteData > -1 && noteData <= arr.length)
 		{
@@ -248,7 +248,7 @@ class Note extends FlxSprite
 
 		animation = new PsychAnimationController(this);
 
-		antialiasing = ClientPrefs.data.antialiasing;
+		antialiasing = Save.data.antialiasing;
 		if(createdFrom == null) createdFrom = PlayState.instance;
 
 		if (prevNote == null)
@@ -259,11 +259,11 @@ class Note extends FlxSprite
 		this.inEditor = inEditor;
 		this.moves = false;
 
-		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		x += (Save.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
 		y -= 2000;
 		this.strumTime = strumTime;
-		if(!inEditor) this.strumTime += ClientPrefs.data.noteOffset;
+		if(!inEditor) this.strumTime += Save.data.noteOffset;
 
 		this.noteData = noteData;
 
@@ -291,7 +291,7 @@ class Note extends FlxSprite
 			alpha = 0.6;
 			multAlpha = 0.6;
 			hitsoundDisabled = true;
-			if(ClientPrefs.data.downScroll) flipY = true;
+			if(Save.data.downScroll) flipY = true;
 
 			offsetX += width / 2;
 			copyAngle = false;
@@ -340,7 +340,7 @@ class Note extends FlxSprite
 		if(globalRgbShaders[noteData] == null)
 		{
 			var newRGB:RGBPalette = new RGBPalette();
-			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGB[noteData] : ClientPrefs.data.arrowRGBPixel[noteData];
+			var arr:Array<FlxColor> = (!PlayState.isPixelStage) ? Save.data.arrowRGB[noteData] : Save.data.arrowRGBPixel[noteData];
 			
 			if (arr != null && noteData > -1 && noteData <= arr.length)
 			{
@@ -491,8 +491,8 @@ class Note extends FlxSprite
 	public static function getNoteSkinPostfix()
 	{
 		var skin:String = '';
-		if(ClientPrefs.data.noteSkin != ClientPrefs.defaultData.noteSkin)
-			skin = '-' + ClientPrefs.data.noteSkin.trim().toLowerCase().replace(' ', '_');
+		if(Save.data.noteSkin != Save.defaultData.noteSkin)
+			skin = '-' + Save.data.noteSkin.trim().toLowerCase().replace(' ', '_');
 		return skin;
 	}
 

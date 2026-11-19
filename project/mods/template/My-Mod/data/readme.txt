@@ -5,6 +5,7 @@ data/songs/        song charts, events and song scripts
 data/levels/       level .json files and levelList.txt
 data/notestyles/   note style .json files
 data/ui/           HUD layout .json files
+data/menus/        title, main menu and freeplay .json files
 
 -----------------------------
 

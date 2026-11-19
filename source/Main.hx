@@ -31,7 +31,7 @@ import haxe.io.Path;
 #end
 
 import funkin.backend.Highscore;
-import funkin.backend.ClientPrefs;
+import funkin.save.Save;
 import funkin.backend.Controls;
 import funkin.backend.CoolUtil;
 import funkin.modding.Mods;
@@ -114,11 +114,12 @@ class Main extends Sprite
 		#end
 
 		FlxG.save.bind('funkin', CoolUtil.getSavePath());
+		Save.init();
 		Highscore.load();
 
 		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(funkin.scripting.luascript.CallbackHandler.call)); #end
 		Controls.instance = new Controls();
-		ClientPrefs.loadDefaultKeys();
+		Save.loadDefaultKeys();
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		var initialState:Class<FlxState> = cast game.initialState;
 		#if mobile
@@ -137,7 +138,7 @@ class Main extends Sprite
 		Lib.current.stage.align = "tl";
 		Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
 		if(fpsVar != null) {
-			fpsVar.visible = ClientPrefs.data.showFPS;
+			fpsVar.visible = Save.data.showFPS;
 		}
 		#if mobile
 		scaleFPSCounter();

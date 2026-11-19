@@ -119,7 +119,7 @@ class StoryMenuState extends MusicBeatState
 				if (isLocked)
 				{
 					var lock:FlxSprite = new FlxSprite(weekThing.width + 10 + weekThing.x);
-					lock.antialiasing = ClientPrefs.data.antialiasing;
+					lock.antialiasing = Save.data.antialiasing;
 					lock.frames = ui_tex;
 					lock.animation.addByPrefix('lock', 'lock');
 					lock.animation.play('lock');
@@ -143,7 +143,7 @@ class StoryMenuState extends MusicBeatState
 		add(difficultySelectors);
 
 		leftArrow = new FlxSprite(850 + funkin.mobile.screen.WideScreen.offset, grpWeekText.members[0].y + 10);
-		leftArrow.antialiasing = ClientPrefs.data.antialiasing;
+		leftArrow.antialiasing = Save.data.antialiasing;
 		leftArrow.frames = ui_tex;
 		leftArrow.animation.addByPrefix('idle', "arrow left");
 		leftArrow.animation.addByPrefix('press', "arrow push left");
@@ -158,11 +158,11 @@ class StoryMenuState extends MusicBeatState
 		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 		
 		sprDifficulty = new FlxSprite(0, leftArrow.y);
-		sprDifficulty.antialiasing = ClientPrefs.data.antialiasing;
+		sprDifficulty.antialiasing = Save.data.antialiasing;
 		difficultySelectors.add(sprDifficulty);
 
 		rightArrow = new FlxSprite(leftArrow.x + 376, leftArrow.y);
-		rightArrow.antialiasing = ClientPrefs.data.antialiasing;
+		rightArrow.antialiasing = Save.data.antialiasing;
 		rightArrow.frames = ui_tex;
 		rightArrow.animation.addByPrefix('idle', 'arrow right');
 		rightArrow.animation.addByPrefix('press', "arrow push right", 24, false);
@@ -174,7 +174,7 @@ class StoryMenuState extends MusicBeatState
 		add(grpWeekCharacters);
 
 		var tracksSprite:FlxSprite = new FlxSprite(FlxG.width * 0.07 + 100, bgSprite.y + 425).loadGraphic(Paths.image('Menu_Tracks'));
-		tracksSprite.antialiasing = ClientPrefs.data.antialiasing;
+		tracksSprite.antialiasing = Save.data.antialiasing;
 		tracksSprite.x -= tracksSprite.width/2;
 		add(tracksSprite);
 
@@ -218,7 +218,7 @@ class StoryMenuState extends MusicBeatState
 		// scoreText.setFormat(Paths.font("vcr.ttf"), 32);
 		if(intendedScore != lerpScore)
 		{
-			lerpScore = Math.floor(FlxMath.lerp(intendedScore, lerpScore, Math.exp(-elapsed * 30)));
+			lerpScore = Math.floor(MathUtil.smoothLerp(lerpScore, intendedScore, elapsed, 30));
 			if(Math.abs(intendedScore - lerpScore) < 10) lerpScore = intendedScore;
 	
 			scoreText.text = Language.getPhrase('week_score', 'WEEK SCORE: {1}', [lerpScore]);
@@ -322,7 +322,7 @@ class StoryMenuState extends MusicBeatState
 		
 		var offY:Float = grpWeekText.members[curWeek].targetY;
 		for (num => item in grpWeekText.members)
-			item.y = FlxMath.lerp(item.targetY - offY + 480, item.y, Math.exp(-elapsed * 10.2));
+			item.y = MathUtil.smoothLerp(item.y, item.targetY - offY + 480, elapsed, 10.2);
 
 		for (num => lock in grpLocks.members)
 			lock.y = grpWeekText.members[lock.ID].y + grpWeekText.members[lock.ID].height/2 - lock.height/2;

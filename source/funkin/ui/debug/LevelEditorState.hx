@@ -1,6 +1,5 @@
 package funkin.ui.debug;
 
-
 import openfl.utils.Assets;
 #if mobile
 import funkin.mobile.native.MobileFileReference as FileReference;
@@ -49,11 +48,11 @@ class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		var ui_tex = Paths.getSparrowAtlas('campaign_menu_UI_assets');
 		var bgYellow:FlxSprite = new FlxSprite(0, 56).makeGraphic(FlxG.width, 386, 0xFFF9CF51);
 		bgSprite = new FlxSprite(0, 56);
-		bgSprite.antialiasing = ClientPrefs.data.antialiasing;
+		bgSprite.antialiasing = Save.data.antialiasing;
 
 		weekThing = new MenuItem(0, bgSprite.y + 396, weekFileName);
 		weekThing.y += weekThing.height + 20;
-		weekThing.antialiasing = ClientPrefs.data.antialiasing;
+		weekThing.antialiasing = Save.data.antialiasing;
 		add(weekThing);
 
 		var blackBarThingie:FlxSprite = new FlxSprite().makeGraphic(FlxG.width, 56, FlxColor.BLACK);
@@ -65,7 +64,7 @@ class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		lock.frames = ui_tex;
 		lock.animation.addByPrefix('lock', 'lock');
 		lock.animation.play('lock');
-		lock.antialiasing = ClientPrefs.data.antialiasing;
+		lock.antialiasing = Save.data.antialiasing;
 		add(lock);
 		
 		missingFileText = new FlxText(0, 0, FlxG.width, "");
@@ -87,7 +86,7 @@ class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 		add(grpWeekCharacters);
 
 		var tracksSprite:FlxSprite = new FlxSprite(FlxG.width * 0.07, bgSprite.y + 435).loadGraphic(Paths.image('Menu_Tracks'));
-		tracksSprite.antialiasing = ClientPrefs.data.antialiasing;
+		tracksSprite.antialiasing = Save.data.antialiasing;
 		add(tracksSprite);
 
 		txtTracklist = new FlxText(FlxG.width * 0.05, tracksSprite.y + 60, 0, "", 32);
@@ -403,7 +402,7 @@ class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 
 		if(PsychUIInputText.focusOn == null)
 		{
-			ClientPrefs.toggleVolumeKeys(true);
+			Save.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.ESCAPE)
 			{
 				if(!unsavedProgress)
@@ -414,7 +413,7 @@ class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 				else openSubState(new ExitConfirmationPrompt(function() unsavedProgress = false));
 			}
 		}
-		else ClientPrefs.toggleVolumeKeys(false);
+		else Save.toggleVolumeKeys(false);
 
 		super.update(elapsed);
 
@@ -564,7 +563,7 @@ class LevelEditorFreeplayState extends MusicBeatState implements PsychUIEventHan
 
 	override function create() {
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		bg.color = FlxColor.WHITE;
 		add(bg);
 		funkin.mobile.screen.WideScreen.fit(bg);
@@ -761,10 +760,10 @@ class LevelEditorFreeplayState extends MusicBeatState implements PsychUIEventHan
 		}
 		
 		if(PsychUIInputText.focusOn != null)
-			ClientPrefs.toggleVolumeKeys(false);
+			Save.toggleVolumeKeys(false);
 		else
 		{
-			ClientPrefs.toggleVolumeKeys(true);
+			Save.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.ESCAPE) {
 				if(!LevelEditorState.unsavedProgress)
 				{

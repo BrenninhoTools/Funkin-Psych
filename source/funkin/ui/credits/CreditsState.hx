@@ -28,7 +28,7 @@ class CreditsState extends MusicBeatState
 
 		persistentUpdate = true;
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.antialiasing = ClientPrefs.data.antialiasing;
+		bg.antialiasing = Save.data.antialiasing;
 		add(bg);
 		bg.screenCenter();
 		funkin.mobile.screen.WideScreen.fit(bg);
@@ -303,8 +303,8 @@ class CreditsState extends MusicBeatState
 		var creditsFile:String = Paths.mods(folder + '/data/credits.txt');
 		
 		#if TRANSLATIONS_ALLOWED
-		//trace('/data/credits-${ClientPrefs.data.language}.txt');
-		var translatedCredits:String = Paths.mods(folder + '/data/credits-${ClientPrefs.data.language}.txt');
+		//trace('/data/credits-${Save.data.language}.txt');
+		var translatedCredits:String = Paths.mods(folder + '/data/credits-${Save.data.language}.txt');
 		#end
 
 		if (#if TRANSLATIONS_ALLOWED (FileSystem.exists(translatedCredits) && (creditsFile = translatedCredits) == translatedCredits) || #end FileSystem.exists(creditsFile))

@@ -19,7 +19,7 @@ class ScreenStyle
 			FlxG.signals.gameResized.add(function(_, _) resizeCameras());
 		}
 
-		var full:Bool = ClientPrefs.data.screenStyle == FULL;
+		var full:Bool = Save.data.screenStyle == FULL;
 		if (full && Std.isOfType(FlxG.scaleMode, WideScaleMode)) return;
 		if (!full && Std.isOfType(FlxG.scaleMode, RatioScaleMode)) return;
 
