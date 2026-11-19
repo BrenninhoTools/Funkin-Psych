@@ -32,7 +32,7 @@ import funkin.backend.FPSManager;
 import funkin.backend.Conductor;
 import funkin.backend.BaseStage;
 import funkin.backend.Difficulty;
-import funkin.backend.Mods;
+import funkin.modding.Mods;
 import funkin.backend.Language;
 
 import funkin.backend.ui.*; //Psych-UI

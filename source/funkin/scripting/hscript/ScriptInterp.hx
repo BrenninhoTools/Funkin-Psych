@@ -1,4 +1,4 @@
-package funkin.scripting;
+package funkin.scripting.hscript;
 
 #if HSCRIPT_ALLOWED
 import hscript.Expr;

@@ -37,19 +37,19 @@ import funkin.shaders.ErrorHandledShader;
 
 import funkin.objects.VideoSprite;
 import funkin.objects.Note.EventNote;
-import objects.*;
+import funkin.objects.*;
 import funkin.states.stages.*;
 import funkin.states.stages.objects.*;
 
 #if LUA_ALLOWED
-import psychlua.*;
+import funkin.scripting.luascript.*;
 #else
-import funkin.psychlua.LuaUtils;
-import funkin.psychlua.HScript;
+import funkin.scripting.luascript.LuaUtils;
 #end
+import funkin.scripting.hscript.HScript;
 
 #if HSCRIPT_ALLOWED
-import funkin.psychlua.HScript.ScriptError;
+import funkin.scripting.hscript.HScript.ScriptError;
 #end
 
 /**
@@ -262,7 +262,7 @@ class PlayState extends MusicBeatState
 	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = []; #end
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	private var luaDebugGroup:FlxTypedGroup<funkin.psychlua.DebugLuaText>;
+	private var luaDebugGroup:FlxTypedGroup<funkin.scripting.luascript.DebugLuaText>;
 	#end
 	public var introSoundsSuffix:String = '';
 
@@ -407,11 +407,14 @@ class PlayState extends MusicBeatState
 			case 'tank': new Tank();					//Week 7 - Ugh, Guns, Stress
 			case 'phillyStreets': new PhillyStreets(); 	//Weekend 1 - Darnell, Lit Up, 2Hot
 			case 'phillyBlazin': new PhillyBlazin();	//Weekend 1 - Blazin
+			#if POLYMOD_ALLOWED
+			default: funkin.modding.PolymodHandler.createScriptedStage(curStage);
+			#end
 		}
 		if(isPixelStage) introSoundsSuffix = '-pixel';
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		luaDebugGroup = new FlxTypedGroup<funkin.psychlua.DebugLuaText>();
+		luaDebugGroup = new FlxTypedGroup<funkin.scripting.luascript.DebugLuaText>();
 		luaDebugGroup.cameras = [camOther];
 		add(luaDebugGroup);
 		#end
@@ -727,14 +730,14 @@ class PlayState extends MusicBeatState
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
 	public function addTextToDebug(text:String, color:FlxColor) {
-		var newText:funkin.psychlua.DebugLuaText = luaDebugGroup.recycle(funkin.psychlua.DebugLuaText);
+		var newText:funkin.scripting.luascript.DebugLuaText = luaDebugGroup.recycle(funkin.scripting.luascript.DebugLuaText);
 		newText.text = text;
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
 		newText.setPosition(10, 8 - newText.height);
 
-		luaDebugGroup.forEachAlive(function(spr:funkin.psychlua.DebugLuaText) {
+		luaDebugGroup.forEachAlive(function(spr:funkin.scripting.luascript.DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		luaDebugGroup.add(newText);
@@ -3256,7 +3259,7 @@ class PlayState extends MusicBeatState
 			savedDownScroll = null;
 		}
 		#end
-		if (funkin.psychlua.CustomSubstate.instance != null)
+		if (funkin.scripting.luascript.CustomSubstate.instance != null)
 		{
 			closeSubState();
 			resetSubState();

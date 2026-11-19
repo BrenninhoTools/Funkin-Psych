@@ -20,7 +20,7 @@ import haxe.Json;
 
 
 #if MODS_ALLOWED
-import funkin.backend.Mods;
+import funkin.modding.Mods;
 #end
 
 @:access(openfl.display.BitmapData)

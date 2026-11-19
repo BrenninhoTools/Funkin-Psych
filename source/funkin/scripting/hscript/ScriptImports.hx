@@ -1,4 +1,4 @@
-package funkin.scripting;
+package funkin.scripting.hscript;
 
 #if HSCRIPT_ALLOWED
 import funkin.backend.LegacyClasses;
@@ -79,7 +79,7 @@ class ScriptImports
 		if (proxies != null) return;
 		proxies = new Map();
 		proxies.set("flixel.FlxCamera", funkin.backend.PsychCamera);
-		proxies.set("flixel.util.FlxColor", funkin.psychlua.HScript.CustomFlxColor);
+		proxies.set("flixel.util.FlxColor", funkin.scripting.hscript.HScript.CustomFlxColor);
 		var basePoint:Dynamic = Type.resolveClass("flixel.math.FlxBasePoint");
 		if (basePoint != null) proxies.set("flixel.math.FlxPoint", basePoint);
 		#if mobile

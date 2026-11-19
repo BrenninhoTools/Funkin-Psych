@@ -59,6 +59,7 @@ class Project extends HXProject
 			enable("MODS_ALLOWED");
 			enable("HSCRIPT_ALLOWED");
 			enable("LUA_ALLOWED");
+			enable("POLYMOD_ALLOWED");
 		}
 		enable("ACHIEVEMENTS_ALLOWED");
 		if (isDesktop()) enable("DISCORD_ALLOWED");
@@ -187,6 +188,14 @@ class Project extends HXProject
 
 		if (hasDefine("LUA_ALLOWED")) addHaxelib("linc_luajit");
 		if (hasDefine("HSCRIPT_ALLOWED")) addHaxelib("hscript");
+		if (hasDefine("POLYMOD_ALLOWED"))
+		{
+			addHaxelib("polymod");
+			addHaxelib("thx.core");
+			addHaxelib("thx.semver");
+			addHaxelib("jsonpath");
+			addHaxelib("jsonpatch");
+		}
 		if (hasDefine("VIDEOS_ALLOWED")) addHaxelib("hxvlc");
 		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
 		addHaxelib("flxanimate");
@@ -234,6 +243,20 @@ class Project extends HXProject
 			setHaxedef("hscriptPos");
 			for (keep in ["StringTools", "Lambda", "Std", "Math", "Reflect", "Type", "DateTools", "haxe.io.Path", "haxe.Json"])
 				haxeflags.push("--macro keep('" + keep + "')");
+		}
+
+		if (hasDefine("POLYMOD_ALLOWED"))
+		{
+			setHaxedef("POLYMOD_SCRIPT_EXT", ".hxc");
+			setHaxedef("POLYMOD_SCRIPT_CLASS_EXT", ".hxc");
+			setHaxedef("POLYMOD_SCRIPT_LIBRARY", "default");
+			setHaxedef("POLYMOD_ROOT_PATH", "scripts/");
+			setHaxedef("POLYMOD_APPEND_FOLDER", "_append");
+			setHaxedef("POLYMOD_MERGE_FOLDER", "_merge");
+			setHaxedef("POLYMOD_MOD_METADATA_FILE", "_polymod_meta.json");
+			setHaxedef("POLYMOD_MOD_ICON_FILE", "_polymod_icon.png");
+			if (debug) setHaxedef("POLYMOD_DEBUG");
+			haxeflags.push("--macro include('funkin.modding.base')");
 		}
 
 		haxeflags.push("--macro allowPackage('flash')");

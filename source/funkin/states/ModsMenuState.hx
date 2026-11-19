@@ -1,7 +1,7 @@
 package funkin.states;
 
 import funkin.backend.WeekData;
-import funkin.backend.Mods;
+import funkin.modding.Mods;
 
 import flixel.FlxBasic;
 import flixel.graphics.FlxGraphic;
@@ -812,22 +812,7 @@ class ModsMenuState extends MusicBeatState
 	
 	function saveTxt()
 	{
-		var fileStr:String = '';
-		for (mod in modsList.all)
-		{
-			if(mod.trim().length < 1) continue;
-
-			if(fileStr.length > 0) fileStr += '\n';
-
-			var on = '1';
-			if(modsList.disabled.contains(mod)) on = '0';
-			fileStr += '$mod|$on';
-		}
-
-		var path:String = 'modsList.txt';
-		File.saveContent(path, fileStr);
-		Mods.parseList();
-		Mods.loadTopMod();
+		Mods.saveList([for (mod in modsList.all) if (mod.trim().length > 0) {folder: mod, enabled: !modsList.disabled.contains(mod)}]);
 	}
 }
 

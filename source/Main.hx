@@ -34,7 +34,7 @@ import funkin.backend.Highscore;
 import funkin.backend.ClientPrefs;
 import funkin.backend.Controls;
 import funkin.backend.CoolUtil;
-import funkin.backend.Mods;
+import funkin.modding.Mods;
 import funkin.states.PlayState;
 import flixel.FlxG;
 import flixel.util.FlxColor;
@@ -106,11 +106,14 @@ class Main extends Sprite
 		Mods.pushGlobalMods();
 		#end
 		Mods.loadTopMod();
+		#if POLYMOD_ALLOWED
+		funkin.modding.PolymodHandler.loadEnabledMods();
+		#end
 
 		FlxG.save.bind('funkin', CoolUtil.getSavePath());
 		Highscore.load();
 
-		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(funkin.psychlua.CallbackHandler.call)); #end
+		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(funkin.scripting.luascript.CallbackHandler.call)); #end
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end

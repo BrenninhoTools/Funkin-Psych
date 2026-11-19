@@ -1,19 +1,19 @@
-package funkin.psychlua;
+package funkin.scripting.hscript;
 
 import flixel.FlxBasic;
 import funkin.objects.Character;
-import funkin.psychlua.LuaUtils;
-import funkin.psychlua.CustomSubstate;
+import funkin.scripting.luascript.LuaUtils;
+import funkin.scripting.luascript.CustomSubstate;
 
 #if LUA_ALLOWED
-import funkin.psychlua.FunkinLua;
+import funkin.scripting.luascript.FunkinLua;
 #end
 
 #if HSCRIPT_ALLOWED
 import hscript.Expr;
-import funkin.scripting.ScriptParser;
-import funkin.scripting.ScriptInterp;
-import funkin.scripting.ScriptImports;
+import funkin.scripting.hscript.ScriptParser;
+import funkin.scripting.hscript.ScriptInterp;
+import funkin.scripting.hscript.ScriptImports;
 
 typedef HScriptInfos = {
 	> haxe.PosInfos,

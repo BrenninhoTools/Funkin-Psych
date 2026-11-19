@@ -108,6 +108,37 @@
       "dir": null,
       "ref": "8978b34b437f943a0d164bd6b3d8b69bd0025081",
       "url": "https://github.com/LimeExtensions/extension-haptics"
+    },
+    {
+      "name": "thx.core",
+      "type": "git",
+      "dir": null,
+      "ref": "2bf2b992e06159510f595554e6b952e47922f128",
+      "url": "https://github.com/fponticelli/thx.core"
+    },
+    {
+      "name": "thx.semver",
+      "type": "git",
+      "dir": null,
+      "ref": "bdb191fe7cf745c02a980749906dbf22719e200b",
+      "url": "https://github.com/fponticelli/thx.semver"
+    },
+    {
+      "name": "jsonpath",
+      "type": "haxelib",
+      "version": "1.1.0"
+    },
+    {
+      "name": "jsonpatch",
+      "type": "haxelib",
+      "version": "1.1.0"
+    },
+    {
+      "name": "polymod",
+      "type": "git",
+      "dir": null,
+      "ref": "6854dab7c5739979dbd1e19a345c17b09c80ea7e",
+      "url": "https://github.com/FunkinCrew/polymod"
     }
   ]
 }

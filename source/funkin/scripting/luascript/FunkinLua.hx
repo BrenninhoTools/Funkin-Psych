@@ -1,5 +1,5 @@
 #if LUA_ALLOWED
-package funkin.psychlua;
+package funkin.scripting.luascript;
 
 import funkin.backend.WeekData;
 import funkin.backend.Highscore;
@@ -30,13 +30,11 @@ import funkin.states.FreeplayState;
 import funkin.substates.PauseSubState;
 import funkin.substates.GameOverSubstate;
 
-import funkin.psychlua.LuaUtils;
-import funkin.psychlua.LuaUtils.LuaTweenOptions;
-#if HSCRIPT_ALLOWED
-import funkin.psychlua.HScript;
-#end
-import funkin.psychlua.DebugLuaText;
-import funkin.psychlua.ModchartSprite;
+import funkin.scripting.luascript.LuaUtils;
+import funkin.scripting.luascript.LuaUtils.LuaTweenOptions;
+import funkin.scripting.hscript.HScript;
+import funkin.scripting.luascript.DebugLuaText;
+import funkin.scripting.luascript.ModchartSprite;
 
 import flixel.input.keyboard.FlxKey;
 import flixel.input.gamepad.FlxGamepadInputID;
@@ -1558,9 +1556,17 @@ class FunkinLua {
 
 		addLocalCallback("close", function() {
 			closed = true;
-			trace('Closing script $scriptName');
 			return closed;
 		});
+
+		addLocalCallback("print", Reflect.makeVarArgs(function(values:Array<Dynamic>) {
+			var text:String = [for (value in values) Std.string(value)].join('\t');
+			#if sys
+			Sys.println('[$scriptName] $text');
+			#end
+			if (PlayState.instance != null && getBool('luaDebugMode')) PlayState.instance.addTextToDebug(text, FlxColor.WHITE);
+			return null;
+		}));
 
 		#if DISCORD_ALLOWED DiscordClient.addLuaCallbacks(lua); #end
 		#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
@@ -1581,31 +1587,26 @@ class FunkinLua {
 				Lua_helper.add_callback(lua, name, func);
 		}
 
-		try{
-			var isString:Bool = !FileSystem.exists(scriptName);
-			var result:Dynamic = null;
-			if(!isString)
-				result = LuaL.dofile(lua, scriptName);
-			else
-				result = LuaL.dostring(lua, scriptName);
-
-			var resultStr:String = Lua.tostring(lua, result);
-			if(resultStr != null && result != 0) {
-				trace(resultStr);
-				#if windows
-				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
-				#else
-				luaTrace('$scriptName\n$resultStr', true, false, FlxColor.RED);
-				#end
-				lua = null;
-				return;
-			}
-			if(isString) scriptName = 'unknown';
-		} catch(e:Dynamic) {
-			trace(e);
+		var isString:Bool = !FileSystem.exists(scriptName);
+		setupPackagePath(isString);
+		var handler:Int = pushTraceback();
+		var status:Int = isString ? LuaL.loadstring(lua, scriptName) : LuaL.loadfile(lua, scriptName);
+		if (status == Lua.LUA_OK) status = Lua.pcall(lua, 0, 0, handler);
+		if (status != Lua.LUA_OK)
+		{
+			var error:String = getErrorMessage(status);
+			if (handler > 0) Lua.settop(lua, 0);
+			#if windows
+			lime.app.Application.current.window.alert(error, 'Error on lua script!');
+			#else
+			luaTrace('$scriptName\n$error', true, false, FlxColor.RED);
+			#end
+			Lua.close(lua);
+			lua = null;
 			return;
 		}
-		trace('lua file loaded succesfully:' + scriptName);
+		if (handler > 0) Lua.remove(lua, handler);
+		if (isString) scriptName = 'unknown';
 
 		call('onCreate', []);
 	}
@@ -1621,6 +1622,7 @@ class FunkinLua {
 		try {
 			if(lua == null) return LuaUtils.Function_Continue;
 
+			var handler:Int = pushTraceback();
 			Lua.getglobal(lua, func);
 			var type:Int = Lua.type(lua, -1);
 
@@ -1629,24 +1631,25 @@ class FunkinLua {
 					luaTrace("ERROR (" + func + "): attempt to call a " + LuaUtils.typeToString(type) + " value", false, false, FlxColor.RED);
 
 				Lua.pop(lua, 1);
+				if (handler > 0) Lua.remove(lua, handler);
 				return LuaUtils.Function_Continue;
 			}
 
 			for (arg in args) Convert.toLua(lua, arg);
-			var status:Int = Lua.pcall(lua, args.length, 1, 0);
+			var status:Int = Lua.pcall(lua, args.length, 1, handler);
 
-			// Checks if it's not successful, then show a error.
 			if (status != Lua.LUA_OK) {
 				var error:String = getErrorMessage(status);
+				if (handler > 0) Lua.remove(lua, handler);
 				luaTrace("ERROR (" + func + "): " + error, false, false, FlxColor.RED);
 				return LuaUtils.Function_Continue;
 			}
 
-			// If successful, pass and then return the result.
 			var result:Dynamic = cast Convert.fromLua(lua, -1);
 			if (result == null) result = LuaUtils.Function_Continue;
 
 			Lua.pop(lua, 1);
+			if (handler > 0) Lua.remove(lua, handler);
 			if(closed) stop();
 			return result;
 		}
@@ -1793,12 +1796,52 @@ class FunkinLua {
 				case Lua.LUA_ERRRUN: return "Runtime Error";
 				case Lua.LUA_ERRMEM: return "Memory Allocation Error";
 				case Lua.LUA_ERRERR: return "Critical Error";
+				case Lua.LUA_ERRSYNTAX: return "Syntax Error";
 			}
 			return "Unknown Error";
 		}
 
-		return v;
-		return null;
+		var lines:Array<String> = [for (line in v.split('\n')) if (line.indexOf('[C]: in ?') == -1) line.replace('\t', '  ')];
+		if (lines.length > MAX_ERROR_LINES) lines = lines.slice(0, MAX_ERROR_LINES);
+		return lines.join('\n');
+	}
+
+	static inline final MAX_ERROR_LINES:Int = 6;
+
+	function pushTraceback():Int
+	{
+		if (lua == null) return 0;
+		Lua.getglobal(lua, "debug");
+		if (Lua.type(lua, -1) != Lua.LUA_TTABLE)
+		{
+			Lua.pop(lua, 1);
+			return 0;
+		}
+		Lua.getfield(lua, -1, "traceback");
+		Lua.remove(lua, -2);
+		if (Lua.type(lua, -1) != Lua.LUA_TFUNCTION)
+		{
+			Lua.pop(lua, 1);
+			return 0;
+		}
+		return Lua.gettop(lua);
+	}
+
+	function setupPackagePath(isString:Bool)
+	{
+		var paths:Array<String> = [];
+		if (!isString) paths.push(haxe.io.Path.directory(scriptName) + '/?.lua');
+		#if MODS_ALLOWED
+		if (modFolder != null) paths.push(Paths.mods(modFolder + '/scripts/?.lua'));
+		if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0 && Mods.currentModDirectory != modFolder)
+			paths.push(Paths.mods(Mods.currentModDirectory + '/scripts/?.lua'));
+		for (mod in Mods.getGlobalMods()) paths.push(Paths.mods(mod + '/scripts/?.lua'));
+		paths.push(Paths.mods('scripts/?.lua'));
+		#end
+		paths.push(Paths.getSharedPath('scripts/?.lua'));
+
+		var joined:String = paths.join(';').replace('\\', '/').replace('"', '\\"');
+		LuaL.dostring(lua, 'package.path = "' + joined + ';" .. package.path');
 	}
 
 	public function addLocalCallback(name:String, myFunction:Dynamic)

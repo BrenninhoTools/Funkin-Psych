@@ -1,4 +1,4 @@
-package funkin.psychlua;
+package funkin.scripting.luascript;
 
 import funkin.backend.WeekData;
 import funkin.objects.Character;

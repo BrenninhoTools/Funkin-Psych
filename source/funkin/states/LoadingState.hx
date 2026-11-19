@@ -24,8 +24,8 @@ import funkin.objects.Note;
 import funkin.objects.NoteSplash;
 
 #if HSCRIPT_ALLOWED
-import funkin.psychlua.HScript;
-import funkin.psychlua.HScript.ScriptError;
+import funkin.scripting.hscript.HScript;
+import funkin.scripting.hscript.HScript.ScriptError;
 #end
 
 #if cpp

@@ -1,4 +1,4 @@
-package funkin.psychlua;
+package funkin.scripting.luascript;
 
 import Type.ValueType;
 import haxe.Constraints;

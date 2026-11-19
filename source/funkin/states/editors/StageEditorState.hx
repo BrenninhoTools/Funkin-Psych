@@ -3,7 +3,7 @@ package funkin.states.editors;
 import funkin.backend.StageData;
 import funkin.backend.PsychCamera;
 import funkin.objects.Character;
-import funkin.psychlua.LuaUtils;
+import funkin.scripting.luascript.LuaUtils;
 
 import flixel.FlxObject;
 import flixel.addons.display.FlxBackdrop;
@@ -24,7 +24,7 @@ import openfl.net.FileReference;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 
-import funkin.psychlua.ModchartSprite;
+import funkin.scripting.luascript.ModchartSprite;
 import flash.net.FileFilter;
 
 import funkin.states.editors.content.Prompt;

@@ -1,4 +1,4 @@
-package funkin.psychlua;
+package funkin.scripting.luascript;
 
 #if (!flash && sys)
 import flixel.addons.display.FlxRuntimeShader;
