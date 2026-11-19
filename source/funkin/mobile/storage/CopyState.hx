@@ -4,7 +4,7 @@ import flixel.FlxState;
 import haxe.io.Bytes;
 import haxe.io.Path;
 import lime.utils.Assets as LimeAssets;
-import funkin.states.TitleState;
+import funkin.ui.title.TitleState;
 import sys.thread.Mutex;
 import sys.thread.Thread;
 #if android

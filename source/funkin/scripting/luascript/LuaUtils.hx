@@ -7,7 +7,7 @@ import funkin.backend.StageData;
 import openfl.display.BlendMode;
 import Type.ValueType;
 
-import funkin.substates.GameOverSubstate;
+import funkin.play.GameOverSubstate;
 
 typedef LuaTweenOptions = {
 	type:FlxTweenType,

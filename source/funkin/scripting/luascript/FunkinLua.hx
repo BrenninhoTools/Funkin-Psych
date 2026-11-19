@@ -16,19 +16,19 @@ import flixel.FlxState;
 import flixel.addons.display.FlxRuntimeShader;
 #end
 
-import funkin.cutscenes.DialogueBoxPsych;
+import funkin.play.cutscenes.DialogueBoxPsych;
 
 import funkin.objects.StrumNote;
 import funkin.objects.Note;
 import funkin.objects.NoteSplash;
 import funkin.objects.Character;
 
-import funkin.states.MainMenuState;
-import funkin.states.StoryMenuState;
-import funkin.states.FreeplayState;
+import funkin.ui.mainmenu.MainMenuState;
+import funkin.ui.story.StoryMenuState;
+import funkin.ui.freeplay.FreeplayState;
 
-import funkin.substates.PauseSubState;
-import funkin.substates.GameOverSubstate;
+import funkin.play.PauseSubState;
+import funkin.play.GameOverSubstate;
 
 import funkin.scripting.luascript.LuaUtils;
 import funkin.scripting.luascript.LuaUtils.LuaTweenOptions;

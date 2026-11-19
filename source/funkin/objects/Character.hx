@@ -10,7 +10,7 @@ import openfl.utils.Assets;
 import haxe.Json;
 
 import funkin.backend.Song;
-import funkin.states.stages.objects.TankmenBG;
+import funkin.play.stages.objects.TankmenBG;
 
 typedef CharacterFile = {
 	var animations:Array<AnimArray>;
@@ -465,7 +465,7 @@ class Character extends FlxSprite
 
 	// Atlas support
 	// special thanks ne_eo for the references, you're the goat!!
-	@:allow(funkin.states.editors.CharacterEditorState)
+	@:allow(funkin.ui.debug.CharacterEditorState)
 	public var isAnimateAtlas(default, null):Bool = false;
 	#if flxanimate
 	public var atlas:FlxAnimate;

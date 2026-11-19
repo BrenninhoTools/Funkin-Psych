@@ -3,7 +3,7 @@ package funkin.scripting.luascript;
 import Type.ValueType;
 import haxe.Constraints;
 
-import funkin.substates.GameOverSubstate;
+import funkin.play.GameOverSubstate;
 
 //
 // Functions that use a high amount of Reflections, which are somewhat CPU intensive

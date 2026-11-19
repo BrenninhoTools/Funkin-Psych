@@ -92,7 +92,7 @@ class PolymodHandler
 		Polymod.addDefaultImport(funkin.backend.ClientPrefs);
 		Polymod.addDefaultImport(funkin.backend.Conductor);
 		Polymod.addDefaultImport(funkin.backend.CoolUtil);
-		Polymod.addDefaultImport(funkin.states.PlayState);
+		Polymod.addDefaultImport(funkin.play.PlayState);
 		Polymod.addDefaultImport(funkin.modding.Mods);
 		Polymod.addImportAlias('flixel.FlxCamera', funkin.backend.PsychCamera);
 

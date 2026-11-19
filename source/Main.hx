@@ -12,7 +12,7 @@ import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
-import funkin.states.TitleState;
+import funkin.ui.title.TitleState;
 
 
 #if (linux || mac)
@@ -35,7 +35,7 @@ import funkin.backend.ClientPrefs;
 import funkin.backend.Controls;
 import funkin.backend.CoolUtil;
 import funkin.modding.Mods;
-import funkin.states.PlayState;
+import funkin.play.PlayState;
 import flixel.FlxG;
 import flixel.util.FlxColor;
 
