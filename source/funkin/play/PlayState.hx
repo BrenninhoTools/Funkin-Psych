@@ -48,14 +48,14 @@ import funkin.scripting.luascript.LuaUtils;
 #end
 import funkin.scripting.hscript.HScript;
 
-#if HSCRIPT_ALLOWED
-import funkin.scripting.hscript.HScript.ScriptError;
 import funkin.play.character.Character;
 import funkin.play.notes.Note;
 import funkin.play.notes.NoteSplash;
 import funkin.play.notes.StrumNote;
 import funkin.play.components.HealthIcon;
 import funkin.ui.components.Bar;
+#if HSCRIPT_ALLOWED
+import funkin.scripting.hscript.HScript.ScriptError;
 #end
 
 /**

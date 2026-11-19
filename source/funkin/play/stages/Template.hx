@@ -1,6 +1,7 @@
 package funkin.play.stages;
 
 import funkin.play.stages.objects.*;
+import funkin.play.notes.Note;
 
 class Template extends BaseStage
 {
