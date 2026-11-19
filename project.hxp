@@ -15,6 +15,8 @@ class Project extends HXProject
 	static inline final VERSION:String = "0.2.8";
 	static inline final COMPANY:String = "ShadowMario";
 
+	var excludedAssets:Map<String, Bool>;
+
 	static final DEFAULT_EXCLUDE:Array<String> = [".*", "cvs", "thumbs.db", "desktop.ini", "*.fla", "*.hash"];
 
 	public function new()
@@ -138,15 +140,29 @@ class Project extends HXProject
 		var web:Bool = isWeb();
 		var skipAudio:String = web ? "*.ogg" : "*.mp3";
 
-		addAssetPath("assets/fonts");
-		addAssetPath("assets/shared", null, [skipAudio]);
-		addAssetPath("assets/embed", null, [skipAudio], true);
-		if (hasDefine("VIDEOS_ALLOWED")) addAssetPath("assets/videos");
-		addAssetPath("assets/songs", null, [skipAudio]);
-		addAssetPath("assets/week_assets", "assets", [skipAudio]);
-		if (hasDefine("TITLE_SCREEN_EASTER_EGG")) addAssetPath("assets/secrets", "assets/shared", [skipAudio]);
-		if (hasDefine("TRANSLATIONS_ALLOWED")) addAssetPath("assets/translations", "assets", [skipAudio]);
-		if (hasDefine("BASE_GAME_FILES")) addAssetPath("assets/base_game", "assets", [skipAudio]);
+		excludedAssets = new Map();
+		if (!hasDefine("BASE_GAME_FILES")) excludeAssetList("project/assets/base_game.txt");
+		if (!hasDefine("TITLE_SCREEN_EASTER_EGG")) excludeAssetList("project/assets/secrets.txt");
+		if (!hasDefine("TRANSLATIONS_ALLOWED")) excludeAssetList("project/assets/translations.txt");
+
+		var folders:Array<String> = FileSystem.readDirectory("assets");
+		folders.sort(Reflect.compare);
+		for (folder in folders)
+		{
+			var path:String = "assets/" + folder;
+			if (!FileSystem.isDirectory(path)) continue;
+			switch (folder)
+			{
+				case "fonts":
+					addAssetPath(path);
+				case "embed":
+					addAssetPath(path, null, [skipAudio], true);
+				case "videos":
+					if (hasDefine("VIDEOS_ALLOWED")) addAssetPath(path);
+				default:
+					addAssetPath(path, null, [skipAudio]);
+			}
+		}
 
 		if (hasDefine("MODS_ALLOWED"))
 		{
@@ -268,6 +284,16 @@ class Project extends HXProject
 		return platformType == PlatformType.WEB;
 	}
 
+	function excludeAssetList(listPath:String)
+	{
+		if (!FileSystem.exists(listPath)) return;
+		for (line in sys.io.File.getContent(listPath).split("\n"))
+		{
+			var entry:String = line.trim();
+			if (entry.length > 0) excludedAssets.set("assets/" + entry, true);
+		}
+	}
+
 	function addAssetPath(path:String, ?rename:String, ?exclude:Array<String>, ?embed:Bool, ?type:AssetType)
 	{
 		if (!FileSystem.exists(path) || !FileSystem.isDirectory(path)) return;
@@ -281,6 +307,7 @@ class Project extends HXProject
 		{
 			var full:String = path + "/" + file;
 			var renamed:String = targetPath + "/" + file;
+			if (excludedAssets.exists(full)) continue;
 			if (FileSystem.isDirectory(full))
 			{
 				if (filter(file, ["*"], exclude)) addAssetFolder(full, renamed, exclude, embed, type);

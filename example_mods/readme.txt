@@ -9,5 +9,5 @@ https://shadowmario.github.io/psychengine.lua/
 You can also add or edit specific files without the mod template, you just have to re-create the path to said file.
 
 ABOUT EDITING:
-If you want to change something, for example, within assets/shared/images or assets/base_game/images,
+If you want to change something, for example, within assets/shared/images or assets/week1/images,
 said edited files *must* be put in mods/images, the engine will handle the rest.

@@ -1,18 +1,26 @@
 Here's a Q&A!
 
+Q: How are the assets organized?
+A: Every folder inside "assets/" is copied to the game with the same name:
+assets/shared/ - images, characters, stages, weeks, data, music and sounds used everywhere
+assets/week1/ ... assets/weekend1/ - files that only one week uses
+assets/songs/ - Inst and Voices for every song
+assets/videos/ - cutscenes
+assets/fonts/ - fonts
+assets/embed/ - files embedded inside the executable
+
 Q: Where should I put my charts?
-A: "assets/shared/data/".
+A: "assets/shared/data/your-song-name/".
 
 Q: Where should I put my songs?
-A: "assets/songs/".
+A: "assets/songs/your-song-name/" with Inst.ogg and Voices.ogg.
 
-Q: Where should images, characters, weeks, stages, sounds and other JSONs files go?
-A: You can put them in "assets/shared/" or "assets/week_assets/your-week-folder/"! Really depends on your preference.
+Q: Where should my week files go?
+A: Create a folder like "assets/weekpsychic/" next to "assets/week1/", it will be packaged automatically.
 
 Q: I don't want base game assets in my mod! What should I do??
-A: Go back to the main folder and open Project.xml, then delete the entire line with "BASE_GAME_FILES",
-You can safely delete the "assets/base_game/" folder after that if you want to, but virtually it won't have any effect when you compile.
+A: Remove "BASE_GAME_FILES" from project.hxp. Every base game file is listed in "project/assets/base_game.txt" and gets skipped when it is off.
 
-Q: What's the "translations" folder for?
-A: This is where I've put the Portuguese translation in, you can also set up other languages inside it easily,
-You can turn off languages by deleting the line with "TRANSLATIONS_ALLOWED" inside Project.xml
+Q: What about translations and the title screen secrets?
+A: They live inside "assets/shared/" too and are listed in "project/assets/translations.txt" and "project/assets/secrets.txt",
+turning off "TRANSLATIONS_ALLOWED" or "TITLE_SCREEN_EASTER_EGG" skips them.

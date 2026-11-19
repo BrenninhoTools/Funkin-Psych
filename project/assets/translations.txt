@@ -1,0 +1,8 @@
+shared/data/pt-BR.lang
+shared/images/pt-BR/Menu_Tracks.png
+shared/images/pt-BR/mainmenu/menu_credits.png
+shared/images/pt-BR/mainmenu/menu_credits.xml
+shared/images/pt-BR/mainmenu/menu_story_mode.png
+shared/images/pt-BR/mainmenu/menu_story_mode.xml
+shared/images/pt-BR/menudifficulties/easy.png
+shared/images/pt-BR/menudifficulties/hard.png
