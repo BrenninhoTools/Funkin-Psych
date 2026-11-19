@@ -5,7 +5,6 @@ import funkin.play.character.Character;
 import funkin.ui.components.Bar;
 import flixel.addons.display.shapes.FlxShapeCircle;
 
-import funkin.play.stages.StageWeek1 as BackgroundStage;
 
 class NoteOffsetState extends MusicBeatState
 {
@@ -59,7 +58,8 @@ class NoteOffsetState extends MusicBeatState
 
 		// Stage
 		Paths.setCurrentLevel(stageDirectory);
-		new BackgroundStage();
+		var stageFile = StageData.getStageFile('stage');
+		if (stageFile != null && stageFile.objects != null) StageData.addObjectsToState(stageFile.objects, null, null, null, this);
 
 		// Characters
 		gf = new Character(400, 130, 'gf');

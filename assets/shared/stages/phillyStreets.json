@@ -6,16 +6,34 @@
 	"cameraSpeed": 1,
 	"characters": {
 		"boyfriend": {
-			"position": [1930, 450],
-			"camera": [-220, -15]
+			"position": [
+				1930,
+				450
+			],
+			"camera": [
+				-220,
+				-15
+			]
 		},
 		"girlfriend": {
-			"position": [1175, 200],
-			"camera": [0, 0]
+			"position": [
+				1175,
+				200
+			],
+			"camera": [
+				0,
+				0
+			]
 		},
 		"opponent": {
-			"position": [620, 445],
-			"camera": [450, -110]
+			"position": [
+				620,
+				445
+			],
+			"camera": [
+				450,
+				-110
+			]
 		}
 	},
 	"preload": {
@@ -40,5 +58,8 @@
 		"boyfriend": "pico-playable",
 		"girlfriend": "nene",
 		"opponent": "darnell"
-	}
+	},
+	"modules": [
+		"phillyStreets"
+	]
 }

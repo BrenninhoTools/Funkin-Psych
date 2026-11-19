@@ -10,6 +10,8 @@ class StageParser
 {
 	public static inline final VERSION:String = "2.0.0";
 	public static inline final DEFAULT_FILTERS:Int = 3;
+	public static final BASIC_TYPES:Array<String> = ['sprite', 'animatedSprite', 'square'];
+	public static final EXTRA_KEYS:Array<String> = ['visible', 'blend', 'graphicSize', 'velocity', 'active', 'dance', 'updateHitbox'];
 	public static final INLINE_KEYS:Array<String> = ['position', 'camera', 'scroll', 'scale', 'offset', 'indices', 'frameSize'];
 	static final CHARACTER_TYPES:Map<String, String> = [
 		'boyfriend' => 'boyfriend', 'boyfriendGroup' => 'boyfriend', 'bf' => 'boyfriend',
@@ -74,6 +76,9 @@ class StageParser
 			camera_speed: DataUtil.toFloat(data.cameraSpeed, 1),
 			preload: data.preload,
 			objects: [for (object in (data.objects != null ? (cast data.objects:Array<Dynamic>) : [])) objectFromV2(object)],
+			modules: data.modules,
+			behaviors: data.behaviors,
+			default_gf: gf != null && gf.defaultCharacter != null ? Std.string(gf.defaultCharacter) : null,
 			_editorMeta: {
 				boyfriend: editor != null && editor.boyfriend != null ? editor.boyfriend : 'bf',
 				gf: editor != null && editor.girlfriend != null ? editor.girlfriend : 'gf',
@@ -93,6 +98,17 @@ class StageParser
 
 		var render:Dynamic = object.render;
 		var position:Array<Float> = DataUtil.vector(object.position);
+		if (!BASIC_TYPES.contains(type))
+		{
+			var prefab:Dynamic = {};
+			for (field in Reflect.fields(object)) Reflect.setField(prefab, field, Reflect.field(object, field));
+			prefab.x = position[0];
+			prefab.y = position[1];
+			if (object.scroll != null) prefab.scroll = DataUtil.vector(object.scroll, 1, 1);
+			if (object.filters == null) prefab.filters = DEFAULT_FILTERS;
+			Reflect.deleteField(prefab, 'position');
+			return prefab;
+		}
 		var legacy:Dynamic = {
 			type: type,
 			name: object.name,
@@ -105,6 +121,8 @@ class StageParser
 			color: object.color != null ? Std.string(object.color).replace('#', '') : 'FFFFFF',
 			filters: DataUtil.toInt(object.filters, DEFAULT_FILTERS)
 		};
+		for (extra in EXTRA_KEYS)
+			if (Reflect.hasField(object, extra)) Reflect.setField(legacy, extra, Reflect.field(object, extra));
 		if (type != 'square')
 		{
 			legacy.image = render != null ? FrameLoader.joinImages(render.image) : FrameLoader.joinImages(object.image);
@@ -224,6 +242,7 @@ class StageParser
 		var meta:Dynamic = file._editorMeta;
 		var girlfriend:Dynamic = {position: file.girlfriend, camera: file.camera_girlfriend};
 		if (file.hide_girlfriend == true) girlfriend.hidden = true;
+		if (file.default_gf != null && file.default_gf.length > 0) girlfriend.defaultCharacter = file.default_gf;
 
 		var ui:String = file.stageUI;
 		if (ui == null || ui.trim().length == 0) ui = file.isPixelStage == true ? 'pixel' : 'normal';
@@ -242,6 +261,8 @@ class StageParser
 		};
 		if (file.preload != null) data.preload = file.preload;
 		if (file.objects != null && file.objects.length > 0) data.objects = [for (object in file.objects) objectToV2(object)];
+		if (file.modules != null && file.modules.length > 0) data.modules = file.modules;
+		if (file.behaviors != null && file.behaviors.length > 0) data.behaviors = file.behaviors;
 		if (meta != null) data.editor = {boyfriend: meta.boyfriend, girlfriend: meta.gf, opponent: meta.dad};
 		return data;
 	}
@@ -251,6 +272,16 @@ class StageParser
 		var type:String = object.type;
 		if (CHARACTER_TYPES.exists(type))
 			return {type: switch (CHARACTER_TYPES.get(type)) { case 'gf': 'girlfriend'; case 'dad': 'opponent'; default: 'boyfriend'; }};
+
+		if (!BASIC_TYPES.contains(type))
+		{
+			var prefab:Dynamic = {};
+			for (field in Reflect.fields(object))
+				if (field != 'x' && field != 'y') Reflect.setField(prefab, field, Reflect.field(object, field));
+			prefab.position = [DataUtil.toFloat(object.x), DataUtil.toFloat(object.y)];
+			if (prefab.filters == DEFAULT_FILTERS) Reflect.deleteField(prefab, 'filters');
+			return prefab;
+		}
 
 		var data:Dynamic = {
 			name: object.name,
@@ -263,6 +294,8 @@ class StageParser
 		if (object.angle != null && object.angle != 0) data.angle = object.angle;
 		if (object.color != null && Std.string(object.color).toUpperCase() != 'FFFFFF') data.color = '#' + Std.string(object.color).replace('#', '');
 		if (object.filters != null && object.filters != (DEFAULT_FILTERS)) data.filters = object.filters;
+		for (extra in EXTRA_KEYS)
+			if (Reflect.hasField(object, extra)) Reflect.setField(data, extra, Reflect.field(object, extra));
 
 		if (type != 'square')
 		{

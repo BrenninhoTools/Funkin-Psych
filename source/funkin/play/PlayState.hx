@@ -63,9 +63,8 @@ import funkin.scripting.hscript.HScript.ScriptError;
  *
  * here's some useful tips if you are making a mod in source:
  *
- * If you want to add your stage to the game, copy states/stages/Template.hx,
- * and put your stage code there, then, on PlayState, search for
- * "switch (curStage)", and add your stage to that list.
+ * If you want to add your stage to the game, create a JSON in data/stages with
+ * "objects", "behaviors" and "modules", modules are registered in StageModules.
  *
  * If you want to code Events, you can either code it on a Stage file or on PlayState, if you're doing the latter, search for:
  *
@@ -401,23 +400,17 @@ class PlayState extends MusicBeatState
 		dadGroup = new FlxSpriteGroup(DAD_X, DAD_Y);
 		gfGroup = new FlxSpriteGroup(GF_X, GF_Y);
 
-		switch (curStage)
-		{
-			case 'stage': new StageWeek1(); 			//Week 1
-			case 'spooky': new Spooky();				//Week 2
-			case 'philly': new Philly();				//Week 3
-			case 'limo': new Limo();					//Week 4
-			case 'mall': new Mall();					//Week 5 - Cocoa, Eggnog
-			case 'mallEvil': new MallEvil();			//Week 5 - Winter Horrorland
-			case 'school': new School();				//Week 6 - Senpai, Roses
-			case 'schoolEvil': new SchoolEvil();		//Week 6 - Thorns
-			case 'tank': new Tank();					//Week 7 - Ugh, Guns, Stress
-			case 'phillyStreets': new PhillyStreets(); 	//Weekend 1 - Darnell, Lit Up, 2Hot
-			case 'phillyBlazin': new PhillyBlazin();	//Weekend 1 - Blazin
-			#if POLYMOD_ALLOWED
-			default: funkin.modding.PolymodHandler.createScriptedStage(curStage);
-			#end
-		}
+		if (stageData.default_gf != null && (SONG.gfVersion == null || SONG.gfVersion.length < 1))
+			SONG.gfVersion = stageData.default_gf;
+
+		if (stageData.behaviors != null && stageData.behaviors.length > 0)
+			StageBehaviors.spawn(stageData.behaviors, stageData.objects);
+
+		var stageModules:Array<Dynamic> = stageData.modules != null ? stageData.modules : [];
+		for (module in stageModules) StageModules.create(module);
+		#if POLYMOD_ALLOWED
+		if (stageModules.length < 1) funkin.modding.PolymodHandler.createScriptedStage(curStage);
+		#end
 		if(isPixelStage) introSoundsSuffix = '-pixel';
 
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)

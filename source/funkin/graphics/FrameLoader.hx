@@ -142,7 +142,7 @@ class FrameLoader
 	public static function addAnimation(sprite:FlxSprite, name:String, prefix:String, ?indices:Array<Int>, fps:Float = 24, loop:Bool = false, ?type:String, flipX:Bool = false, flipY:Bool = false)
 	{
 		var hasIndices:Bool = indices != null && indices.length > 0;
-		if (usesFrameIndices(type))
+		if (usesFrameIndices(type) || (hasIndices && (prefix == null || prefix.length == 0)))
 			sprite.animation.add(name, hasIndices ? indices : [0], fps, loop, flipX, flipY);
 		else if (hasIndices)
 			sprite.animation.addByIndices(name, prefix, indices, '', fps, loop, flipX, flipY);

@@ -23,6 +23,9 @@ typedef StageFile = {
 
 	@:optional var preload:Dynamic;
 	@:optional var objects:Array<Dynamic>;
+	@:optional var modules:Array<Dynamic>;
+	@:optional var behaviors:Array<Dynamic>;
+	@:optional var default_gf:String;
 	@:optional var _editorMeta:Dynamic;
 }
 
@@ -184,34 +187,58 @@ class StageData {
 					if(data.scale != null && (data.scale[0] != 1.0 || data.scale[1] != 1.0))
 					{
 						spr.scale.set(data.scale[0], data.scale[1]);
-						spr.updateHitbox();
+						if (data.updateHitbox != false) spr.updateHitbox();
 					}
 					spr.scrollFactor.set(data.scroll[0], data.scroll[1]);
 					spr.color = CoolUtil.colorFromString(data.color);
 					
-					for (varName in ['alpha', 'angle'])
-					{
-						var dat:Dynamic = Reflect.getProperty(data, varName);
-						if(dat != null) Reflect.setProperty(spr, varName, dat);
-					}
-
+					applyExtras(spr, data);
 					if (group != null) group.add(spr);
 					addedObjects.set(data.name, spr);
 
 				default:
-					var err = '[Stage .JSON file] Unknown sprite type detected: ${data.type}';
-					FlxG.log.error(err);
+					if(!ignoreFilters && data.filters != null && !validateVisibility(data.filters)) continue;
+					var spr:FlxSprite = funkin.play.stages.StagePrefabs.create(data.type, data);
+					if (spr == null)
+					{
+						FlxG.log.error('[Stage .JSON file] Unknown sprite type detected: ${data.type}');
+						continue;
+					}
+					spr.ID = num;
+					if (data.scroll != null) spr.scrollFactor.set(data.scroll[0], data.scroll[1]);
+					applyExtras(spr, data);
+					if (group != null) group.add(spr);
+					if (data.name != null) addedObjects.set(data.name, spr);
 			}
 		}
 		return addedObjects;
 	}
 
+	public static function applyExtras(spr:FlxSprite, data:Dynamic)
+	{
+		var size:Array<Dynamic> = data.graphicSize;
+		if (size != null && size.length > 0)
+		{
+			spr.setGraphicSize(Std.int(funkin.data.DataUtil.toFloat(size[0], 0)), size.length > 1 ? Std.int(funkin.data.DataUtil.toFloat(size[1], 0)) : 0);
+			spr.updateHitbox();
+		}
+		for (varName in ['alpha', 'angle', 'visible', 'active'])
+		{
+			var dat:Dynamic = Reflect.field(data, varName);
+			if (dat != null) Reflect.setProperty(spr, varName, dat);
+		}
+		if (data.blend != null)
+		{
+			var mode:openfl.display.BlendMode = Std.string(data.blend).toLowerCase();
+			spr.blend = mode;
+		}
+		if (data.velocity != null) spr.velocity.set(data.velocity[0], data.velocity[1]);
+	}
+
 	public static function validateVisibility(filters:LoadFilters)
 	{
-		if((filters & STORY_MODE) == STORY_MODE)
-			if(!PlayState.isStoryMode) return false;
-		else if((filters & FREEPLAY) == FREEPLAY)
-			if(PlayState.isStoryMode) return false;
+		if((filters & STORY_MODE) == STORY_MODE && !PlayState.isStoryMode) return false;
+		if((filters & FREEPLAY) == FREEPLAY && PlayState.isStoryMode) return false;
 
 		return ((Save.data.lowQuality && (filters & LOW_QUALITY) == LOW_QUALITY) ||
 			(!Save.data.lowQuality && (filters & HIGH_QUALITY) == HIGH_QUALITY));

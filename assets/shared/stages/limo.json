@@ -6,16 +6,34 @@
 	"cameraSpeed": 1,
 	"characters": {
 		"boyfriend": {
-			"position": [1030, -120],
-			"camera": [-200, 0]
+			"position": [
+				1030,
+				-120
+			],
+			"camera": [
+				-200,
+				0
+			]
 		},
 		"girlfriend": {
-			"position": [400, 130],
-			"camera": [0, 0]
+			"position": [
+				400,
+				130
+			],
+			"camera": [
+				0,
+				0
+			]
 		},
 		"opponent": {
-			"position": [100, 100],
-			"camera": [0, 0]
+			"position": [
+				100,
+				100
+			],
+			"camera": [
+				0,
+				0
+			]
 		}
 	},
 	"preload": {
@@ -30,5 +48,8 @@
 		"boyfriend": "bf-car",
 		"girlfriend": "gf-car",
 		"opponent": "mom-car"
-	}
+	},
+	"modules": [
+		"limo"
+	]
 }

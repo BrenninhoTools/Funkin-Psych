@@ -1974,10 +1974,13 @@ class StageEditorMetaSprite
 	public var firstAnimation:String;
 	public var animations:Array<AnimArray>;
 
+	var raw:Dynamic = null;
+
 	public function new(data:Dynamic, spr:FlxSprite)
 	{
 		this.sprite = spr;
 		if(data == null) return;
+		this.raw = data;
 
 		this.type = data.type;
 		switch(this.type)
@@ -2002,6 +2005,10 @@ class StageEditorMetaSprite
 	public function formatToJson()
 	{
 		var obj:Dynamic = {type: type};
+		if (raw != null && !StageData.reservedNames.contains(type))
+			for (field in Reflect.fields(raw))
+				if (type != 'square' && type != 'sprite' && type != 'animatedSprite' || funkin.data.stage.StageParser.EXTRA_KEYS.contains(field))
+					Reflect.setField(obj, field, Reflect.field(raw, field));
 		switch(type)
 		{
 			case 'square', 'sprite', 'animatedSprite':
@@ -2028,6 +2035,12 @@ class StageEditorMetaSprite
 						obj.animations = animations;
 						obj.firstAnimation = firstAnimation;
 					}
+				}
+			default:
+				if (!StageData.reservedNames.contains(type))
+				{
+					obj.x = x;
+					obj.y = y;
 				}
 		}
 		return obj;

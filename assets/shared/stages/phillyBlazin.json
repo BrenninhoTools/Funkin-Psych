@@ -6,16 +6,34 @@
 	"cameraSpeed": 1,
 	"characters": {
 		"boyfriend": {
-			"position": [900, 800],
-			"camera": [0, 0]
+			"position": [
+				900,
+				800
+			],
+			"camera": [
+				0,
+				0
+			]
 		},
 		"girlfriend": {
-			"position": [470, 595],
-			"camera": [0, 0]
+			"position": [
+				470,
+				595
+			],
+			"camera": [
+				0,
+				0
+			]
 		},
 		"opponent": {
-			"position": [300, 800],
-			"camera": [50, -455]
+			"position": [
+				300,
+				800
+			],
+			"camera": [
+				50,
+				-455
+			]
 		}
 	},
 	"preload": {
@@ -31,5 +49,8 @@
 		"boyfriend": "pico-playable",
 		"girlfriend": "nene",
 		"opponent": "darnell"
-	}
+	},
+	"modules": [
+		"phillyBlazin"
+	]
 }
