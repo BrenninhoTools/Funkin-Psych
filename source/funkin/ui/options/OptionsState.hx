@@ -159,7 +159,7 @@ class OptionsState extends MusicBeatState
 
 		if (controls.BACK)
 		{
-			FlxG.sound.play(Paths.sound('cancelMenu'));
+			FunkinSound.playOnce('cancelMenu');
 			if(onPlayState)
 			{
 				StageData.loadDirectory(PlayState.SONG);
@@ -188,7 +188,7 @@ class OptionsState extends MusicBeatState
 				selectorRight.y = item.y;
 			}
 		}
-		FlxG.sound.play(Paths.sound('scrollMenu'));
+		FunkinSound.playOnce('scrollMenu');
 	}
 
 	override function destroy()

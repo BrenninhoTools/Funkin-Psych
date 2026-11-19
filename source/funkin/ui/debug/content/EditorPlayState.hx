@@ -821,7 +821,7 @@ class EditorPlayState extends MusicBeatSubstate
 
 		note.wasGoodHit = true;
 		if (note.hitsoundVolume > 0 && !note.hitsoundDisabled)
-			FlxG.sound.play(Paths.sound(note.hitsound), note.hitsoundVolume);
+			FunkinSound.playOnce(note.hitsound, note.hitsoundVolume);
 
 		if(note.hitCausesMiss) {
 			noteMiss(note);

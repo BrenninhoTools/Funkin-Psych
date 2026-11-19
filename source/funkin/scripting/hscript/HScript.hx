@@ -282,6 +282,7 @@ class HScript
 		set('FlxText', flixel.text.FlxText);
 		set('FlxCamera', funkin.backend.PsychCamera);
 		set('PsychCamera', funkin.backend.PsychCamera);
+		set('FunkinSound', funkin.audio.FunkinSound);
 		set('FlxTimer', flixel.util.FlxTimer);
 		set('FlxTween', flixel.tweens.FlxTween);
 		set('FlxEase', flixel.tweens.FlxEase);

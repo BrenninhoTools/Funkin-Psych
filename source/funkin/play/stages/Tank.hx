@@ -229,7 +229,7 @@ class Tank extends BaseStage
 		{
 			boyfriend.playAnim('singUP', true);
 			boyfriend.specialAnim = true;
-			FlxG.sound.play(Paths.sound('bfBeep'));
+			FunkinSound.playOnce('bfBeep');
 		});
 
 		// Move camera to Tankman

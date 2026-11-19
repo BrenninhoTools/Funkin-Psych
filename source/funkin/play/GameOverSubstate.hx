@@ -70,7 +70,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		boyfriend.skipDance = true;
 		add(boyfriend);
 
-		FlxG.sound.play(Paths.sound(deathSoundName));
+		FunkinSound.playOnce(deathSoundName);
 		FlxG.camera.scroll.set();
 		FlxG.camera.target = null;
 
@@ -178,7 +178,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				else
 					MusicBeatState.switchState(new FreeplayState());
 	
-				FlxG.sound.playMusic(Paths.music('freakyMenu'));
+				FunkinSound.playMusic('freakyMenu');
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)

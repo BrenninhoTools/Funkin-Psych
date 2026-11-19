@@ -157,7 +157,7 @@ class DialogueBox extends FlxSpriteGroup
 			if (dialogueStarted && !isEnding)
 			{
 				dialogueCompleted();
-				FlxG.sound.play(Paths.sound('clickText'), 0.8);
+				FunkinSound.playOnce('clickText', 0.8);
 			}
 		}
 		else if(Controls.instance.ACCEPT)
@@ -173,12 +173,12 @@ class DialogueBox extends FlxSpriteGroup
 				{
 					dialogueList.remove(dialogueList[0]);
 					startDialogue();
-					FlxG.sound.play(Paths.sound('clickText'), 0.8);
+					FunkinSound.playOnce('clickText', 0.8);
 				}
 			}
 			else if (dialogueStarted)
 			{
-				FlxG.sound.play(Paths.sound('clickText'), 0.8);
+				FunkinSound.playOnce('clickText', 0.8);
 				swagDialogue.skip();
 				
 				if(skipDialogueThing != null) {
@@ -192,7 +192,7 @@ class DialogueBox extends FlxSpriteGroup
 	function dialogueCompleted()
 	{
 		isEnding = true;
-		FlxG.sound.play(Paths.sound('clickText'), 0.8);	
+		FunkinSound.playOnce('clickText', 0.8);	
 
 		if (songName == 'senpai' || songName == 'thorns')
 			FlxG.sound.music.fadeOut(1.5, 0, (_) -> FlxG.sound.music.stop());

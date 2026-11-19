@@ -208,7 +208,7 @@ class StoryMenuState extends MusicBeatState
 		{
 			if (controls.BACK && !movedBack && !selectedWeek)
 			{
-				FlxG.sound.play(Paths.sound('cancelMenu'));
+				FunkinSound.playOnce('cancelMenu');
 				movedBack = true;
 				MusicBeatState.switchState(new MainMenuState());
 			}
@@ -249,7 +249,7 @@ class StoryMenuState extends MusicBeatState
 							else
 							{
 								changeWeek(num - curWeek);
-								FlxG.sound.play(Paths.sound('scrollMenu'));
+								FunkinSound.playOnce('scrollMenu');
 								changeDiff = true;
 							}
 							break;
@@ -262,20 +262,20 @@ class StoryMenuState extends MusicBeatState
 			if (controls.UI_UP_P)
 			{
 				changeWeek(-1);
-				FlxG.sound.play(Paths.sound('scrollMenu'));
+				FunkinSound.playOnce('scrollMenu');
 				changeDiff = true;
 			}
 
 			if (controls.UI_DOWN_P)
 			{
 				changeWeek(1);
-				FlxG.sound.play(Paths.sound('scrollMenu'));
+				FunkinSound.playOnce('scrollMenu');
 				changeDiff = true;
 			}
 
 			if(FlxG.mouse.wheel != 0)
 			{
-				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+				FunkinSound.playOnce('scrollMenu', 0.4);
 				changeWeek(-FlxG.mouse.wheel);
 				changeDifficulty();
 			}
@@ -306,7 +306,7 @@ class StoryMenuState extends MusicBeatState
 			{
 				persistentUpdate = false;
 				openSubState(new ResetScoreSubState('', curDifficulty, '', curWeek));
-				//FlxG.sound.play(Paths.sound('scrollMenu'));
+				//FunkinSound.playOnce('scrollMenu');
 			}
 			else if (controls.ACCEPT || touchAccept)
 				selectWeek();
@@ -314,7 +314,7 @@ class StoryMenuState extends MusicBeatState
 
 		if (controls.BACK && !movedBack && !selectedWeek)
 		{
-			FlxG.sound.play(Paths.sound('cancelMenu'));
+			FunkinSound.playOnce('cancelMenu');
 			movedBack = true;
 			MusicBeatState.switchState(new MainMenuState());
 		}
@@ -368,7 +368,7 @@ class StoryMenuState extends MusicBeatState
 			
 			if (stopspamming == false)
 			{
-				FlxG.sound.play(Paths.sound('confirmMenu'));
+				FunkinSound.playOnce('confirmMenu');
 
 				grpWeekText.members[curWeek].isFlashing = true;
 				for (char in grpWeekCharacters.members)
@@ -403,7 +403,7 @@ class StoryMenuState extends MusicBeatState
 			DiscordClient.loadModRPC();
 			#end
 		}
-		else FlxG.sound.play(Paths.sound('cancelMenu'));
+		else FunkinSound.playOnce('cancelMenu');
 	}
 
 	function changeDifficulty(change:Int = 0):Void

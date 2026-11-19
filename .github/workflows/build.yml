@@ -15,7 +15,7 @@ concurrency:
 
 env:
   HAXE_VERSION: '4.3.7'
-  CACHE_REV: 'v5'
+  CACHE_REV: 'v6'
 
 jobs:
   build:
@@ -99,31 +99,69 @@ jobs:
           git config --global core.longpaths true
           git config --global advice.detachedHead false
 
-      - name: Cache Haxelibs
+      - name: Restore Haxelibs
         id: haxelib-cache
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: .haxelib
-          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          restore-keys: |
+            haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-
 
-      - name: Cache hxcpp
-        uses: actions/cache@v6
+      - name: Restore hxcpp
+        uses: actions/cache/restore@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
-          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.sha }}
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.run_id }}
           restore-keys: |
             hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-
 
-      - name: Cache Gradle
+      - name: Restore Gradle
         if: matrix.target == 'android'
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ env.CACHE_REV }}-${{ hashFiles('project.hxp', 'project/android/**/*.gradle') }}
+          key: gradle-${{ env.CACHE_REV }}-${{ github.run_id }}
           restore-keys: |
             gradle-${{ env.CACHE_REV }}-
+
+      - name: Configure Gradle mirrors
+        if: matrix.target == 'android'
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.gradle/init.d"
+          cat > "$HOME/.gradle/init.d/mirrors.gradle" <<'GRADLE'
+          def mirrors = [
+              'https://maven-central.storage-download.googleapis.com/maven2/',
+              'https://repo1.maven.org/maven2/',
+              'https://maven.google.com/'
+          ]
+          beforeSettings { settings ->
+              settings.pluginManagement.repositories {
+                  mirrors.each { mirror -> maven { url = uri(mirror) } }
+                  gradlePluginPortal()
+              }
+          }
+          allprojects {
+              buildscript {
+                  repositories {
+                      mirrors.each { mirror -> maven { url = uri(mirror) } }
+                  }
+              }
+              repositories {
+                  mirrors.each { mirror -> maven { url = uri(mirror) } }
+              }
+          }
+          GRADLE
+          {
+            echo "org.gradle.caching=true"
+            echo "org.gradle.parallel=true"
+            echo "systemProp.org.gradle.internal.http.connectionTimeout=120000"
+            echo "systemProp.org.gradle.internal.http.socketTimeout=120000"
+            echo "systemProp.org.gradle.internal.repository.max.retries=5"
+          } >> "$HOME/.gradle/gradle.properties"
 
       - name: Install Haxelibs
         run: |
@@ -136,10 +174,18 @@ jobs:
           haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
           haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
           haxelib version
-          if [ '${{ steps.haxelib-cache.outputs.cache-hit }}' != 'true' ]; then
+          if [ -z '${{ steps.haxelib-cache.outputs.cache-matched-key }}' ]; then
             haxelib --global run hmm install -q
           fi
           haxelib list
+
+      - name: Restore Lime libraries
+        uses: actions/cache/restore@v6
+        with:
+          path: .haxelib/lime/git/ndll
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          restore-keys: |
+            lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-
 
       - name: Fetch Lime submodules
         run: |
@@ -219,7 +265,7 @@ jobs:
           fi
 
       - name: Use bundled Lua
-        if: matrix.host != 'windows'
+        if: matrix.target == 'android' || matrix.target == 'ios'
         run: |
           set -euo pipefail
           LUA="$(haxelib libpath linc_luajit | head -n 1 | tr -d '\r')"
@@ -228,8 +274,6 @@ jobs:
           case '${{ matrix.target }}' in
             android) DIRS=(Android) ;;
             ios) DIRS=(iPhone) ;;
-            linux) DIRS=(Linux64) ;;
-            mac) DIRS=(Mac) ;;
           esac
           for DIR in "${DIRS[@]}"; do
             mkdir -p "$LUA/$DIR"
@@ -303,6 +347,36 @@ jobs:
           esac
           test -n "$(ls -A dist)"
           ls -la dist
+
+      - name: Save Haxelibs
+        if: always() && steps.haxelib-cache.outputs.cache-matched-key == ''
+        uses: actions/cache/save@v6
+        with:
+          path: .haxelib
+          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+
+      - name: Save Lime libraries
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .haxelib/lime/git/ndll
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+
+      - name: Save hxcpp
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/hxcpp_cache
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.run_id }}
+
+      - name: Save Gradle
+        if: always() && matrix.target == 'android'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ env.CACHE_REV }}-${{ github.run_id }}
 
       - name: Upload build
         uses: actions/upload-artifact@v7

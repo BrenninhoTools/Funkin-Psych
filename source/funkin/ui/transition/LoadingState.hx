@@ -246,7 +246,7 @@ class LoadingState extends MusicBeatState
 			if(!transitioning && controls.ACCEPT)
 			{
 				shakeMult = 1;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
+				FunkinSound.playOnce('cancelMenu');
 				pressedTimes++;
 			}
 			shakeMult = Math.max(0, shakeMult - elapsed * 5);
@@ -258,7 +258,7 @@ class LoadingState extends MusicBeatState
 				logo.visible = false;
 				spawnedPessy = true;
 				stateChangeDelay = 5;
-				FlxG.sound.play(Paths.sound('secret'));
+				FunkinSound.playOnce('secret');
 
 				pessy = new FlxSprite(700, 140);
 				pessy.frames = Paths.getSparrowAtlas('loading_screen/pessy');

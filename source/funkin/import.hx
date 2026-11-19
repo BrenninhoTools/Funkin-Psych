@@ -22,6 +22,7 @@ import js.html.*;
 #end
 
 import funkin.assets.Paths;
+import funkin.audio.FunkinSound;
 import funkin.backend.Controls;
 import funkin.backend.CoolUtil;
 import funkin.backend.MusicBeatState;

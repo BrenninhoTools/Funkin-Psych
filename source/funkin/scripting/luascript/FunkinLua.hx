@@ -763,7 +763,7 @@ class FunkinLua {
 
 			#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+			FunkinSound.playMusic('freakyMenu');
 			PlayState.changedDifficulty = false;
 			PlayState.chartingMode = false;
 			game.transitioning = true;
@@ -1339,7 +1339,7 @@ class FunkinLua {
 				}));
 				return tag;
 			}
-			FlxG.sound.play(Paths.sound(sound), volume);
+			FunkinSound.playOnce(sound, volume);
 			return null;
 		});
 		Lua_helper.add_callback(lua, "stopSound", function(tag:String) {

@@ -336,7 +336,7 @@ class MobileControlsState extends MusicBeatState
 			if (selectable(entries[index])) break;
 		}
 		curSelected = index;
-		FlxG.sound.play(Paths.sound('scrollMenu'));
+		FunkinSound.playOnce('scrollMenu');
 		updateRows();
 	}
 
@@ -346,7 +346,7 @@ class MobileControlsState extends MusicBeatState
 		if (entry == null) return;
 		if (entry.action != null)
 		{
-			FlxG.sound.play(Paths.sound('confirmMenu'));
+			FunkinSound.playOnce('confirmMenu');
 			entry.action();
 			hitbox.refresh();
 			updateRows();
@@ -363,7 +363,7 @@ class MobileControlsState extends MusicBeatState
 			return;
 		}
 		entry.change(dir);
-		if (!quiet) FlxG.sound.play(Paths.sound('scrollMenu'));
+		if (!quiet) FunkinSound.playOnce('scrollMenu');
 		hitbox.refresh();
 		updateRows();
 	}
@@ -381,12 +381,12 @@ class MobileControlsState extends MusicBeatState
 			hitbox.refresh();
 			updateThumbnail();
 			updateRows();
-			FlxG.sound.play(Paths.sound('confirmMenu'));
+			FunkinSound.playOnce('confirmMenu');
 			showStatus('Hitbox image imported!');
 		}, function(message:String)
 		{
 			importing = false;
-			FlxG.sound.play(Paths.sound('cancelMenu'));
+			FunkinSound.playOnce('cancelMenu');
 			showStatus(message);
 		}, function()
 		{
@@ -488,7 +488,7 @@ class MobileControlsState extends MusicBeatState
 		if (exiting || importing) return;
 		exiting = true;
 		ClientPrefs.saveSettings();
-		FlxG.sound.play(Paths.sound('cancelMenu'));
+		FunkinSound.playOnce('cancelMenu');
 		OptionsState.reopenMobileOptions = true;
 		MusicBeatState.switchState(new OptionsState());
 	}
@@ -530,7 +530,7 @@ class MobileControlsState extends MusicBeatState
 				else
 				{
 					curSelected = index;
-					FlxG.sound.play(Paths.sound('scrollMenu'));
+					FunkinSound.playOnce('scrollMenu');
 					updateRows();
 				}
 			}

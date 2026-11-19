@@ -124,7 +124,7 @@ class TitleState extends MusicBeatState
 	{
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
-			FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+			FunkinSound.playMusic('freakyMenu', 0);
 
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
@@ -384,7 +384,7 @@ class TitleState extends MusicBeatState
 				if(titleText != null) titleText.animation.play('press');
 
 				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
-				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
+				FunkinSound.playOnce('confirmMenu', 0.7);
 
 				transitioning = true;
 				// FlxG.sound.music.stop();
@@ -418,7 +418,7 @@ class TitleState extends MusicBeatState
 								FlxG.save.data.psychDevsEasterEgg = word;
 							FlxG.save.flush();
 
-							FlxG.sound.play(Paths.sound('secret'));
+							FunkinSound.playOnce('secret');
 
 							var black:FlxSprite = new FlxSprite(0, 0).makeGraphic(1, 1, FlxColor.BLACK);
 							black.scale.set(FlxG.width, FlxG.height);
@@ -528,7 +528,7 @@ class TitleState extends MusicBeatState
 			{
 				case 1:
 					//FlxG.sound.music.stop();
-					FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+					FunkinSound.playMusic('freakyMenu', 0);
 					FlxG.sound.music.fadeIn(4, 0, 0.7);
 				case 2:
 					createCoolText(['Psych Engine by'], 40);
@@ -582,13 +582,13 @@ class TitleState extends MusicBeatState
 				switch(easteregg)
 				{
 					case 'RIVEREN':
-						sound = FlxG.sound.play(Paths.sound('JingleRiver'));
+						sound = FunkinSound.playOnce('JingleRiver');
 					case 'SHADOW':
-						FlxG.sound.play(Paths.sound('JingleShadow'));
+						FunkinSound.playOnce('JingleShadow');
 					case 'BBPANZU':
-						sound = FlxG.sound.play(Paths.sound('JingleBB'));
+						sound = FunkinSound.playOnce('JingleBB');
 					case 'PESSY':
-						sound = FlxG.sound.play(Paths.sound('JinglePessy'));
+						sound = FunkinSound.playOnce('JinglePessy');
 
 					default: //Go back to normal ugly ass boring GF
 						remove(ngSpr);
@@ -596,7 +596,7 @@ class TitleState extends MusicBeatState
 						FlxG.camera.flash(FlxColor.WHITE, 2);
 						skippedIntro = true;
 
-						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+						FunkinSound.playMusic('freakyMenu', 0);
 						FlxG.sound.music.fadeIn(4, 0, 0.7);
 						return;
 				}
@@ -618,7 +618,7 @@ class TitleState extends MusicBeatState
 					remove(credGroup);
 					FlxG.camera.flash(FlxColor.WHITE, 3);
 					sound.onComplete = function() {
-						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+						FunkinSound.playMusic('freakyMenu', 0);
 						FlxG.sound.music.fadeIn(4, 0, 0.7);
 						transitioning = false;
 						#if ACHIEVEMENTS_ALLOWED

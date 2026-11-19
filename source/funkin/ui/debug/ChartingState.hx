@@ -1464,12 +1464,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					{
 						if(hitSoundPlayer && note.mustPress)
 						{
-							FlxG.sound.play(Paths.sound('hitsound'), hitsoundPlayerStepper.value);
+							FunkinSound.playOnce('hitsound', hitsoundPlayerStepper.value);
 							hitSoundPlayer = false;
 						}
 						else if(hitSoundOpp && !note.mustPress)
 						{
-							FlxG.sound.play(Paths.sound('hitsound'), hitsoundOpponentStepper.value);
+							FunkinSound.playOnce('hitsound', hitsoundOpponentStepper.value);
 							hitSoundOpp = false;
 						}
 					}
@@ -1489,7 +1489,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			
 			// moved from beatHit()
 			if(metronomeStepper.value > 0 && lastBeatHit != curBeat)
-				FlxG.sound.play(Paths.sound('Metronome_Tick'), metronomeStepper.value);
+				FunkinSound.playOnce('Metronome_Tick', metronomeStepper.value);
 
 			lastBeatHit = curBeat;
 		}
@@ -1655,12 +1655,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		outputAlpha = 4;
 		if(isError)
 		{
-			FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
+			FunkinSound.playOnce('cancelMenu', 0.6);
 			outputTxt.color = FlxColor.RED;
 		}
 		else
 		{
-			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+			FunkinSound.playOnce('scrollMenu', 0.6);
 			outputTxt.color = FlxColor.WHITE;
 		}
 	}
@@ -3974,7 +3974,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			PlayState.chartingMode = false;
 			MusicBeatState.switchState(new funkin.ui.debug.MasterEditorMenu());
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+			FunkinSound.playMusic('freakyMenu');
 			FlxG.mouse.visible = false;
 		}, btnWid);
 		btn.text.alignment = LEFT;
@@ -4976,7 +4976,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	{
 		if(isMovingNotes || currentUndo >= undoActions.length)
 		{
-			FlxG.sound.play(Paths.sound('cancelMenu'), 0.4);
+			FunkinSound.playOnce('cancelMenu', 0.4);
 			return;
 		}
 
@@ -5001,14 +5001,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				onSelectNote();
 		}
 		showOutput('Undo #${currentUndo+1}: ${action.action}');
-		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+		FunkinSound.playOnce('scrollMenu', 0.4);
 		currentUndo++;
 	}
 	function redo()
 	{
 		if(isMovingNotes || currentUndo < 1)
 		{
-			FlxG.sound.play(Paths.sound('cancelMenu'), 0.4);
+			FunkinSound.playOnce('cancelMenu', 0.4);
 			return;
 		}
 
@@ -5034,7 +5034,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				onSelectNote();
 		}
 		showOutput('Redo #${currentUndo+1}: ${action.action}');
-		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+		FunkinSound.playOnce('scrollMenu', 0.4);
 	}
 
 	function actionPushNotes(dataNotes:Array<MetaNote>, dataEvents:Array<EventMetaNote>)

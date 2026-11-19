@@ -108,7 +108,7 @@ class Limo extends BaseStage
 						if(dancers[i].x < FlxG.width * 1.5 && limoLight.x > (370 * i) + 170) {
 							switch(i) {
 								case 0 | 3:
-									if(i == 0) FlxG.sound.play(Paths.sound('dancerdeath'), 0.5);
+									if(i == 0) FunkinSound.playOnce('dancerdeath', 0.5);
 
 									var diffStr:String = i == 3 ? ' 2 ' : ' ';
 									var particle:BGSprite = new BGSprite('gore/noooooo', dancers[i].x + 200, dancers[i].y, 0.4, 0.4, ['hench leg spin' + diffStr + 'PINK'], false);

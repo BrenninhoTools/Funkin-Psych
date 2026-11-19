@@ -11,7 +11,7 @@ class ExitConfirmationPrompt extends Prompt
 		{
 			FlxG.mouse.visible = false;
 			MusicBeatState.switchState(new funkin.ui.debug.MasterEditorMenu());
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+			FunkinSound.playMusic('freakyMenu');
 			if(finishCallback != null) finishCallback();
 		}, 'Exit');
 	}

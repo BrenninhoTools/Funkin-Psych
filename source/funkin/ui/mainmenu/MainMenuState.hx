@@ -333,13 +333,13 @@ class MainMenuState extends MusicBeatState
 			{
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
+				FunkinSound.playOnce('cancelMenu');
 				MusicBeatState.switchState(new TitleState());
 			}
 
 			if (controls.ACCEPT || touchAccept || (FlxG.mouse.justPressed && allowMouse))
 			{
-				FlxG.sound.play(Paths.sound('confirmMenu'));
+				FunkinSound.playOnce('confirmMenu');
 				selectedSomethin = true;
 				FlxG.mouse.visible = false;
 
@@ -429,7 +429,7 @@ class MainMenuState extends MusicBeatState
 	{
 		if(change != 0) curColumn = CENTER;
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionShit.length - 1);
-		FlxG.sound.play(Paths.sound('scrollMenu'));
+		FunkinSound.playOnce('scrollMenu');
 
 		for (item in menuItems)
 		{
