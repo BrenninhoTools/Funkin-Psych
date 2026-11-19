@@ -128,9 +128,16 @@ jobs:
       - name: Install Haxelibs
         run: |
           set -euo pipefail
-          haxelib --global --always install hmm --quiet
+          haxelib fixrepo --global || true
+          haxelib --never --global install haxelib 4.1.0
+          haxelib --global set haxelib 4.1.0
+          haxelib --global remove haxelib git || true
+          haxelib --global remove hmm || true
+          haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
+          haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+          haxelib version
           if [ '${{ steps.haxelib-cache.outputs.cache-hit }}' != 'true' ]; then
-            haxelib --global --always run hmm install
+            haxelib --global run hmm install -q
           fi
           haxelib list
 
