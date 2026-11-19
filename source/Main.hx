@@ -1,6 +1,6 @@
 package;
 
-import funkin.debug.FPSCounter;
+import funkin.util.debug.FPSCounter;
 
 import flixel.graphics.FlxGraphic;
 import flixel.FlxGame;
@@ -44,7 +44,7 @@ import flixel.FlxG;
 import flixel.util.FlxColor;
 
 #if DISCORD_ALLOWED
-import funkin.backend.Discord;
+import funkin.api.discord.Discord;
 #end
 
 #if ACHIEVEMENTS_ALLOWED

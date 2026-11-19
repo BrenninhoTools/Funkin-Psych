@@ -1,7 +1,7 @@
 #if !macro
 //Discord API
 #if DISCORD_ALLOWED
-import funkin.backend.Discord;
+import funkin.api.discord.Discord;
 #end
 
 //Psych

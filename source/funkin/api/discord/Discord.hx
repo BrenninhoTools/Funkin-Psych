@@ -1,4 +1,4 @@
-package funkin.backend;
+package funkin.api.discord;
 
 #if DISCORD_ALLOWED
 import Sys.sleep;
@@ -165,7 +165,7 @@ class DiscordClient
 	#end
 }
 
-@:allow(funkin.backend.DiscordClient)
+@:allow(funkin.api.discord.DiscordClient)
 private final class DiscordPresence
 {
 	public var state(get, set):String;

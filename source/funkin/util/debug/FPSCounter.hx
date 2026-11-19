@@ -1,4 +1,4 @@
-package funkin.debug;
+package funkin.util.debug;
 
 import flixel.FlxG;
 import openfl.text.TextField;

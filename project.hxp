@@ -11,7 +11,7 @@ class Project extends HXProject
 	static inline final TITLE:String = "Friday Night Funkin': Psych Engine";
 	static inline final MOBILE_TITLE:String = "FNF: Psych Engine";
 	static inline final FILE:String = "PsychEngine";
-	static inline final PACKAGE:String = "com.shadowmario.psychengine";
+	static inline final PACKAGE:String = "me.funkin.psychengine";
 	static inline final VERSION:String = "0.2.8";
 	static inline final COMPANY:String = "ShadowMario";
 
