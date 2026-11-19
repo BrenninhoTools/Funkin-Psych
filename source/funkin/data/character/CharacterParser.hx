@@ -167,7 +167,7 @@ class CharacterParser
 		var images:Array<String> = FrameLoader.splitImages(file.image);
 		var render:Dynamic = {
 			type: file.render_type != null ? file.render_type : 'auto',
-			image: images.length == 1 ? images[0] : images,
+			image: images.length == 1 ? (images[0]:Dynamic) : (images:Dynamic),
 			scale: file.scale,
 			flipX: file.flip_x == true,
 			antialiasing: file.no_antialiasing != true

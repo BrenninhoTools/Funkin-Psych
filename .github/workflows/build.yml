@@ -80,7 +80,7 @@ jobs:
           CLANG="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
           if [ ! -x "$CLANG" ]; then
             SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-            yes | "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null
+            { yes || true; } | "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null
           fi
           test -x "$CLANG"
           test -d "$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android"

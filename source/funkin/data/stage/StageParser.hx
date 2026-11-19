@@ -269,7 +269,7 @@ class StageParser
 			var images:Array<String> = FrameLoader.splitImages(object.image);
 			var render:Dynamic = {
 				type: object.render_type != null ? object.render_type : 'auto',
-				image: images.length == 1 ? images[0] : images,
+				image: images.length == 1 ? (images[0]:Dynamic) : (images:Dynamic),
 				antialiasing: object.antialiasing != false
 			};
 			if (object.frame_size != null) render.frameSize = object.frame_size;
