@@ -1,5 +1,4 @@
-package funkin;
-
+package;
 
 import funkin.debug.FPSCounter;
 
@@ -36,6 +35,32 @@ import haxe.io.Path;
 #end
 
 import funkin.backend.Highscore;
+import funkin.backend.ClientPrefs;
+import funkin.backend.Controls;
+import funkin.backend.CoolUtil;
+import funkin.backend.Mods;
+import funkin.states.PlayState;
+import flixel.FlxG;
+import flixel.util.FlxColor;
+
+#if DISCORD_ALLOWED
+import funkin.backend.Discord;
+#end
+
+#if ACHIEVEMENTS_ALLOWED
+import funkin.backend.Achievements;
+#end
+
+#if LUA_ALLOWED
+import llua.Lua;
+#end
+
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
+
+using StringTools;
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
 #if (linux && !debug)

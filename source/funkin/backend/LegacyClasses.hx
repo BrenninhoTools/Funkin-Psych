@@ -3,7 +3,6 @@ package funkin.backend;
 class LegacyClasses
 {
 	public static final PATHS:Array<String> = [
-		'Main',
 		'backend.Achievements',
 		'backend.BaseStage',
 		'backend.ClientPrefs',

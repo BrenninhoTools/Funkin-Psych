@@ -1,7 +1,5 @@
 package funkin.backend;
 
-import funkin.Main;
-
 import lime.app.Application;
 import lime.system.Display;
 import lime.system.System;

@@ -1,7 +1,5 @@
 package funkin.options;
 
-import funkin.Main;
-
 import funkin.objects.Note;
 import funkin.objects.StrumNote;
 import funkin.objects.NoteSplash;
