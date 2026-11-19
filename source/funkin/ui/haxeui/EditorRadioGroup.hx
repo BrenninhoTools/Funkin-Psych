@@ -29,6 +29,7 @@ class EditorRadioGroup extends EditorWidget<Component>
 
 	public function new(x:Float, y:Float, labels:Array<String>, space:Float = 25, maxItems:Int = 0, ?isHorizontal:Bool = false, ?textWidth:Int = 100)
 	{
+		EditorUI.ensureToolkit();
 		this.space = space;
 		this.maxItems = maxItems;
 		this.stackHorizontal = isHorizontal;

@@ -11,6 +11,7 @@ class EditorUI
 	static var owners:Map<Component, Dynamic> = [];
 	static var tick:Int = 0;
 	static var initialized:Bool = false;
+	static var toolkitReady:Bool = false;
 
 	public static function init()
 	{
@@ -19,6 +20,19 @@ class EditorUI
 		FlxG.signals.preStateSwitch.add(releaseAll);
 		FlxG.signals.postUpdate.add(onPostUpdate);
 	}
+
+	public static function ensureToolkit()
+	{
+		init();
+		if (toolkitReady) return;
+		toolkitReady = true;
+		haxe.ui.Toolkit.init();
+		haxe.ui.Toolkit.theme = 'dark';
+		haxe.ui.Toolkit.autoScale = false;
+	}
+
+	public static inline function isToolkitReady():Bool
+		return toolkitReady;
 
 	public static function bind(component:Component, owner:Dynamic)
 	{
@@ -80,6 +94,7 @@ class EditorUI
 
 	public static function focusedOwner():Dynamic
 	{
+		if (!toolkitReady) return null;
 		var focus:Dynamic = FocusManager.instance.focus;
 		var component:Component = Std.isOfType(focus, Component) ? cast focus : null;
 		while (component != null)
@@ -92,6 +107,7 @@ class EditorUI
 
 	public static function clearFocus()
 	{
+		if (!toolkitReady) return;
 		FocusManager.instance.focus = null;
 	}
 }

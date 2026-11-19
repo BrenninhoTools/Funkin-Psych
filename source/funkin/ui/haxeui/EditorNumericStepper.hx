@@ -20,6 +20,7 @@ class EditorNumericStepper extends EditorWidget<NumberStepper>
 
 	public function new(x:Float = 0, y:Float = 0, step:Float = 1, defValue:Float = 0, min:Float = -999, max:Float = 999, decimals:Int = 0, ?wid:Int = 60, ?isPercent:Bool = false)
 	{
+		EditorUI.ensureToolkit();
 		var stepper:NumberStepper = new NumberStepper();
 		stepper.width = wid + 32;
 		stepper.height = 22;

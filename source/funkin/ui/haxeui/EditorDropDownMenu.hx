@@ -15,6 +15,7 @@ class EditorDropDownMenu extends EditorWidget<DropDown>
 
 	public function new(x:Float, y:Float, list:Array<String>, callback:Int->String->Void, ?width:Float = 100)
 	{
+		EditorUI.ensureToolkit();
 		var drop:DropDown = new DropDown();
 		drop.width = width;
 		drop.height = 22;

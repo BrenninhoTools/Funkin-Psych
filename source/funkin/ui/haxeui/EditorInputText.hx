@@ -41,6 +41,7 @@ class EditorInputText extends EditorWidget<TextField>
 
 	public function new(x:Float = 0, y:Float = 0, wid:Int = 100, ?text:String = '', size:Int = 8)
 	{
+		EditorUI.ensureToolkit();
 		var field:TextField = new TextField();
 		field.width = wid;
 		field.height = size + 14;

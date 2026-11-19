@@ -18,6 +18,7 @@ class EditorSlider extends EditorWidget<HorizontalSlider>
 
 	public function new(x:Float = 0, y:Float = 0, callback:Float->Void, def:Float = 0, min:Float = -999, max:Float = 999, wid:Float = 200, ?mainColor:FlxColor, ?handleColor:FlxColor)
 	{
+		EditorUI.ensureToolkit();
 		var slider:HorizontalSlider = new HorizontalSlider();
 		slider.width = wid;
 		slider.min = min;

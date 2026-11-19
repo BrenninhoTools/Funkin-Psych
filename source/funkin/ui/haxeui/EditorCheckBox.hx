@@ -15,6 +15,7 @@ class EditorCheckBox extends EditorWidget<CheckBox>
 
 	public function new(x:Float, y:Float, label:String, ?textWid:Int = 100, ?callback:Void->Void)
 	{
+		EditorUI.ensureToolkit();
 		var box:CheckBox = new CheckBox();
 		box.text = label;
 		box.customStyle.fontSize = 11;

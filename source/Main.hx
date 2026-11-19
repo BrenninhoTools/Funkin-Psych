@@ -129,9 +129,6 @@ class Main extends Sprite
 		#end
 		addChild(new FlxGame(game.width, game.height, initialState, game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 		funkin.ui.haxeui.EditorUI.init();
-		haxe.ui.Toolkit.init();
-		haxe.ui.Toolkit.theme = 'dark';
-		haxe.ui.Toolkit.autoScale = false;
 		#if mobile
 		funkin.mobile.input.TouchInput.init();
 		funkin.mobile.input.TouchCursor.init();

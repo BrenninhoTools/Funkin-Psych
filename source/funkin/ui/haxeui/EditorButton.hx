@@ -16,6 +16,7 @@ class EditorButton extends EditorWidget<Button>
 
 	public function new(x:Float = 0, y:Float = 0, label:String = '', ?onClick:Void->Void, ?wid:Int = 80, ?hei:Int = 20)
 	{
+		EditorUI.ensureToolkit();
 		var button:Button = new Button();
 		button.text = label;
 		button.width = wid;
