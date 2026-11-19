@@ -139,6 +139,20 @@
       "dir": null,
       "ref": "6854dab7c5739979dbd1e19a345c17b09c80ea7e",
       "url": "https://github.com/FunkinCrew/polymod"
+    },
+    {
+      "name": "haxeui-core",
+      "type": "git",
+      "dir": null,
+      "ref": "b7ea9938bd1fed2f7002cba5eb29dba6c88d71bf",
+      "url": "https://github.com/haxeui/haxeui-core"
+    },
+    {
+      "name": "haxeui-flixel",
+      "type": "git",
+      "dir": null,
+      "ref": "100f2c96beab619cfe72c567a058c41c71e3e998",
+      "url": "https://github.com/haxeui/haxeui-flixel"
     }
   ]
 }

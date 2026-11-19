@@ -65,6 +65,7 @@ using StringTools;
 #end
 
 // // // // // // // // //
+@:buildXml('<files id="haxe"><compilerflag value="/bigobj" if="windows" unless="mingw" /></files><files id="__main__"><compilerflag value="/bigobj" if="windows" unless="mingw" /></files>')
 class Main extends Sprite
 {
 	public static final game = {
@@ -127,6 +128,9 @@ class Main extends Sprite
 			initialState = funkin.mobile.storage.CopyState;
 		#end
 		addChild(new FlxGame(game.width, game.height, initialState, game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
+		haxe.ui.Toolkit.init();
+		haxe.ui.Toolkit.theme = 'dark';
+		haxe.ui.Toolkit.autoScale = false;
 		#if mobile
 		funkin.mobile.input.TouchInput.init();
 		funkin.mobile.input.TouchCursor.init();

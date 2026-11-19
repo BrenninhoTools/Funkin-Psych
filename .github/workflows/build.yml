@@ -15,7 +15,7 @@ concurrency:
 
 env:
   HAXE_VERSION: '4.3.7'
-  CACHE_REV: 'v6'
+  CACHE_REV: 'v7'
 
 jobs:
   build:
@@ -175,6 +175,7 @@ jobs:
           } >> "$HOME/.gradle/gradle.properties"
 
       - name: Install Haxelibs
+        id: install-haxelibs
         run: |
           set -euo pipefail
           haxelib fixrepo --global || true
@@ -185,9 +186,25 @@ jobs:
           haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
           haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
           haxelib version
+          NEED_INSTALL=0
           if [ -z '${{ steps.haxelib-cache.outputs.cache-matched-key }}' ]; then
+            NEED_INSTALL=1
+          else
+            for LIB in hxcpp lime openfl flixel flixel-addons hscript polymod haxeui-core haxeui-flixel; do
+              if ! haxelib libpath "$LIB" > /dev/null 2>&1; then
+                echo "::warning::Cached haxelib $LIB is broken, reinstalling"
+                NEED_INSTALL=1
+                break
+              fi
+            done
+          fi
+          if [ "$NEED_INSTALL" = 1 ]; then
             haxelib --global run hmm install -q
           fi
+          for LIB in hxcpp lime openfl flixel; do
+            haxelib libpath "$LIB" > /dev/null
+          done
+          echo "installed=$NEED_INSTALL" >> "$GITHUB_OUTPUT"
           haxelib list
 
       - name: Restore Lime libraries
@@ -360,7 +377,7 @@ jobs:
           ls -la dist
 
       - name: Save Haxelibs
-        if: always() && steps.haxelib-cache.outputs.cache-matched-key == ''
+        if: always() && steps.install-haxelibs.outcome == 'success' && steps.install-haxelibs.outputs.installed == '1'
         uses: actions/cache/save@v6
         with:
           path: .haxelib
