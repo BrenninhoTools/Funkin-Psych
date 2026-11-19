@@ -88,7 +88,7 @@ class PolymodHandler
 		importsBuilt = true;
 
 		Polymod.addDefaultImport(flixel.FlxG);
-		Polymod.addDefaultImport(funkin.backend.Paths);
+		Polymod.addDefaultImport(funkin.assets.Paths);
 		Polymod.addDefaultImport(funkin.backend.ClientPrefs);
 		Polymod.addDefaultImport(funkin.backend.Conductor);
 		Polymod.addDefaultImport(funkin.backend.CoolUtil);

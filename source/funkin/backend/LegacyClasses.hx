@@ -22,7 +22,7 @@ class LegacyClasses
 		'backend.MusicBeatSubstate' => 'funkin.backend.MusicBeatSubstate',
 		'backend.Native' => 'funkin.backend.Native',
 		'backend.NoteTypesConfig' => 'funkin.backend.NoteTypesConfig',
-		'backend.Paths' => 'funkin.backend.Paths',
+		'backend.Paths' => 'funkin.assets.Paths',
 		'backend.PsychCamera' => 'funkin.backend.PsychCamera',
 		'backend.Rating' => 'funkin.backend.Rating',
 		'backend.Song' => 'funkin.backend.Song',

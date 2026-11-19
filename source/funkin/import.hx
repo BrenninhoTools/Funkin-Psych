@@ -21,7 +21,7 @@ import sys.io.*;
 import js.html.*;
 #end
 
-import funkin.backend.Paths;
+import funkin.assets.Paths;
 import funkin.backend.Controls;
 import funkin.backend.CoolUtil;
 import funkin.backend.MusicBeatState;
