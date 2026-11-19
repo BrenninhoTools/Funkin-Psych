@@ -256,7 +256,7 @@ class MainMenuState extends MusicBeatState
 		}
 		if (target.startsWith('state:'))
 		{
-			var cls:Class<Dynamic> = funkin.backend.LegacyClasses.resolveClass(target.substr(6));
+			var cls:Class<Dynamic> = funkin.modding.LegacyClasses.resolveClass(target.substr(6));
 			if (cls != null)
 			{
 				MusicBeatState.switchState(Type.createInstance(cls, []));

@@ -1,8 +1,8 @@
 #if LUA_ALLOWED
 package funkin.scripting.luascript;
 
-import funkin.backend.Highscore;
-import funkin.backend.Song;
+import funkin.save.Highscore;
+import funkin.data.song.Song;
 
 import openfl.Lib;
 import openfl.utils.Assets;

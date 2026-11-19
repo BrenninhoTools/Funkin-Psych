@@ -2,5 +2,5 @@ package funkin.modding.base;
 
 #if POLYMOD_ALLOWED
 @:hscriptClass
-class ScriptedMusicBeatSubstate extends funkin.backend.MusicBeatSubstate implements HScriptedClass {}
+class ScriptedMusicBeatSubstate extends funkin.ui.MusicBeatSubstate implements HScriptedClass {}
 #end

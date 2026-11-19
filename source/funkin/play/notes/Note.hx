@@ -1,7 +1,7 @@
 package funkin.play.notes;
 
-import funkin.backend.animation.PsychAnimationController;
-import funkin.backend.NoteTypesConfig;
+import funkin.graphics.PsychAnimationController;
+import funkin.play.notes.NoteTypesConfig;
 
 import funkin.shaders.RGBPalette;
 import funkin.shaders.RGBPalette.RGBShaderReference;

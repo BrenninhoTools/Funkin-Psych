@@ -1,6 +1,6 @@
 package funkin.ui.freeplay;
 
-import funkin.backend.Highscore;
+import funkin.save.Highscore;
 
 import flixel.FlxSubState;
 import funkin.play.components.HealthIcon;

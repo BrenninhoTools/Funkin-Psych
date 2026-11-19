@@ -1,8 +1,8 @@
 package funkin.data.song;
 
-import funkin.backend.Song;
-import funkin.backend.Song.SwagSong;
-import funkin.backend.Song.SwagSection;
+import funkin.data.song.Song;
+import funkin.data.song.Song.SwagSong;
+import funkin.data.song.Song.SwagSection;
 import funkin.data.DataUtil;
 
 class ChartParser

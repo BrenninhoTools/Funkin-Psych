@@ -2,8 +2,8 @@ package funkin.ui.debug.content;
 
 import funkin.play.PlayState;
 
-import funkin.backend.Song;
-import funkin.backend.Rating;
+import funkin.data.song.Song;
+import funkin.play.scoring.Rating;
 
 import funkin.play.notes.Note;
 import funkin.play.notes.NoteSplash;

@@ -4,8 +4,8 @@ import funkin.ui.mainmenu.MainMenuState;
 
 import funkin.play.PlayState;
 
-import funkin.backend.Song;
-import funkin.backend.Difficulty;
+import funkin.data.song.Song;
+import funkin.data.song.Difficulty;
 
 import flixel.math.FlxMath;
 import flixel.util.FlxSort;

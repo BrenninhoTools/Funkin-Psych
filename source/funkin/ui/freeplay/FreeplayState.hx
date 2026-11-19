@@ -5,8 +5,8 @@ import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.story.StoryMenuState;
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.Highscore;
-import funkin.backend.Song;
+import funkin.save.Highscore;
+import funkin.data.song.Song;
 
 import funkin.play.components.HealthIcon;
 import funkin.ui.freeplay.MusicPlayer;

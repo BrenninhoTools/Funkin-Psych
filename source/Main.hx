@@ -20,7 +20,7 @@ import lime.graphics.Image;
 #end
 
 #if desktop
-import funkin.backend.ALSoftConfig; // Just to make sure DCE doesn't remove this, since it's not directly referenced anywhere else.
+import funkin.audio.ALSoftConfig; // Just to make sure DCE doesn't remove this, since it's not directly referenced anywhere else.
 #end
 
 //crash handler stuff
@@ -30,10 +30,10 @@ import haxe.CallStack;
 import haxe.io.Path;
 #end
 
-import funkin.backend.Highscore;
+import funkin.save.Highscore;
 import funkin.save.Save;
-import funkin.backend.Controls;
-import funkin.backend.CoolUtil;
+import funkin.input.Controls;
+import funkin.util.CoolUtil;
 import funkin.modding.Mods;
 import funkin.play.PlayState;
 import flixel.FlxG;
@@ -44,7 +44,7 @@ import funkin.api.discord.Discord;
 #end
 
 #if ACHIEVEMENTS_ALLOWED
-import funkin.backend.Achievements;
+import funkin.data.achievements.Achievements;
 #end
 
 #if LUA_ALLOWED
@@ -90,7 +90,7 @@ class Main extends Sprite
 		super();
 
 		#if (cpp && windows)
-		funkin.backend.Native.fixScaling();
+		funkin.util.Native.fixScaling();
 		#end
 
 		// Credits to MAJigsaw77 (he's the og author for this code)

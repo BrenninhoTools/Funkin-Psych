@@ -90,13 +90,13 @@ class PolymodHandler
 		Polymod.addDefaultImport(flixel.FlxG);
 		Polymod.addDefaultImport(funkin.assets.Paths);
 		Polymod.addDefaultImport(funkin.save.Save);
-		Polymod.addDefaultImport(funkin.backend.Conductor);
-		Polymod.addDefaultImport(funkin.backend.CoolUtil);
+		Polymod.addDefaultImport(funkin.play.Conductor);
+		Polymod.addDefaultImport(funkin.util.CoolUtil);
 		Polymod.addDefaultImport(funkin.play.PlayState);
 		Polymod.addDefaultImport(funkin.modding.Mods);
-		Polymod.addImportAlias('flixel.FlxCamera', funkin.backend.PsychCamera);
+		Polymod.addImportAlias('flixel.FlxCamera', funkin.graphics.PsychCamera);
 
-		for (path => target in funkin.backend.LegacyClasses.PATHS)
+		for (path => target in funkin.modding.LegacyClasses.PATHS)
 		{
 			var cls:Class<Dynamic> = Type.resolveClass(target);
 			if (cls != null) Polymod.addImportAlias(path, cls);

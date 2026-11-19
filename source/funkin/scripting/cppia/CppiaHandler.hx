@@ -4,6 +4,7 @@ package funkin.scripting.cppia;
 import cpp.cppia.Module;
 import funkin.scripting.cppia.CppiaModule;
 
+@:cppInclude('hx/Scriptable.h')
 class CppiaHandler
 {
 	public static inline final EXTENSION:String = '.cppia';

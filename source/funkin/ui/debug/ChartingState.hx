@@ -26,10 +26,10 @@ import funkin.ui.debug.content.VSlice;
 import funkin.ui.debug.content.Prompt;
 import funkin.ui.debug.content.*;
 
-import funkin.backend.Song;
-import funkin.backend.StageData;
-import funkin.backend.Highscore;
-import funkin.backend.Difficulty;
+import funkin.data.song.Song;
+import funkin.data.stage.StageData;
+import funkin.save.Highscore;
+import funkin.data.song.Difficulty;
 
 import funkin.play.character.Character;
 import funkin.play.components.HealthIcon;
@@ -4678,7 +4678,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			note.rgbShader.enabled = !noRGBCheckBox.checked;
 			if(note.rgbShader.enabled)
 			{
-				var data = funkin.backend.NoteTypesConfig.loadNoteTypeData(note.noteType);
+				var data = funkin.play.notes.NoteTypesConfig.loadNoteTypeData(note.noteType);
 				if(data == null || data.length < 1) continue;
 
 				for (line in data)
@@ -4884,7 +4884,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	override function destroy()
 	{
 		Note.globalRgbShaders = [];
-		funkin.backend.NoteTypesConfig.clearNoteTypesData();
+		funkin.play.notes.NoteTypesConfig.clearNoteTypesData();
 
 		for (num => text in MetaNote.noteTypeTexts)
 			text.destroy();

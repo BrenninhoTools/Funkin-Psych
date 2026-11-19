@@ -11,7 +11,7 @@ import llua.Lua;
 #end
 
 #if ACHIEVEMENTS_ALLOWED
-import funkin.backend.Achievements;
+import funkin.data.achievements.Achievements;
 #end
 
 #if sys
@@ -23,22 +23,22 @@ import js.html.*;
 
 import funkin.assets.Paths;
 import funkin.audio.FunkinSound;
-import funkin.backend.Controls;
-import funkin.backend.CoolUtil;
+import funkin.input.Controls;
+import funkin.util.CoolUtil;
 import funkin.util.math.MathUtil;
-import funkin.backend.MusicBeatState;
-import funkin.backend.MusicBeatSubstate;
-import funkin.backend.CustomFadeTransition;
+import funkin.ui.MusicBeatState;
+import funkin.ui.MusicBeatSubstate;
+import funkin.ui.transition.CustomFadeTransition;
 import funkin.save.Save;
-import funkin.backend.FPSManager;
-import funkin.backend.Conductor;
-import funkin.backend.BaseStage;
-import funkin.backend.Difficulty;
+import funkin.util.FPSManager;
+import funkin.play.Conductor;
+import funkin.play.stages.BaseStage;
+import funkin.data.song.Difficulty;
 import funkin.modding.Mods;
 import funkin.data.level.LevelData;
-import funkin.backend.Language;
+import funkin.data.language.Language;
 
-import funkin.backend.ui.*; //Psych-UI
+import funkin.ui.psych.*;
 
 import funkin.ui.text.Alphabet;
 import funkin.graphics.BGSprite;

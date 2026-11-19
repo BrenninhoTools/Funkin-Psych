@@ -1,7 +1,7 @@
 package funkin.play;
 
-import funkin.backend.Highscore;
-import funkin.backend.Song;
+import funkin.save.Highscore;
+import funkin.data.song.Song;
 
 import flixel.util.FlxStringUtil;
 

@@ -2,10 +2,10 @@ package funkin.play;
 
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.Highscore;
-import funkin.backend.StageData;
-import funkin.backend.Song;
-import funkin.backend.Rating;
+import funkin.save.Highscore;
+import funkin.data.stage.StageData;
+import funkin.data.song.Song;
+import funkin.play.scoring.Rating;
 
 import flixel.FlxBasic;
 import flixel.FlxObject;
@@ -331,8 +331,8 @@ class PlayState extends MusicBeatState
 
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
-		camHUD = new funkin.backend.PsychCamera();
-		camOther = new funkin.backend.PsychCamera();
+		camHUD = new funkin.graphics.PsychCamera();
+		camOther = new funkin.graphics.PsychCamera();
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 
@@ -3354,7 +3354,7 @@ class PlayState extends MusicBeatState
 		FlxG.animationTimeScale = 1;
 
 		Note.globalRgbShaders = [];
-		funkin.backend.NoteTypesConfig.clearNoteTypesData();
+		funkin.play.notes.NoteTypesConfig.clearNoteTypesData();
 
 		NoteSplash.configs.clear();
 		instance = null;

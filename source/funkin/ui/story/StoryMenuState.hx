@@ -5,8 +5,8 @@ import funkin.ui.freeplay.FreeplayState;
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.Highscore;
-import funkin.backend.Song;
+import funkin.save.Highscore;
+import funkin.data.song.Song;
 
 import flixel.group.FlxGroup;
 import flixel.graphics.FlxGraphic;
@@ -17,7 +17,7 @@ import funkin.ui.story.MenuCharacter;
 import funkin.ui.options.GameplayChangersSubstate;
 import funkin.ui.freeplay.ResetScoreSubState;
 
-import funkin.backend.StageData;
+import funkin.data.stage.StageData;
 
 class StoryMenuState extends MusicBeatState
 {

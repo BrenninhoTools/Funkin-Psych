@@ -3,6 +3,8 @@ package funkin.scripting.cppia;
 #if CPPIA_ALLOWED
 import cpp.cppia.Module;
 
+@:headerInclude('hx/Scriptable.h')
+@:cppInclude('hx/Scriptable.h')
 class CppiaModule
 {
 	public var path(default, null):String;

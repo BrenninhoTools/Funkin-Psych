@@ -4,7 +4,7 @@ import funkin.play.PlayState;
 import funkin.ui.transition.LoadingState;
 
 import funkin.ui.mainmenu.MainMenuState;
-import funkin.backend.StageData;
+import funkin.data.stage.StageData;
 
 class OptionsState extends MusicBeatState
 {

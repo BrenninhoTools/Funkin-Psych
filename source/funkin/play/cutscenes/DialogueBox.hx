@@ -3,7 +3,7 @@ package funkin.play.cutscenes;
 import funkin.play.PlayState;
 
 import flixel.addons.text.FlxTypeText;
-import funkin.backend.Song;
+import funkin.data.song.Song;
 
 class DialogueBox extends FlxSpriteGroup
 {

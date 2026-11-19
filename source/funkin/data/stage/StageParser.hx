@@ -2,8 +2,8 @@ package funkin.data.stage;
 
 import funkin.data.DataUtil;
 import funkin.graphics.FrameLoader;
-import funkin.backend.StageData;
-import funkin.backend.StageData.StageFile;
+import funkin.data.stage.StageData;
+import funkin.data.stage.StageData.StageFile;
 import openfl.utils.AssetType;
 
 class StageParser

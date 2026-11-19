@@ -280,14 +280,14 @@ class HScript
 		set('FlxMath', flixel.math.FlxMath);
 		set('FlxSprite', flixel.FlxSprite);
 		set('FlxText', flixel.text.FlxText);
-		set('FlxCamera', funkin.backend.PsychCamera);
-		set('PsychCamera', funkin.backend.PsychCamera);
+		set('FlxCamera', funkin.graphics.PsychCamera);
+		set('PsychCamera', funkin.graphics.PsychCamera);
 		set('FunkinSound', funkin.audio.FunkinSound);
 		set('FlxTimer', flixel.util.FlxTimer);
 		set('FlxTween', flixel.tweens.FlxTween);
 		set('FlxEase', flixel.tweens.FlxEase);
 		set('FlxColor', CustomFlxColor);
-		set('Countdown', funkin.backend.BaseStage.Countdown);
+		set('Countdown', funkin.play.stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
 		set('Paths', Paths);
 		set('Conductor', Conductor);

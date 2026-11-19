@@ -1,6 +1,6 @@
 package funkin.play.character;
 
-import funkin.backend.animation.PsychAnimationController;
+import funkin.graphics.PsychAnimationController;
 
 import flixel.util.FlxSort;
 import flixel.util.FlxDestroyUtil;
@@ -9,7 +9,7 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets;
 import haxe.Json;
 
-import funkin.backend.Song;
+import funkin.data.song.Song;
 import funkin.play.stages.objects.TankmenBG;
 
 typedef CharacterFile = {

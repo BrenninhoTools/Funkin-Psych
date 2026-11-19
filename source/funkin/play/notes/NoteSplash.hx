@@ -1,6 +1,6 @@
 package funkin.play.notes;
 
-import funkin.backend.animation.PsychAnimationController;
+import funkin.graphics.PsychAnimationController;
 import funkin.shaders.RGBPalette;
 import flixel.system.FlxAssets.FlxShader;
 

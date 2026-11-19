@@ -61,13 +61,13 @@ class FPSCounter extends TextField
 	}
 
 	public dynamic function updateText():Void { // so people can override it in hscript
-		var rework:String = funkin.backend.FPSManager.describe();
+		var rework:String = funkin.util.FPSManager.describe();
 		text = 'FPS: ${currentFPS}'
 		+ '\nMemory: ${flixel.util.FlxStringUtil.formatBytes(memoryMegas)}'
 		+ (rework.length > 0 ? '\nFPS Rework: $rework' : '');
 
 		textColor = 0xFFFFFFFF;
-		if (currentFPS < funkin.backend.FPSManager.warningFPS())
+		if (currentFPS < funkin.util.FPSManager.warningFPS())
 			textColor = 0xFFFF0000;
 	}
 
