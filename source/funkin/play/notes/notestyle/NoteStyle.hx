@@ -162,9 +162,25 @@ class NoteStyle
 		return PlayState.isPixelStage ? DEFAULT_PIXEL : DEFAULT;
 	}
 
-	public static function current():NoteStyle
+	public static function hasSideStyles():Bool
 	{
-		var id:String = resolveId();
+		var song = PlayState.SONG;
+		return song != null && ((song.playerNoteStyle != null && song.playerNoteStyle.length > 0) || (song.opponentNoteStyle != null && song.opponentNoteStyle.length > 0));
+	}
+
+	public static function sideId(player:Bool):String
+	{
+		var song = PlayState.SONG;
+		if (song == null) return null;
+		var id:String = player ? song.playerNoteStyle : song.opponentNoteStyle;
+		return id != null && id.trim().length > 0 ? id.trim() : null;
+	}
+
+	public static function current(?player:Null<Bool>):NoteStyle
+	{
+		var id:String = player != null ? sideId(player) : null;
+		if (id != null && exists(id)) return get(id);
+		id = resolveId();
 		var key:String = id + '|' + Mods.currentModDirectory;
 		if (key != currentKey)
 		{

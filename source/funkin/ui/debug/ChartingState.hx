@@ -3630,7 +3630,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				upperBox.isMinimized = true;
 	
 				updateChartData();
-				fileDialog.save('events.json', PsychJsonPrinter.print({events: PlayState.SONG.events, format: 'psych_v1'}, ['events']),
+				fileDialog.save('events.json', funkin.data.song.ChartParser.stringifyEvents(PlayState.SONG.events),
 					function() showOutput('Events saved successfully to: ${fileDialog.path}'), null,
 					function() showOutput('Error on saving events!', true));
 			}, btnWid);
@@ -3971,14 +3971,17 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					if(fmt == null || fmt.length < 1)
 						fmt = loadedChart.format = 'unknown';
 
-					if(!fmt.startsWith('psych_v1'))
+					if(!funkin.data.song.ChartParser.isV2(haxe.Json.parse(fileDialog.data)))
 					{
-						loadedChart.format = 'psych_v1_convert';
-						Song.convert(loadedChart);
-						File.saveContent(fileDialog.path, PsychJsonPrinter.print(loadedChart, ['sectionNotes', 'events']));
-						showOutput('Updated "$filePath" from format "$fmt" to "psych_v1" successfully!');
+						if(!fmt.startsWith('psych_v1'))
+						{
+							loadedChart.format = 'psych_v1_convert';
+							Song.convert(loadedChart);
+						}
+						File.saveContent(fileDialog.path, funkin.data.song.ChartParser.stringify(loadedChart));
+						showOutput('Updated "$filePath" from format "$fmt" to chart v${funkin.data.song.ChartParser.VERSION} successfully!');
 					}
-					else showOutput('Chart is already up-to-date! Format: "$fmt"', true);
+					else showOutput('Chart is already up-to-date! Version: ${funkin.data.song.ChartParser.VERSION}', true);
 				}
 				catch(e:Exception)
 				{
@@ -4573,13 +4576,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 							var diffPostfix:String = (diffName != defaultDiff) ? '-$diffName' : '';
 							var chartData:SwagSong = pack.difficulties.get(diffName);
 							var chartName:String = Paths.formatToSongPath(chartData.song) + diffPostfix + '.json';
-							overwriteCheck(path + chartName, chartName, PsychJsonPrinter.print(chartData, ['sectionNotes', 'events']), nextChart, true);
+							overwriteCheck(path + chartName, chartName, funkin.data.song.ChartParser.stringify(chartData), nextChart, true);
 							return;
 						}
 	
 						if(pack.events != null)
 						{
-							overwriteCheck(path + 'events.json', 'events.json', PsychJsonPrinter.print(pack.events, ['events']), function()
+							overwriteCheck(path + 'events.json', 'events.json', funkin.data.song.ChartParser.stringifyEvents(pack.events.events), function()
 							{
 								if(overwriteSavedSomething)
 									showOutput('Files saved successfully to: ${fileDialog.path}!');
@@ -4637,7 +4640,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	function saveChart(canQuickSave:Bool = true)
 	{
 		updateChartData();
-		var chartData:String = PsychJsonPrinter.print(PlayState.SONG, ['sectionNotes', 'events']);
+		var chartData:String = funkin.data.song.ChartParser.stringify(PlayState.SONG);
 		if(canQuickSave && Song.chartPath != null)
 		{
 			File.saveContent(Song.chartPath, chartData);

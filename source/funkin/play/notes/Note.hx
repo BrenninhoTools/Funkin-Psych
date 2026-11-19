@@ -54,7 +54,16 @@ class Note extends FlxSprite
 	public var strumTime:Float = 0;
 	public var noteData:Int = 0;
 
-	public var mustPress:Bool = false;
+	public var mustPress(default, set):Bool = false;
+	function set_mustPress(value:Bool):Bool
+	{
+		if(mustPress != value)
+		{
+			mustPress = value;
+			if(noteStyle != null && funkin.play.notes.notestyle.NoteStyle.hasSideStyles()) reloadNote();
+		}
+		return value;
+	}
 	public var canBeHit:Bool = false;
 	public var tooLate:Bool = false;
 
@@ -361,7 +370,7 @@ class Note extends FlxSprite
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
 
-		if(texture.length < 1 && postfix.length < 1 && loadNoteStyle(funkin.play.notes.notestyle.NoteStyle.current()))
+		if(texture.length < 1 && postfix.length < 1 && loadNoteStyle(funkin.play.notes.notestyle.NoteStyle.current(mustPress)))
 			return;
 
 		noteStyle = null;

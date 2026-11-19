@@ -1,6 +1,5 @@
 package funkin.ui.debug;
 
-import funkin.backend.WeekData;
 
 import openfl.utils.Assets;
 #if mobile
@@ -21,7 +20,7 @@ import funkin.ui.story.MenuItem;
 import funkin.ui.debug.MasterEditorMenu;
 import funkin.ui.debug.content.Prompt;
 
-class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
+class LevelEditorState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
 	var txtWeekTitle:FlxText;
 	var bgSprite:FlxSprite;
@@ -33,11 +32,11 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 	public static var unsavedProgress:Bool = false;
 
-	var weekFile:WeekFile = null;
-	public function new(weekFile:WeekFile = null)
+	var weekFile:LevelFile = null;
+	public function new(weekFile:LevelFile = null)
 	{
 		super();
-		this.weekFile = WeekData.createWeekFile();
+		this.weekFile = LevelData.createLevelFile();
 		if(weekFile != null) this.weekFile = weekFile;
 		else weekFileName = 'week1';
 	}
@@ -111,7 +110,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 	var UI_box:PsychUIBox;
 	function addEditorBox() {
-		UI_box = new PsychUIBox(FlxG.width, FlxG.height, 250, 375, ['Other', 'Week']);
+		UI_box = new PsychUIBox(FlxG.width, FlxG.height, 250, 375, ['Other', 'Level']);
 		UI_box.x -= UI_box.width;
 		UI_box.y -= UI_box.height;
 		UI_box.scrollFactor.set();
@@ -119,19 +118,19 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		addOtherUI();
 		addWeekUI();
 		
-		UI_box.selectedName = 'Week';
+		UI_box.selectedName = 'Level';
 		add(UI_box);
 
-		var loadWeekButton:PsychUIButton = new PsychUIButton(0, 650, "Load Week", function() loadWeek());
+		var loadWeekButton:PsychUIButton = new PsychUIButton(0, 650, "Load Level", function() loadWeek());
 		loadWeekButton.screenCenter(X);
 		loadWeekButton.x -= 120;
 		add(loadWeekButton);
 		
-		var freeplayButton:PsychUIButton = new PsychUIButton(0, 650, "Freeplay", function() MusicBeatState.switchState(new WeekEditorFreeplayState(weekFile)));
+		var freeplayButton:PsychUIButton = new PsychUIButton(0, 650, "Freeplay", function() MusicBeatState.switchState(new LevelEditorFreeplayState(weekFile)));
 		freeplayButton.screenCenter(X);
 		add(freeplayButton);
 	
-		var saveWeekButton:PsychUIButton = new PsychUIButton(0, 650, "Save Week", function() saveWeek(weekFile));
+		var saveWeekButton:PsychUIButton = new PsychUIButton(0, 650, "Save Level", function() saveWeek(weekFile));
 		saveWeekButton.screenCenter(X);
 		saveWeekButton.x += 120;
 		add(saveWeekButton);
@@ -152,7 +151,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	public static var weekFileName:String = 'week1';
 	
 	function addWeekUI() {
-		var tab_group = UI_box.getTab('Week').menu;
+		var tab_group = UI_box.getTab('Level').menu;
 
 		songsInputText = new PsychUIInputText(10, 30, 200, '', 8);
 
@@ -166,7 +165,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		weekFileInputText = new PsychUIInputText(10, weekNameInputText.y + 40, 100, '', 8);
 		reloadWeekThing();
 
-		hideCheckbox = new PsychUICheckBox(10, weekFileInputText.y + 40, "Hide Week from Story Mode?", 100);
+		hideCheckbox = new PsychUICheckBox(10, weekFileInputText.y + 40, "Hide Level from Story Mode?", 100);
 		hideCheckbox.onClick = function()
 		{
 			weekFile.hideStoryMode = hideCheckbox.checked;
@@ -177,8 +176,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		tab_group.add(new FlxText(opponentInputText.x, opponentInputText.y - 18, 0, 'Characters:'));
 		tab_group.add(new FlxText(backgroundInputText.x, backgroundInputText.y - 18, 0, 'Background Asset:'));
 		tab_group.add(new FlxText(displayNameInputText.x, displayNameInputText.y - 18, 0, 'Display Name:'));
-		tab_group.add(new FlxText(weekNameInputText.x, weekNameInputText.y - 18, 0, 'Week Name (for Reset Score Menu):'));
-		tab_group.add(new FlxText(weekFileInputText.x, weekFileInputText.y - 18, 0, 'Week File:'));
+		tab_group.add(new FlxText(weekNameInputText.x, weekNameInputText.y - 18, 0, 'Level Name (for Reset Score Menu):'));
+		tab_group.add(new FlxText(weekFileInputText.x, weekFileInputText.y - 18, 0, 'Level File:'));
 
 		tab_group.add(songsInputText);
 		tab_group.add(opponentInputText);
@@ -200,7 +199,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	function addOtherUI() {
 		var tab_group = UI_box.getTab('Other').menu;
 
-		lockedCheckbox = new PsychUICheckBox(10, 30, "Week starts Locked", 100);
+		lockedCheckbox = new PsychUICheckBox(10, 30, "Level starts Locked", 100);
 		lockedCheckbox.onClick = function()
 		{
 			weekFile.startUnlocked = !lockedCheckbox.checked;
@@ -220,7 +219,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		weekBeforeInputText = new PsychUIInputText(10, hiddenUntilUnlockCheckbox.y + 55, 100, '', 8);
 		difficultiesInputText = new PsychUIInputText(10, weekBeforeInputText.y + 60, 200, '', 8);
 		
-		tab_group.add(new FlxText(weekBeforeInputText.x, weekBeforeInputText.y - 28, 0, 'Week File name of the Week you have\nto finish for Unlocking:'));
+		tab_group.add(new FlxText(weekBeforeInputText.x, weekBeforeInputText.y - 28, 0, 'Level File name of the Level you have\nto finish for Unlocking:'));
 		tab_group.add(new FlxText(difficultiesInputText.x, difficultiesInputText.y - 20, 0, 'Difficulties:'));
 		tab_group.add(new FlxText(difficultiesInputText.x, difficultiesInputText.y + 20, 0, 'Default difficulties are "Easy, Normal, Hard"\nwithout quotes.'));
 		tab_group.add(weekBeforeInputText);
@@ -330,7 +329,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
-		DiscordClient.changePresence("Week Editor", "Editting: " + weekFileName);
+		DiscordClient.changePresence("Level Editor", "Editting: " + weekFileName);
 		#end
 	}
 	
@@ -438,7 +437,7 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		_file.browse([#if !mac jsonFilter #end]);
 	}
 	
-	public static var loadedWeek:WeekFile = null;
+	public static var loadedWeek:LevelFile = null;
 	public static var loadError:Bool = false;
 	private static function onLoadComplete(_):Void
 	{
@@ -454,8 +453,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		if(fullPath != null) {
 			var rawJson:String = File.getContent(fullPath);
 			if(rawJson != null) {
-				loadedWeek = cast Json.parse(rawJson);
-				if(loadedWeek.weekCharacters != null && loadedWeek.weekName != null) //Make sure it's really a week
+				loadedWeek = funkin.data.level.LevelParser.parse(rawJson);
+				if(loadedWeek != null && loadedWeek.weekCharacters != null && loadedWeek.weekName != null)
 				{
 					var cutName:String = _file.name.substr(0, _file.name.length - 5);
 					trace("Successfully loaded file: " + cutName);
@@ -500,8 +499,8 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 		trace("Problem loading file");
 	}
 
-	public static function saveWeek(weekFile:WeekFile) {
-		var data:String = haxe.Json.stringify(weekFile, "\t");
+	public static function saveWeek(weekFile:LevelFile) {
+		var data:String = funkin.data.level.LevelParser.stringify(weekFile);
 		if (data.length > 0)
 		{
 			_file = new FileReference();
@@ -547,13 +546,13 @@ class WeekEditorState extends MusicBeatState implements PsychUIEventHandler.Psyc
 	}
 }
 
-class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
+class LevelEditorFreeplayState extends MusicBeatState implements PsychUIEventHandler.PsychUIEvent
 {
-	var weekFile:WeekFile = null;
-	public function new(weekFile:WeekFile = null)
+	var weekFile:LevelFile = null;
+	public function new(weekFile:LevelFile = null)
 	{
 		super();
-		this.weekFile = WeekData.createWeekFile();
+		this.weekFile = LevelData.createLevelFile();
 		if(weekFile != null) this.weekFile = weekFile;
 	}
 
@@ -618,22 +617,22 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 		blackBlack.alpha = 0.6;
 		add(blackBlack);
 
-		var loadWeekButton:PsychUIButton = new PsychUIButton(0, 685, "Load Week", function() {
-			WeekEditorState.loadWeek();
+		var loadWeekButton:PsychUIButton = new PsychUIButton(0, 685, "Load Level", function() {
+			LevelEditorState.loadWeek();
 		});
 		loadWeekButton.screenCenter(X);
 		loadWeekButton.x -= 120;
 		add(loadWeekButton);
 		
 		var storyModeButton:PsychUIButton = new PsychUIButton(0, 685, "Story Mode", function() {
-			MusicBeatState.switchState(new WeekEditorState(weekFile));
+			MusicBeatState.switchState(new LevelEditorState(weekFile));
 			
 		});
 		storyModeButton.screenCenter(X);
 		add(storyModeButton);
 	
-		var saveWeekButton:PsychUIButton = new PsychUIButton(0, 685, "Save Week", function() {
-			WeekEditorState.saveWeek(weekFile);
+		var saveWeekButton:PsychUIButton = new PsychUIButton(0, 685, "Save Level", function() {
+			LevelEditorState.saveWeek(weekFile);
 		});
 		saveWeekButton.screenCenter(X);
 		saveWeekButton.x += 120;
@@ -643,7 +642,7 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 	public function UIEvent(id:String, sender:Dynamic)
 	{
 		if(id == PsychUICheckBox.CLICK_EVENT)
-			WeekEditorState.unsavedProgress = true;
+			LevelEditorState.unsavedProgress = true;
 
 		if(id == PsychUIInputText.CHANGE_EVENT && (sender is PsychUIInputText))
 		{
@@ -704,7 +703,7 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 		hideFreeplayCheckbox.onClick = function()
 		{
 			weekFile.hideFreeplay = hideFreeplayCheckbox.checked;
-			WeekEditorState.unsavedProgress = true;
+			LevelEditorState.unsavedProgress = true;
 		};
 		
 		tab_group.add(new FlxText(10, bgColorStepperR.y - 18, 0, 'Selected background Color R/G/B:'));
@@ -752,12 +751,12 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 	}
 
 	override function update(elapsed:Float) {
-		if(WeekEditorState.loadedWeek != null) {
+		if(LevelEditorState.loadedWeek != null) {
 			super.update(elapsed);
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
-			MusicBeatState.switchState(new WeekEditorFreeplayState(WeekEditorState.loadedWeek));
-			WeekEditorState.loadedWeek = null;
+			MusicBeatState.switchState(new LevelEditorFreeplayState(LevelEditorState.loadedWeek));
+			LevelEditorState.loadedWeek = null;
 			return;
 		}
 		
@@ -767,7 +766,7 @@ class WeekEditorFreeplayState extends MusicBeatState implements PsychUIEventHand
 		{
 			ClientPrefs.toggleVolumeKeys(true);
 			if(FlxG.keys.justPressed.ESCAPE) {
-				if(!WeekEditorState.unsavedProgress)
+				if(!LevelEditorState.unsavedProgress)
 				{
 					MusicBeatState.switchState(new MasterEditorMenu());
 					FunkinSound.playMusic('freakyMenu');

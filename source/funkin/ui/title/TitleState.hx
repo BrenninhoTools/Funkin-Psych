@@ -3,7 +3,6 @@ package funkin.ui.title;
 import funkin.ui.debug.ChartingState;
 import funkin.ui.freeplay.FreeplayState;
 
-import funkin.backend.WeekData;
 
 import flixel.input.keyboard.FlxKey;
 import flixel.graphics.frames.FlxAtlasFrames;

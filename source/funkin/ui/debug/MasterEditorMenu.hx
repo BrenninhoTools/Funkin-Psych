@@ -2,7 +2,6 @@ package funkin.ui.debug;
 
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.WeekData;
 
 import funkin.play.character.Character;
 
@@ -15,7 +14,7 @@ class MasterEditorMenu extends MusicBeatState
 		'Chart Editor',
 		'Character Editor',
 		'Stage Editor',
-		'Week Editor',
+		'Level Editor',
 		'Menu Character Editor',
 		'Dialogue Editor',
 		'Dialogue Portrait Editor',
@@ -128,8 +127,8 @@ class MasterEditorMenu extends MusicBeatState
 					LoadingState.loadAndSwitchState(new CharacterEditorState(Character.DEFAULT_CHARACTER, false));
 				case 'Stage Editor':
 					LoadingState.loadAndSwitchState(new StageEditorState());
-				case 'Week Editor':
-					MusicBeatState.switchState(new WeekEditorState());
+				case 'Level Editor':
+					MusicBeatState.switchState(new LevelEditorState());
 				case 'Menu Character Editor':
 					MusicBeatState.switchState(new MenuCharacterEditorState());
 				case 'Dialogue Editor':
@@ -171,7 +170,7 @@ class MasterEditorMenu extends MusicBeatState
 		if(curDirectory >= directories.length)
 			curDirectory = 0;
 	
-		WeekData.setDirectoryFromWeek();
+		LevelData.setDirectoryFromLevel();
 		if(directories[curDirectory] == null || directories[curDirectory].length < 1)
 			directoryTxt.text = '< No Mod Directory Loaded >';
 		else

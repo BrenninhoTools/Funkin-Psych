@@ -5,7 +5,6 @@ import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.story.StoryMenuState;
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 import funkin.backend.Song;
 
@@ -64,28 +63,28 @@ class FreeplayState extends MusicBeatState
 		
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
-		WeekData.reloadWeekFiles(false);
+		LevelData.reloadLevelFiles(false);
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
 
-		if(WeekData.weeksList.length < 1)
+		if(LevelData.levelsList.length < 1)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
 			MusicBeatState.switchState(new funkin.ui.ErrorState("NO WEEKS ADDED FOR FREEPLAY\n\nPress ACCEPT to go to the Week Editor Menu.\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new funkin.ui.debug.WeekEditorState()),
+				function() MusicBeatState.switchState(new funkin.ui.debug.LevelEditorState()),
 				function() MusicBeatState.switchState(new funkin.ui.mainmenu.MainMenuState())));
 			return;
 		}
 
-		for (i in 0...WeekData.weeksList.length)
+		for (i in 0...LevelData.levelsList.length)
 		{
-			if(weekIsLocked(WeekData.weeksList[i])) continue;
+			if(weekIsLocked(LevelData.levelsList[i])) continue;
 
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
+			var leWeek:LevelData = LevelData.levelsLoaded.get(LevelData.levelsList[i]);
 			var leSongs:Array<String> = [];
 			var leChars:Array<String> = [];
 
@@ -95,7 +94,7 @@ class FreeplayState extends MusicBeatState
 				leChars.push(leWeek.songs[j][1]);
 			}
 
-			WeekData.setDirectoryFromWeek(leWeek);
+			LevelData.setDirectoryFromLevel(leWeek);
 			for (song in leWeek.songs)
 			{
 				var colors:Array<Int> = song[2];
@@ -143,7 +142,7 @@ class FreeplayState extends MusicBeatState
 			// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
 			// songText.screenCenter(X);
 		}
-		WeekData.setDirectoryFromWeek();
+		LevelData.setDirectoryFromLevel();
 
 		scoreText = new FlxText(FlxG.width * 0.7, 5, 0, "", 32);
 		scoreText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, RIGHT);
@@ -330,7 +329,7 @@ class FreeplayState extends MusicBeatState
 
 	function weekIsLocked(name:String):Bool
 	{
-		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
+		var leWeek:LevelData = LevelData.levelsLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
 
@@ -342,7 +341,7 @@ class FreeplayState extends MusicBeatState
 	var stopMusicPlay:Bool = false;
 	override function update(elapsed:Float)
 	{
-		if(WeekData.weeksList.length < 1)
+		if(LevelData.levelsList.length < 1)
 			return;
 
 		if (FlxG.sound.music.volume < 0.7)
@@ -544,7 +543,7 @@ class FreeplayState extends MusicBeatState
 				PlayState.isStoryMode = false;
 				PlayState.storyDifficulty = curDifficulty;
 
-				trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
+				trace('CURRENT WEEK: ' + LevelData.getLevelFileName());
 			}
 			catch(e:haxe.Exception)
 			{

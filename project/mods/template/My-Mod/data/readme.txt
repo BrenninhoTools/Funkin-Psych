@@ -2,8 +2,9 @@ Folders inside data:
 
 data/characters/   character .json files (plus optional .lua / .hx scripts)
 data/songs/        song charts, events and song scripts
-data/weeks/        week .json files and weekList.txt
+data/levels/       level .json files and levelList.txt
 data/notestyles/   note style .json files
+data/ui/           HUD layout .json files
 
 -----------------------------
 

@@ -52,7 +52,7 @@ class StrumNote extends FlxSprite
 		this.ID = noteData;
 		super(x, y);
 
-		var style:NoteStyle = NoteStyle.current();
+		var style:NoteStyle = NoteStyle.current(player > 0);
 		if(style != null && style.strum != null)
 			texture = '';
 		else
@@ -75,7 +75,7 @@ class StrumNote extends FlxSprite
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 
-		if((texture == null || texture.length < 1) && loadNoteStyle(NoteStyle.current()))
+		if((texture == null || texture.length < 1) && loadNoteStyle(NoteStyle.current(player > 0)))
 		{
 			if(lastAnim != null && animation.exists(lastAnim)) playAnim(lastAnim, true);
 			return;

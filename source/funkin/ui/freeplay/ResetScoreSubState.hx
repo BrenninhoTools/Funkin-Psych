@@ -1,6 +1,5 @@
 package funkin.ui.freeplay;
 
-import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 
 import flixel.FlxSubState;
@@ -30,7 +29,7 @@ class ResetScoreSubState extends MusicBeatSubstate
 
 		var name:String = song;
 		if(week > -1) {
-			name = WeekData.weeksLoaded.get(WeekData.weeksList[week]).weekName;
+			name = LevelData.levelsLoaded.get(LevelData.levelsList[week]).weekName;
 		}
 		name += ' (' + Difficulty.getString(difficulty) + ')?';
 
@@ -98,7 +97,7 @@ class ResetScoreSubState extends MusicBeatSubstate
 				if(week == -1) {
 					Highscore.resetSong(song, difficulty);
 				} else {
-					Highscore.resetWeek(WeekData.weeksList[week], difficulty);
+					Highscore.resetWeek(LevelData.levelsList[week], difficulty);
 				}
 			}
 			FunkinSound.playOnce('cancelMenu', 1);

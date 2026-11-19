@@ -4,7 +4,6 @@ import funkin.ui.transition.LoadingState;
 
 import funkin.backend.Highscore;
 import funkin.backend.StageData;
-import funkin.backend.WeekData;
 import funkin.backend.Song;
 import funkin.backend.Rating;
 
@@ -351,7 +350,7 @@ class PlayState extends MusicBeatState
 		storyDifficultyText = Difficulty.getString();
 
 		if (isStoryMode)
-			detailsText = "Story Mode: " + WeekData.getCurrentWeek().weekName;
+			detailsText = "Story Mode: " + LevelData.getCurrentLevel().weekName;
 		else
 			detailsText = "Freeplay";
 
@@ -512,21 +511,25 @@ class PlayState extends MusicBeatState
 		add(noteGroup);
 
 		Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
+		funkin.data.ui.HudData.clearCache();
+		hud = funkin.data.ui.HudData.resolve();
+		defaultHudZoom = hud.float('camera', 'zoom', 1);
+		hudBumpZoom = hud.float('camera', 'bump', 0.03);
+		camHUD.zoom = defaultHudZoom;
+		camHUD.angle = hud.float('camera', 'angle', 0);
+		hudBackSprites = new FlxSpriteGroup();
+		uiGroup.add(hudBackSprites);
+
 		var showTime:Bool = (ClientPrefs.data.timeBarType != 'Disabled');
-		timeTxt = new FlxText(STRUM_X + (FlxG.width / 2) - 248, 19, 400, "", 32);
-		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		timeTxt.scrollFactor.set();
+		timeTxt = hud.createText('timeText', "", 400, 32);
 		timeTxt.alpha = 0;
-		timeTxt.borderSize = 2;
-		timeTxt.visible = updateTime = showTime;
-		if(ClientPrefs.data.downScroll) timeTxt.y = FlxG.height - 44;
+		timeTxt.visible = updateTime = showTime && hud.visible('timeText');
 		if(ClientPrefs.data.timeBarType == 'Song Name') timeTxt.text = SONG.song;
 
-		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), 'timeBar', function() return songPercent, 0, 1);
-		timeBar.scrollFactor.set();
-		timeBar.screenCenter(X);
+		timeBar = new Bar(0, 0, hud.image('timeBar', 'timeBar'), function() return songPercent, 0, 1);
+		hud.place(timeBar, 'timeBar', timeTxt);
 		timeBar.alpha = 0;
-		timeBar.visible = showTime;
+		timeBar.visible = showTime && hud.visible('timeBar');
 		uiGroup.add(timeBar);
 		uiGroup.add(timeTxt);
 
@@ -560,42 +563,41 @@ class PlayState extends MusicBeatState
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 		moveCameraSection();
 
-		healthBar = new Bar(0, FlxG.height * (!ClientPrefs.data.downScroll ? 0.89 : 0.11), 'healthBar', function() return health, 0, 2);
-		healthBar.screenCenter(X);
-		healthBar.leftToRight = false;
-		healthBar.scrollFactor.set();
-		healthBar.visible = !ClientPrefs.data.hideHud;
+		healthBar = new Bar(0, 0, hud.image('healthBar', 'healthBar'), function() return health, 0, 2);
+		var barOffset:Array<Float> = funkin.data.DataUtil.vector(hud.element('healthBar').barOffset, 3, 3);
+		healthBar.barOffset.set(barOffset[0], barOffset[1]);
+		hud.place(healthBar, 'healthBar');
+		healthBar.leftToRight = hud.bool('healthBar', 'leftToRight', false);
+		healthBar.visible = !ClientPrefs.data.hideHud && hud.visible('healthBar');
 		healthBar.alpha = ClientPrefs.data.healthBarAlpha;
 		reloadHealthBarColors();
 		uiGroup.add(healthBar);
 
 		iconP1 = new HealthIcon(boyfriend.healthIcon, true);
-		iconP1.y = healthBar.y - 75;
-		iconP1.visible = !ClientPrefs.data.hideHud;
+		iconP1.y = healthBar.y + hud.float('icons', 'offsetY', -75);
+		iconP1.visible = !ClientPrefs.data.hideHud && hud.visible('icons');
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP1);
 
 		iconP2 = new HealthIcon(dad.healthIcon, false);
-		iconP2.y = healthBar.y - 75;
-		iconP2.visible = !ClientPrefs.data.hideHud;
+		iconP2.y = healthBar.y + hud.float('icons', 'offsetY', -75);
+		iconP2.visible = !ClientPrefs.data.hideHud && hud.visible('icons');
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP2);
 
-		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
-		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		scoreTxt.scrollFactor.set();
-		scoreTxt.borderSize = 1.25;
-		scoreTxt.visible = !ClientPrefs.data.hideHud;
+		scoreTxt = hud.createText('scoreText', "", FlxG.width, 20, healthBar);
+		scoreTxt.visible = !ClientPrefs.data.hideHud && hud.visible('scoreText');
 		uiGroup.add(scoreTxt);
 
-		botplayTxt = new FlxText(400, healthBar.y - 90, FlxG.width - 800, Language.getPhrase("Botplay").toUpperCase(), 32);
-		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		botplayTxt.scrollFactor.set();
-		botplayTxt.borderSize = 1.25;
+		botplayTxt = hud.createText('botplayText', Language.getPhrase("Botplay").toUpperCase(), FlxG.width - 800, 32, healthBar);
 		botplayTxt.visible = cpuControlled;
 		uiGroup.add(botplayTxt);
-		if(ClientPrefs.data.downScroll)
-			botplayTxt.y = healthBar.y + 70;
+
+		var hudAnchors:Map<String, FlxObject> = ['healthBar' => healthBar, 'timeBar' => timeBar, 'timeText' => timeTxt, 'scoreText' => scoreTxt, 'botplayText' => botplayTxt, 'iconP1' => iconP1, 'iconP2' => iconP2];
+		hud.createSprites(hudBackSprites, hudAnchors, false);
+		hudFrontSprites = new FlxSpriteGroup();
+		hud.createSprites(hudFrontSprites, hudAnchors, true);
+		uiGroup.add(hudFrontSprites);
 
 		uiGroup.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
@@ -1206,6 +1208,21 @@ class PlayState extends MusicBeatState
 
 	public dynamic function updateScoreText()
 	{
+		if(hud != null && hud.scoreFormat() != null)
+		{
+			var percent:Float = totalPlayed != 0 ? CoolUtil.floorDecimal(ratingPercent * 100, 2) : 0;
+			var values:Map<String, Dynamic> = [
+				'score' => songScore,
+				'misses' => songMisses,
+				'rating' => Language.getPhrase('rating_$ratingName', ratingName),
+				'accuracy' => percent,
+				'fc' => totalPlayed != 0 ? Language.getPhrase(ratingFC) : '',
+				'combo' => combo
+			];
+			scoreTxt.text = hud.formatScore(values);
+			return;
+		}
+
 		var str:String = Language.getPhrase('rating_$ratingName', ratingName);
 		if(totalPlayed != 0)
 		{
@@ -1865,7 +1882,7 @@ class PlayState extends MusicBeatState
 		if (camZooming)
 		{
 			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom, FlxG.camera.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
-			camHUD.zoom = FlxMath.lerp(1, camHUD.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
+			camHUD.zoom = FlxMath.lerp(defaultHudZoom, camHUD.zoom, Math.exp(-elapsed * 3.125 * camZoomingDecay * playbackRate));
 		}
 
 		FlxG.watch.addQuick("secShit", curSection);
@@ -1995,7 +2012,7 @@ class PlayState extends MusicBeatState
 
 	public dynamic function updateIconsPosition()
 	{
-		var iconOffset:Int = 26;
+		var iconOffset:Float = hud != null ? hud.float('icons', 'spacing', 26) : 26;
 		iconP1.x = healthBar.barCenter + (150 * iconP1.scale.x - 150) / 2 - iconOffset;
 		iconP2.x = healthBar.barCenter - (150 * iconP2.scale.x) / 2 - iconOffset * 2;
 	}
@@ -2539,7 +2556,7 @@ class PlayState extends MusicBeatState
 		seenCutscene = false;
 
 		#if ACHIEVEMENTS_ALLOWED
-		var weekNoMiss:String = WeekData.getWeekFileName() + '_nomiss';
+		var weekNoMiss:String = LevelData.getLevelFileName() + '_nomiss';
 		checkForAchievement([weekNoMiss, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie' #if BASE_GAME_FILES, 'debugger' #end]);
 		#end
 
@@ -2577,8 +2594,8 @@ class PlayState extends MusicBeatState
 
 					// if ()
 					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay')) {
-						StoryMenuState.weekCompleted.set(WeekData.weeksList[storyWeek], true);
-						Highscore.saveWeekScore(WeekData.getWeekFileName(), campaignScore, storyDifficulty);
+						StoryMenuState.weekCompleted.set(LevelData.levelsList[storyWeek], true);
+						Highscore.saveWeekScore(LevelData.getLevelFileName(), campaignScore, storyDifficulty);
 
 						FlxG.save.data.weekCompleted = StoryMenuState.weekCompleted;
 						FlxG.save.flush();
@@ -2642,6 +2659,11 @@ class PlayState extends MusicBeatState
 	public var comboGroup:FlxSpriteGroup;
 	// Stores HUD Objects in a Group
 	public var uiGroup:FlxSpriteGroup;
+	public var hud:funkin.data.ui.HudData;
+	public var hudBackSprites:FlxSpriteGroup;
+	public var hudFrontSprites:FlxSpriteGroup;
+	public var defaultHudZoom:Float = 1;
+	public var hudBumpZoom:Float = 0.03;
 	// Stores Note Objects in a Group
 	public var noteGroup:FlxTypedGroup<FlxBasic>;
 
@@ -3406,7 +3428,7 @@ class PlayState extends MusicBeatState
 			if (camZooming && FlxG.camera.zoom < 1.35 && ClientPrefs.data.camZooms)
 			{
 				FlxG.camera.zoom += 0.015 * camZoomingMult;
-				camHUD.zoom += 0.03 * camZoomingMult;
+				camHUD.zoom += hudBumpZoom * camZoomingMult;
 			}
 
 			if (SONG.notes[curSection].changeBPM)
@@ -3725,7 +3747,7 @@ class PlayState extends MusicBeatState
 			if(!Achievements.exists(name)) continue;
 
 			var unlock:Bool = false;
-			if (name != WeekData.getWeekFileName() + '_nomiss') // common achievements
+			if (name != LevelData.getLevelFileName() + '_nomiss') // common achievements
 			{
 				switch(name)
 				{

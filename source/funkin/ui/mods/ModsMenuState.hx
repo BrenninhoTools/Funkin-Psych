@@ -4,7 +4,6 @@ import funkin.ui.freeplay.FreeplayState;
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.title.TitleState;
 
-import funkin.backend.WeekData;
 import funkin.modding.Mods;
 
 import flixel.FlxBasic;

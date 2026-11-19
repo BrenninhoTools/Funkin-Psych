@@ -1,6 +1,5 @@
 package funkin.scripting.luascript;
 
-import funkin.backend.WeekData;
 import funkin.play.character.Character;
 import funkin.backend.StageData;
 

@@ -34,6 +34,7 @@ import funkin.backend.Conductor;
 import funkin.backend.BaseStage;
 import funkin.backend.Difficulty;
 import funkin.modding.Mods;
+import funkin.data.level.LevelData;
 import funkin.backend.Language;
 
 import funkin.backend.ui.*; //Psych-UI

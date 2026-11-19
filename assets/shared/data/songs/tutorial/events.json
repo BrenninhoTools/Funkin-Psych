@@ -1,27 +1,7 @@
 {
-	"song": {
-		"events": [
-			[
-				18650,
-				[
-					[
-						"Hey!",
-						"2",
-						""
-					]
-				]
-			],
-			[
-				28250,
-				[
-					[
-						"Hey!",
-						"2",
-						""
-					]
-				]
-			]
-		],
-		"format": "psych_v1_convert"
-	}
+	"version": "2.0.0",
+	"events": [
+		{"time": 18650, "name": "Hey!", "values": ["2", ""]},
+		{"time": 28250, "name": "Hey!", "values": ["2", ""]}
+	]
 }

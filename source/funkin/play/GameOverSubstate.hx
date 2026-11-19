@@ -1,6 +1,5 @@
 package funkin.play;
 
-import funkin.backend.WeekData;
 
 import funkin.play.character.Character;
 import flixel.FlxObject;

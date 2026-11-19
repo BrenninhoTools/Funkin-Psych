@@ -31,6 +31,9 @@ typedef SwagSong =
 	@:optional var arrowSkin:String;
 	@:optional var splashSkin:String;
 	@:optional var noteStyle:String;
+	@:optional var playerNoteStyle:String;
+	@:optional var opponentNoteStyle:String;
+	@:optional var hud:String;
 }
 
 typedef SwagSection =
@@ -54,6 +57,9 @@ class Song
 	public var arrowSkin:String;
 	public var splashSkin:String;
 	public var noteStyle:String;
+	public var playerNoteStyle:String;
+	public var opponentNoteStyle:String;
+	public var hud:String;
 	public var gameOverChar:String;
 	public var gameOverSound:String;
 	public var gameOverLoop:String;
@@ -159,7 +165,11 @@ class Song
 
 	public static function parseJSON(rawData:String, ?nameForError:String = null, ?convertTo:String = 'psych_v1'):SwagSong
 	{
-		var songJson:SwagSong = cast Json.parse(rawData);
+		var parsed:Dynamic = Json.parse(rawData);
+		if(funkin.data.song.ChartParser.isV2(parsed))
+			return funkin.data.song.ChartParser.fromV2(parsed);
+
+		var songJson:SwagSong = cast parsed;
 		if(Reflect.hasField(songJson, 'song'))
 		{
 			var subSong:SwagSong = Reflect.field(songJson, 'song');
@@ -177,7 +187,6 @@ class Song
 				case 'psych_v1':
 					if(!fmt.startsWith('psych_v1')) //Convert to Psych 1.0 format
 					{
-						trace('converting chart $nameForError with format $fmt to psych_v1 format...');
 						songJson.format = 'psych_v1_convert';
 						convert(songJson);
 					}

@@ -1,6 +1,5 @@
 package funkin.play;
 
-import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 import funkin.backend.Song;
 

@@ -23,9 +23,9 @@ class Difficulty
 		return Paths.formatToSongPath(filePostfix);
 	}
 
-	inline public static function loadFromWeek(week:WeekData = null)
+	inline public static function loadFromWeek(week:LevelData = null)
 	{
-		if(week == null) week = WeekData.getCurrentWeek();
+		if(week == null) week = LevelData.getCurrentLevel();
 
 		var diffStr:String = week.difficulties;
 		if(diffStr != null && diffStr.length > 0)

@@ -1,117 +1,16 @@
 {
-	"song": {
-		"events": [
-			[
-				9375,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				9750,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				10125,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				10687.5,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				10875,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				11062.5,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			],
-			[
-				11250,
-				[
-					[
-						"Add Camera Zoom",
-						"0.03",
-						"0.06"
-					]
-				]
-			],
-			[
-				11437.5,
-				[
-					[
-						"Add Camera Zoom",
-						"0.03",
-						"0.06"
-					]
-				]
-			],
-			[
-				11625,
-				[
-					[
-						"Add Camera Zoom",
-						"0.06",
-						"0.12"
-					]
-				]
-			],
-			[
-				11812.5,
-				[
-					[
-						"Add Camera Zoom",
-						"0.06",
-						"0.12"
-					]
-				]
-			],
-			[
-				12000,
-				[
-					[
-						"Add Camera Zoom",
-						"",
-						""
-					]
-				]
-			]
-		],
-		"format": "psych_v1_convert"
-	}
+	"version": "2.0.0",
+	"events": [
+		{"time": 9375, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 9750, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 10125, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 10687.5, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 10875, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 11062.5, "name": "Add Camera Zoom", "values": ["", ""]},
+		{"time": 11250, "name": "Add Camera Zoom", "values": ["0.03", "0.06"]},
+		{"time": 11437.5, "name": "Add Camera Zoom", "values": ["0.03", "0.06"]},
+		{"time": 11625, "name": "Add Camera Zoom", "values": ["0.06", "0.12"]},
+		{"time": 11812.5, "name": "Add Camera Zoom", "values": ["0.06", "0.12"]},
+		{"time": 12000, "name": "Add Camera Zoom", "values": ["", ""]}
+	]
 }

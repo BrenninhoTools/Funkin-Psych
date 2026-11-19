@@ -1,7 +1,6 @@
 #if LUA_ALLOWED
 package funkin.scripting.luascript;
 
-import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 import funkin.backend.Song;
 
@@ -114,7 +113,7 @@ class FunkinLua {
 		set('difficultyPath', Difficulty.getFilePath());
 		set('difficultyNameTranslation', Difficulty.getString(true));
 		set('weekRaw', PlayState.storyWeek);
-		set('week', WeekData.weeksList[PlayState.storyWeek]);
+		set('week', LevelData.levelsList[PlayState.storyWeek]);
 		set('seenCutscene', PlayState.seenCutscene);
 		set('hasVocals', PlayState.SONG.needsVoices);
 

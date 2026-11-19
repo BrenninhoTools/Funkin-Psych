@@ -5,7 +5,6 @@ import funkin.ui.freeplay.FreeplayState;
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.transition.LoadingState;
 
-import funkin.backend.WeekData;
 import funkin.backend.Highscore;
 import funkin.backend.Song;
 
@@ -46,7 +45,7 @@ class StoryMenuState extends MusicBeatState
 	var leftArrow:FlxSprite;
 	var rightArrow:FlxSprite;
 
-	var loadedWeeks:Array<WeekData> = [];
+	var loadedWeeks:Array<LevelData> = [];
 
 	override function create()
 	{
@@ -55,24 +54,24 @@ class StoryMenuState extends MusicBeatState
 
 		persistentUpdate = persistentDraw = true;
 		PlayState.isStoryMode = true;
-		WeekData.reloadWeekFiles(true);
+		LevelData.reloadLevelFiles(true);
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
 
-		if(WeekData.weeksList.length < 1)
+		if(LevelData.levelsList.length < 1)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
 			MusicBeatState.switchState(new funkin.ui.ErrorState("NO WEEKS ADDED FOR STORY MODE\n\nPress ACCEPT to go to the Week Editor Menu.\nPress BACK to return to Main Menu.",
-				function() MusicBeatState.switchState(new funkin.ui.debug.WeekEditorState()),
+				function() MusicBeatState.switchState(new funkin.ui.debug.LevelEditorState()),
 				function() MusicBeatState.switchState(new funkin.ui.mainmenu.MainMenuState())));
 			return;
 		}
 
-		if(curWeek >= WeekData.weeksList.length) curWeek = 0;
+		if(curWeek >= LevelData.levelsList.length) curWeek = 0;
 
 		scoreText = new FlxText(10, 10, 0, Language.getPhrase('week_score', 'WEEK SCORE: {1}', [lerpScore]), 36);
 		scoreText.setFormat(Paths.font("vcr.ttf"), 32);
@@ -98,15 +97,15 @@ class StoryMenuState extends MusicBeatState
 
 		var num:Int = 0;
 		var itemTargetY:Float = 0;
-		for (i in 0...WeekData.weeksList.length)
+		for (i in 0...LevelData.levelsList.length)
 		{
-			var weekFile:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			var isLocked:Bool = weekIsLocked(WeekData.weeksList[i]);
+			var weekFile:LevelData = LevelData.levelsLoaded.get(LevelData.levelsList[i]);
+			var isLocked:Bool = weekIsLocked(LevelData.levelsList[i]);
 			if(!isLocked || !weekFile.hiddenUntilUnlocked)
 			{
 				loadedWeeks.push(weekFile);
-				WeekData.setDirectoryFromWeek(weekFile);
-				var weekThing:MenuItem = new MenuItem(0, bgSprite.y + 396, WeekData.weeksList[i]);
+				LevelData.setDirectoryFromLevel(weekFile);
+				var weekThing:MenuItem = new MenuItem(0, bgSprite.y + 396, LevelData.levelsList[i]);
 				weekThing.y += ((weekThing.height + 20) * num);
 				weekThing.ID = num;
 				weekThing.targetY = itemTargetY;
@@ -131,7 +130,7 @@ class StoryMenuState extends MusicBeatState
 			}
 		}
 
-		WeekData.setDirectoryFromWeek(loadedWeeks[0]);
+		LevelData.setDirectoryFromLevel(loadedWeeks[0]);
 		var charArray:Array<String> = loadedWeeks[0].weekCharacters;
 		for (char in 0...3)
 		{
@@ -204,7 +203,7 @@ class StoryMenuState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		if(WeekData.weeksList.length < 1)
+		if(LevelData.levelsList.length < 1)
 		{
 			if (controls.BACK && !movedBack && !selectedWeek)
 			{
@@ -415,7 +414,7 @@ class StoryMenuState extends MusicBeatState
 		if (curDifficulty >= Difficulty.list.length)
 			curDifficulty = 0;
 
-		WeekData.setDirectoryFromWeek(loadedWeeks[curWeek]);
+		LevelData.setDirectoryFromLevel(loadedWeeks[curWeek]);
 
 		var diff:String = Difficulty.getString(curDifficulty, false);
 		var newImage:FlxGraphic = Paths.image('menudifficulties/' + Paths.formatToSongPath(diff));
@@ -451,8 +450,8 @@ class StoryMenuState extends MusicBeatState
 		if (curWeek < 0)
 			curWeek = loadedWeeks.length - 1;
 
-		var leWeek:WeekData = loadedWeeks[curWeek];
-		WeekData.setDirectoryFromWeek(leWeek);
+		var leWeek:LevelData = loadedWeeks[curWeek];
+		LevelData.setDirectoryFromLevel(leWeek);
 
 		var leName:String = Language.getPhrase('storyname_${leWeek.fileName}', leWeek.storyName);
 		txtWeekTitle.text = leName.toUpperCase();
@@ -494,7 +493,7 @@ class StoryMenuState extends MusicBeatState
 	}
 
 	function weekIsLocked(name:String):Bool {
-		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
+		var leWeek:LevelData = LevelData.levelsLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!weekCompleted.exists(leWeek.weekBefore) || !weekCompleted.get(leWeek.weekBefore)));
 	}
 
@@ -505,7 +504,7 @@ class StoryMenuState extends MusicBeatState
 			grpWeekCharacters.members[i].changeCharacter(weekArray[i]);
 		}
 
-		var leWeek:WeekData = loadedWeeks[curWeek];
+		var leWeek:LevelData = loadedWeeks[curWeek];
 		var stringThing:Array<String> = [];
 		for (i in 0...leWeek.songs.length) {
 			stringThing.push(leWeek.songs[i][0]);
