@@ -72,7 +72,7 @@ class PolymodHandler
 	public static function createScriptedStage(name:String):Bool
 	{
 		if (name == null || !ScriptedBaseStage.listScriptClasses().contains(name)) return false;
-		return ScriptedBaseStage.init(name) != null;
+		return ScriptedBaseStage.scriptInit(name) != null;
 	}
 
 	static function modRoot():String

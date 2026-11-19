@@ -1,5 +1,7 @@
 package funkin.ui.debug.content;
 
+import funkin.ui.mainmenu.MainMenuState;
+
 import funkin.play.PlayState;
 
 import funkin.backend.Song;
