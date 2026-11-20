@@ -1,4 +1,4 @@
 [submodule "external/funkin.assets"]
 	path = external/funkin.assets
-	url = https://github.com/FunkinCrew/Funkin.assets
+	url = https://github.com/BrenninhoTools/funkin-psych.assets
 	shallow = true
