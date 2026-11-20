@@ -68,6 +68,7 @@ jobs:
         with:
           fetch-depth: 1
           show-progress: false
+          submodules: true
 
       - name: Java 17
         if: matrix.target == 'android'

@@ -115,6 +115,8 @@ call haxelib --global --never install haxelib 4.1.0 >nul
 call haxelib --global set haxelib 4.1.0 >nul
 call haxelib --global --never git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies || exit /b 1
 call haxelib --global --never install hxpkg || exit /b 1
+echo [INFO] Downloading Funkin assets...
+git submodule update --init --depth 1 || exit /b 1
 echo [INFO] Installing project libraries from .hxpkg...
 call haxelib --global run hxpkg install --force || exit /b 1
 call :lime_path || exit /b 1

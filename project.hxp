@@ -17,6 +17,9 @@ class Project extends HXProject
 
 	var excludedAssets:Map<String, Bool>;
 
+	static final FUNKIN_ASSETS_PATH:String = "external/funkin.assets";
+	static final FUNKIN_ASSETS_SKIP:Array<String> = ["exclude", "tutorial"];
+	static final FUNKIN_ASSETS_SKIP_DIRS:Array<String> = ["data", "scripts"];
 	static final DEFAULT_EXCLUDE:Array<String> = [".*", "cvs", "thumbs.db", "desktop.ini", "*.fla", "*.hash"];
 
 	public function new()
@@ -67,6 +70,7 @@ class Project extends HXProject
 		if (isDesktop()) enable("DISCORD_ALLOWED");
 		enable("TRANSLATIONS_ALLOWED");
 		enable("IRIS_DEBUG");
+		if (!hasDefine("NO_FUNKIN_ASSETS") && FileSystem.exists(FUNKIN_ASSETS_PATH + "/preload")) enable("FUNKIN_ASSETS");
 
 		enable("MULTITHREADED_LOADING");
 		enable("SHOW_LOADING_SCREEN");
@@ -166,6 +170,8 @@ class Project extends HXProject
 					addAssetPath(path, null, [skipAudio]);
 			}
 		}
+
+		if (hasDefine("FUNKIN_ASSETS")) addFunkinAssets(skipAudio);
 
 		if (hasDefine("MODS_ALLOWED"))
 		{
@@ -322,6 +328,41 @@ class Project extends HXProject
 	function isWeb():Bool
 	{
 		return platformType == PlatformType.WEB;
+	}
+
+	function addFunkinAssets(skipAudio:String)
+	{
+		var root:String = FUNKIN_ASSETS_PATH;
+		if (!FileSystem.exists(root) || !FileSystem.isDirectory(root)) return;
+		var taken:Map<String, Bool> = new Map();
+		for (asset in assets) taken.set(asset.targetPath.split("\\").join("/"), true);
+		var exclude:Array<String> = DEFAULT_EXCLUDE.concat([skipAudio, "*.hxc", "*.md", "*.yml"]);
+		for (folder in FileSystem.readDirectory(root))
+		{
+			var path:String = root + "/" + folder;
+			if (!FileSystem.isDirectory(path) || FUNKIN_ASSETS_SKIP.indexOf(folder) > -1) continue;
+			if (folder == "videos" && !hasDefine("VIDEOS_ALLOWED")) continue;
+			addFunkinFolder(path, "assets/" + folder, exclude, taken);
+		}
+	}
+
+	function addFunkinFolder(path:String, targetPath:String, exclude:Array<String>, taken:Map<String, Bool>)
+	{
+		for (file in FileSystem.readDirectory(path))
+		{
+			var full:String = path + "/" + file;
+			var renamed:String = targetPath + "/" + file;
+			if (FileSystem.isDirectory(full))
+			{
+				if (FUNKIN_ASSETS_SKIP_DIRS.indexOf(file) > -1 || !filter(file, ["*"], exclude)) continue;
+				addFunkinFolder(full, renamed, exclude, taken);
+			}
+			else if (filter(file, ["*"], exclude) && !taken.exists(renamed) && !excludedAssets.exists(renamed))
+			{
+				taken.set(renamed, true);
+				assets.push(new Asset(full, renamed));
+			}
+		}
 	}
 
 	function excludeAssetList(listPath:String)

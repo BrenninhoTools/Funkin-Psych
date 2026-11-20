@@ -1,0 +1,4 @@
+[submodule "external/funkin.assets"]
+	path = external/funkin.assets
+	url = https://github.com/FunkinCrew/Funkin.assets
+	shallow = true

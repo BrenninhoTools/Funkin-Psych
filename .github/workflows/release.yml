@@ -30,6 +30,7 @@ jobs:
       - uses: actions/checkout@v4.1.7
         with:
           filter: blob:none
+          submodules: true
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
@@ -171,6 +172,7 @@ jobs:
       - uses: actions/checkout@v4.1.7
         with:
           filter: blob:none
+          submodules: true
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
@@ -280,6 +282,7 @@ jobs:
       - uses: actions/checkout@v4.1.7
         with:
           filter: blob:none
+          submodules: true
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
@@ -353,6 +356,7 @@ jobs:
       - uses: actions/checkout@v4.1.7
         with:
           filter: blob:none
+          submodules: true
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
@@ -433,6 +437,7 @@ jobs:
       - uses: actions/checkout@v4.1.7
         with:
           filter: blob:none
+          submodules: true
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /*
