@@ -15,7 +15,10 @@ concurrency:
 
 env:
   HAXE_VERSION: '4.3.7'
-  CACHE_REV: 'v7'
+  CACHE_REV: 'v8'
+  NDK_VERSION: '27.2.12479018'
+  HXCPP_CACHE_MB: '2048'
+  APT_PACKAGES: g++ pkg-config libx11-dev libxi-dev libxext-dev libxfixes-dev libxinerama-dev libxrandr-dev libxcursor-dev libxss-dev libxtst-dev libgl-dev libgl1-mesa-dev libegl-dev libgles-dev libasound2-dev libpulse-dev libpipewire-0.3-dev libspa-0.2-dev libwayland-bin libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libdbus-1-dev libudev-dev libdrm-dev libgbm-dev
 
 jobs:
   build:
@@ -51,17 +54,20 @@ jobs:
         shell: bash
 
     steps:
+      - name: Speed up Windows
+        if: matrix.host == 'windows'
+        shell: pwsh
+        run: |
+          Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+          Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:RUNNER_TOOL_CACHE -ErrorAction SilentlyContinue
+          git config --global core.fscache true
+          git config --global core.preloadindex true
+
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Install Linux packages
-        if: matrix.host == 'linux'
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq g++ pkg-config libx11-dev libxi-dev libxext-dev libxfixes-dev libxinerama-dev libxrandr-dev libxcursor-dev libxss-dev libxtst-dev libgl-dev libgl1-mesa-dev libegl-dev libgles-dev libasound2-dev libpulse-dev libpipewire-0.3-dev libspa-0.2-dev libwayland-bin libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libdbus-1-dev libudev-dev libdrm-dev libgbm-dev
-          if [ '${{ matrix.target }}' = linux ]; then
-            sudo apt-get install -y -qq libvlc-dev libvlccore-dev
-          fi
+        with:
+          fetch-depth: 1
+          show-progress: false
 
       - name: Java 17
         if: matrix.target == 'android'
@@ -75,10 +81,19 @@ jobs:
         id: ndk
         run: |
           set -euo pipefail
-          NDK_VERSION=27.2.12479018
           NDK_DIR="$ANDROID_HOME/ndk/$NDK_VERSION"
+          if [ ! -d "$NDK_DIR" ]; then
+            for CANDIDATE in $(ls -d "$ANDROID_HOME"/ndk/27.* 2>/dev/null | sort -rV); do
+              if [ -x "$CANDIDATE/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++" ]; then
+                NDK_DIR="$CANDIDATE"
+                break
+              fi
+            done
+          fi
           CLANG="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
           if [ ! -x "$CLANG" ]; then
+            NDK_DIR="$ANDROID_HOME/ndk/$NDK_VERSION"
+            CLANG="$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++"
             SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
             { yes || true; } | "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null
           fi
@@ -100,7 +115,8 @@ jobs:
           CACHE_DIR="${RUNNER_TEMP//\\//}/hxcpp_cache"
           mkdir -p "$CACHE_DIR"
           echo "HXCPP_COMPILE_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
-          echo "HXCPP_CACHE_MB=4096" >> "$GITHUB_ENV"
+          echo "CACHE_STAMP=${RUNNER_TEMP//\\//}/cache.stamp" >> "$GITHUB_ENV"
+          echo "HAXELIB_GLOBAL=$(haxelib config | tr -d '\r' | sed 's|\\|/|g; s|/$||')" >> "$GITHUB_ENV"
           case '${{ matrix.host }}' in
             linux) THREADS="$(nproc)" ;;
             mac) THREADS="$(sysctl -n hw.ncpu)" ;;
@@ -109,6 +125,13 @@ jobs:
           echo "HXCPP_COMPILE_THREADS=$THREADS" >> "$GITHUB_ENV"
           git config --global core.longpaths true
           git config --global advice.detachedHead false
+
+      - name: Restore Haxe tools
+        id: tools-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.HAXELIB_GLOBAL }}
+          key: haxe-tools-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
         id: haxelib-cache
@@ -137,6 +160,11 @@ jobs:
           key: gradle-${{ env.CACHE_REV }}-${{ github.run_id }}
           restore-keys: |
             gradle-${{ env.CACHE_REV }}-
+
+      - name: Stamp caches
+        run: |
+          sleep 1
+          touch "$CACHE_STAMP"
 
       - name: Configure Gradle mirrors
         if: matrix.target == 'android'
@@ -169,6 +197,11 @@ jobs:
           {
             echo "org.gradle.caching=true"
             echo "org.gradle.parallel=true"
+            echo "org.gradle.configureondemand=true"
+            echo "org.gradle.vfs.watch=false"
+            echo "org.gradle.jvmargs=-Xmx6g -XX:+UseParallelGC -Dfile.encoding=UTF-8"
+            echo "org.gradle.workers.max=$(nproc)"
+            echo "kotlin.incremental=true"
             echo "systemProp.org.gradle.internal.http.connectionTimeout=120000"
             echo "systemProp.org.gradle.internal.http.socketTimeout=120000"
             echo "systemProp.org.gradle.internal.repository.max.retries=5"
@@ -178,13 +211,15 @@ jobs:
         id: install-haxelibs
         run: |
           set -euo pipefail
-          haxelib fixrepo --global || true
-          haxelib --never --global install haxelib 4.1.0
-          haxelib --global set haxelib 4.1.0
-          haxelib --global remove haxelib git || true
-          haxelib --global remove hmm || true
-          haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
-          haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+          if [ '${{ steps.tools-cache.outputs.cache-hit }}' != true ] || ! haxelib --global libpath hmm > /dev/null 2>&1; then
+            haxelib fixrepo --global || true
+            haxelib --never --global install haxelib 4.1.0
+            haxelib --global set haxelib 4.1.0
+            haxelib --global remove haxelib git || true
+            haxelib --global remove hmm || true
+            haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
+            haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+          fi
           haxelib version
           NEED_INSTALL=0
           if [ -z '${{ steps.haxelib-cache.outputs.cache-matched-key }}' ]; then
@@ -205,7 +240,7 @@ jobs:
             haxelib libpath "$LIB" > /dev/null
           done
           echo "installed=$NEED_INSTALL" >> "$GITHUB_OUTPUT"
-          haxelib list
+          haxelib list | head -n 60
 
       - name: Restore Lime libraries
         uses: actions/cache/restore@v6
@@ -215,14 +250,51 @@ jobs:
           restore-keys: |
             lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-
 
-      - name: Fetch Lime submodules
+      - name: Check Lime state
+        id: lime-state
         run: |
           set -euo pipefail
           LIME="$(haxelib libpath lime | head -n 1 | tr -d '\r')"
           LIME="${LIME//\\//}"
           LIME="${LIME%/}"
           echo "LIME_DIR=$LIME" >> "$GITHUB_ENV"
+          case '${{ matrix.host }}' in
+            linux) HOST=linux; ARCH=-64 ;;
+            windows) HOST=windows; ARCH=-64 ;;
+            mac)
+              HOST=mac
+              if [ "$(uname -m)" = arm64 ]; then ARCH=-arm64; else ARCH=-64; fi
+              ;;
+          esac
+          echo "LIME_HOST=$HOST" >> "$GITHUB_ENV"
+          echo "LIME_ARCH=$ARCH" >> "$GITHUB_ENV"
+          NEEDS_REBUILD=false
+          [ -f "$LIME/ndll/.psych-host-$HOST$ARCH" ] || NEEDS_REBUILD=true
+          case '${{ matrix.target }}' in
+            android|ios) [ -f "$LIME/ndll/.psych-${{ matrix.target }}" ] || NEEDS_REBUILD=true ;;
+          esac
+          echo "rebuild=$NEEDS_REBUILD" >> "$GITHUB_OUTPUT"
+          echo "Lime needs rebuild: $NEEDS_REBUILD"
+
+      - name: Install Linux packages
+        if: matrix.host == 'linux' && (matrix.target == 'linux' || steps.lime-state.outputs.rebuild == 'true')
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: ${{ env.APT_PACKAGES }} ${{ matrix.target == 'linux' && 'libvlc-dev libvlccore-dev' || '' }}
+          version: ${{ env.CACHE_REV }}-${{ matrix.target }}
+
+      - name: Fetch Lime submodules
+        run: |
+          set -euo pipefail
+          LIME="$LIME_DIR"
           test -d "$LIME/.git"
+          REQUIRED="project/Build.xml project/lib/cairo-files.xml project/lib/cairo/src/cairo.h project/lib/pixman/pixman/pixman.h project/lib/dr_libs/dr_flac.h project/lib/sdl/include project/lib/openal/include project/lib/freetype/include project/lib/harfbuzz/src"
+          MISSING=0
+          for FILE in $REQUIRED; do [ -e "$LIME/$FILE" ] || MISSING=1; done
+          if [ "$MISSING" = 0 ]; then
+            echo "Lime submodules already present"
+            exit 0
+          fi
           git -C "$LIME" submodule sync --recursive
           for TRY in 1 2 3; do
             if git -C "$LIME" submodule update --init --recursive --depth 1 --jobs 8; then
@@ -246,23 +318,20 @@ jobs:
           set -euo pipefail
           HXCPP="$(haxelib libpath hxcpp | head -n 1 | tr -d '\r')"
           HXCPP="${HXCPP//\\//}"
-          cd "${HXCPP%/}/tools/hxcpp"
+          HXCPP="${HXCPP%/}"
+          if [ -f "$HXCPP/hxcpp.n" ] && [ -z "$(find "$HXCPP/tools/hxcpp" -name '*.hx' -newer "$HXCPP/hxcpp.n" -print -quit)" ]; then
+            echo "hxcpp tools are up to date"
+            exit 0
+          fi
+          cd "$HXCPP/tools/hxcpp"
           haxe compile.hxml
 
       - name: Build Lime host library
         run: |
           set -euo pipefail
-          case '${{ matrix.host }}' in
-            linux) HOST=linux; ARCH=-64 ;;
-            windows) HOST=windows; ARCH=-64 ;;
-            mac)
-              HOST=mac
-              if [ "$(uname -m)" = arm64 ]; then ARCH=-arm64; else ARCH=-64; fi
-              ;;
-          esac
-          MARKER="$LIME_DIR/ndll/.psych-host-$HOST$ARCH"
+          MARKER="$LIME_DIR/ndll/.psych-host-$LIME_HOST$LIME_ARCH"
           if [ ! -f "$MARKER" ]; then
-            haxelib run lime rebuild "$HOST" "$ARCH" -release 2>&1 | tee lime-host.log
+            haxelib run lime rebuild "$LIME_HOST" "$LIME_ARCH" -release 2>&1 | tee lime-host.log
             touch "$MARKER"
           fi
           find "$LIME_DIR/ndll" \( -name 'lime.ndll' -o -name 'lime.hdll' \) -print
@@ -328,6 +397,9 @@ jobs:
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > release.keystore
             FLAGS+=(-D ANDROID_SIGNING)
           fi
+          if [ '${{ matrix.target }}' = android ]; then
+            export GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+          fi
           haxelib run lime build '${{ matrix.target }}' "${FLAGS[@]}" 2>&1 | tee compile.log
 
       - name: Generate Xcode project
@@ -342,8 +414,10 @@ jobs:
         run: |
           set -euo pipefail
           PROJECT="$(find export/release/ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
-          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -arch arm64 -jobs "$HXCPP_COMPILE_THREADS" \
-            ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf \
+          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -arch arm64 -jobs "$HXCPP_COMPILE_THREADS" -quiet \
+            -parallelizeTargets -skipPackagePluginValidation -skipMacroValidation \
+            ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf GCC_OPTIMIZATION_LEVEL=s \
+            ENABLE_BITCODE=NO VALIDATE_PRODUCT=NO \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY='' build 2>&1 | tee xcode.log
 
       - name: Package
@@ -376,6 +450,16 @@ jobs:
           test -n "$(ls -A dist)"
           ls -la dist
 
+      - name: Detect cache changes
+        if: always()
+        id: changes
+        run: |
+          changed() { [ -d "$1" ] && [ -n "$(find "$1" -type f -newer "$CACHE_STAMP" -print -quit 2>/dev/null)" ] && echo true || echo false; }
+          echo "hxcpp=$(changed "$HXCPP_COMPILE_CACHE")" >> "$GITHUB_OUTPUT"
+          echo "ndll=$(changed "${LIME_DIR:-.haxelib/lime/git}/ndll")" >> "$GITHUB_OUTPUT"
+          echo "gradle=$(changed "$HOME/.gradle/caches/modules-2/files-2.1")" >> "$GITHUB_OUTPUT"
+          if [ -d "$HXCPP_COMPILE_CACHE" ]; then du -sh "$HXCPP_COMPILE_CACHE" || true; fi
+
       - name: Save Haxelibs
         if: always() && steps.install-haxelibs.outcome == 'success' && steps.install-haxelibs.outputs.installed == '1'
         uses: actions/cache/save@v6
@@ -384,21 +468,21 @@ jobs:
           key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
 
       - name: Save Lime libraries
-        if: always()
+        if: always() && steps.changes.outputs.ndll == 'true'
         uses: actions/cache/save@v6
         with:
           path: .haxelib/lime/git/ndll
           key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
 
       - name: Save hxcpp
-        if: always()
+        if: always() && steps.changes.outputs.hxcpp == 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
           key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.run_id }}
 
       - name: Save Gradle
-        if: always() && matrix.target == 'android'
+        if: always() && matrix.target == 'android' && steps.changes.outputs.gradle == 'true'
         uses: actions/cache/save@v6
         with:
           path: |
@@ -412,7 +496,7 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/
           if-no-files-found: error
-          compression-level: ${{ matrix.target == 'windows' && 6 || 0 }}
+          compression-level: ${{ matrix.target == 'windows' && 1 || 0 }}
 
       - name: Upload logs
         if: failure()
