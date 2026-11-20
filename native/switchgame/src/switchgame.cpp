@@ -20,6 +20,14 @@
 #if defined(__ANDROID__)
 #include <jni.h>
 #include <dlfcn.h>
+
+extern "C"
+{
+	__attribute__((weak)) void* SDL_GetAndroidJNIEnv();
+	__attribute__((weak)) void* SDL_GetAndroidActivity();
+	__attribute__((weak)) void* SDL_AndroidGetJNIEnv();
+	__attribute__((weak)) void* SDL_AndroidGetActivity();
+}
 #endif
 
 namespace
@@ -155,6 +163,27 @@ namespace
 #if defined(__ANDROID__)
 	typedef void* (*GetPointer)();
 
+	GetPointer findBridge(const char* const* names)
+	{
+		static const char* libraries[] = {"libApplicationMain.so", "libmain.so", "liblime.so", "libSDL3.so", "libSDL2.so", NULL};
+		for (const char* const* name = names; *name != NULL; name++)
+		{
+			void* symbol = dlsym(RTLD_DEFAULT, *name);
+			if (symbol != NULL) return (GetPointer)symbol;
+		}
+		for (const char** library = libraries; *library != NULL; library++)
+		{
+			void* handle = dlopen(*library, RTLD_NOW | RTLD_NOLOAD);
+			if (handle == NULL) continue;
+			for (const char* const* name = names; *name != NULL; name++)
+			{
+				void* symbol = dlsym(handle, *name);
+				if (symbol != NULL) return (GetPointer)symbol;
+			}
+		}
+		return NULL;
+	}
+
 	struct AndroidContext
 	{
 		JNIEnv* env;
@@ -163,8 +192,10 @@ namespace
 
 	bool androidContext(AndroidContext& context)
 	{
-		GetPointer getEnv = (GetPointer)dlsym(RTLD_DEFAULT, "SDL_AndroidGetJNIEnv");
-		GetPointer getActivity = (GetPointer)dlsym(RTLD_DEFAULT, "SDL_AndroidGetActivity");
+		static const char* envNames[] = {"SDL_GetAndroidJNIEnv", "SDL_AndroidGetJNIEnv", NULL};
+		static const char* activityNames[] = {"SDL_GetAndroidActivity", "SDL_AndroidGetActivity", NULL};
+		GetPointer getEnv = SDL_GetAndroidJNIEnv != NULL ? (GetPointer)SDL_GetAndroidJNIEnv : (SDL_AndroidGetJNIEnv != NULL ? (GetPointer)SDL_AndroidGetJNIEnv : findBridge(envNames));
+		GetPointer getActivity = SDL_GetAndroidActivity != NULL ? (GetPointer)SDL_GetAndroidActivity : (SDL_AndroidGetActivity != NULL ? (GetPointer)SDL_AndroidGetActivity : findBridge(activityNames));
 		if (getEnv == NULL || getActivity == NULL)
 		{
 			fail("SDL Android bridge was not found");

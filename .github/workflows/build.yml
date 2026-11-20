@@ -115,6 +115,18 @@ jobs:
           CACHE_DIR="${RUNNER_TEMP//\\//}/hxcpp_cache"
           mkdir -p "$CACHE_DIR"
           echo "HXCPP_COMPILE_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
+          case '${{ matrix.target }}' in
+            android) TOOLCHAIN="ndk-$(basename "${ANDROID_NDK_ROOT:-none}")" ;;
+            windows)
+              VSWHERE="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
+              VS_PATH="$("$VSWHERE" -latest -products '*' -property installationPath 2>/dev/null | tr -d '\r' | sed 's|\\|/|g' || true)"
+              TOOLCHAIN="msvc-$(tr -d '\r\n ' < "$VS_PATH/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt" 2>/dev/null || echo unknown)"
+              ;;
+            mac|ios) TOOLCHAIN="xcode-$(xcodebuild -version | head -n 1 | awk '{print $2}')" ;;
+            *) TOOLCHAIN="gcc-$(gcc -dumpfullversion 2>/dev/null || echo unknown)" ;;
+          esac
+          echo "Toolchain: $TOOLCHAIN"
+          echo "TOOLCHAIN_ID=$TOOLCHAIN" >> "$GITHUB_ENV"
           LIME_REF="$(tr -d '\r\n\t ' < hmm.json | grep -o '"name":"lime"[^}]*' | grep -o '"ref":"[^"]*"' | cut -d'"' -f4)"
           echo "LIME_REF=${LIME_REF:-unknown}" >> "$GITHUB_ENV"
           echo "CACHE_STAMP=${RUNNER_TEMP//\\//}/cache.stamp" >> "$GITHUB_ENV"
@@ -148,9 +160,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
-          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ github.run_id }}
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-${{ github.run_id }}
           restore-keys: |
-            hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-
+            hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-
 
       - name: Restore Gradle
         if: matrix.target == 'android'
@@ -248,9 +260,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .haxelib/lime/git/ndll
-          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-${{ github.run_id }}
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-${{ env.LIME_REF }}-${{ github.run_id }}
           restore-keys: |
-            lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-
+            lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-${{ env.LIME_REF }}-
 
       - name: Check Lime state
         id: lime-state
@@ -319,6 +331,7 @@ jobs:
         if: steps.lime-state.outputs.rebuild == 'true'
         run: |
           set -euo pipefail
+          rm -rf "$LIME_DIR/project/obj"
           EAX="$LIME_DIR/project/lib/openal/al/eax/api.h"
           if [ -f "$EAX" ]; then
             perl -pi -e 's/gsl::narrow<(eax_u?long)>\(x\)/static_cast<$1>(x)/g' "$EAX"
@@ -484,14 +497,14 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: .haxelib/lime/git/ndll
-          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-${{ github.run_id }}
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-${{ env.LIME_REF }}-${{ github.run_id }}
 
       - name: Save hxcpp
         if: always() && steps.changes.outputs.hxcpp == 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
-          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ github.run_id }}
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.TOOLCHAIN_ID }}-${{ github.run_id }}
 
       - name: Save Gradle
         if: always() && matrix.target == 'android' && steps.changes.outputs.gradle == 'true'
