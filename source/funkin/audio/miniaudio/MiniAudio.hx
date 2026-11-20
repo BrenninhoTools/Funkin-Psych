@@ -3,7 +3,7 @@ package funkin.audio.miniaudio;
 import haxe.io.Bytes;
 
 #if cpp
-@:build(funkin.audio.miniaudio.MiniAudioMacro.build())
+@:build(funkin.util.macro.NativeLibrary.build('miniaudio'))
 #end
 class MiniAudio
 {

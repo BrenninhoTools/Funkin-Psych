@@ -1,0 +1,20 @@
+<xml>
+	<files id="switchgame" dir="${this_dir}">
+		<compilerflag value="-I${this_dir}/include"/>
+		<depend name="${this_dir}/include/switchgame.h"/>
+		<file name="src/switchgame.cpp" unless="iphone"/>
+		<file name="src/switchgame_ios.mm" if="iphone"/>
+	</files>
+
+	<files id="haxe">
+		<compilerflag value="-I${this_dir}/include"/>
+	</files>
+
+	<target id="haxe">
+		<files id="switchgame"/>
+		<lib name="-ldl" if="android"/>
+		<lib name="shell32.lib" if="windows" unless="mingw"/>
+		<lib name="-lshell32" if="mingw"/>
+		<vflag name="-framework" value="UIKit" if="iphone"/>
+	</target>
+</xml>

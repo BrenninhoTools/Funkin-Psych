@@ -131,8 +131,8 @@ class Project extends HXProject
 
 		if (target == Platform.IOS)
 		{
-			dependencies.push(new Dependency("PhotosUI.framework", null));
-			dependencies.push(new Dependency("AudioToolbox.framework", null));
+			for (framework in ["PhotosUI", "AudioToolbox", "AVFoundation", "CoreAudio", "CoreFoundation", "UIKit"])
+				dependencies.push(new Dependency('$framework.framework', ""));
 			templatePaths.push("templates");
 		}
 	}

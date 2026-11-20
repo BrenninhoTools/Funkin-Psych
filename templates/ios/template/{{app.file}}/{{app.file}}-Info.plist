@@ -60,6 +60,24 @@
 		<true/>::end::
 	</dict>
 	::if (IOS_NON_EXEMPT_ENCRYPTION != null)::<key>ITSAppUsesNonExemptEncryption</key><::IOS_NON_EXEMPT_ENCRYPTION:: />::end::
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>psychengine</string>
+		<string>codenameengine</string>
+		<string>funkin</string>
+		<string>funkinpsych</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>::APP_PACKAGE::.switchgame</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>funkinpsych</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>

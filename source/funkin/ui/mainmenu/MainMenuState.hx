@@ -296,6 +296,8 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new TitleState());
 			case 'editors':
 				MusicBeatState.switchState(new MasterEditorMenu());
+			case 'engines', 'switchgame', 'switch_engine':
+				MusicBeatState.switchState(new funkin.ui.switchgame.SwitchEngineState());
 			default:
 				selectedSomethin = false;
 				item.visible = true;
@@ -321,6 +323,13 @@ class MainMenuState extends MusicBeatState
 
 			if (controls.UI_DOWN_P)
 				changeItem(1);
+
+			if (FlxG.keys.justPressed.TAB)
+			{
+				selectedSomethin = true;
+				MusicBeatState.switchState(new funkin.ui.switchgame.SwitchEngineState());
+				return;
+			}
 
 			var allowMouse:Bool = allowMouse;
 			if (allowMouse && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed))

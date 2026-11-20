@@ -16,7 +16,8 @@ class OptionsState extends MusicBeatState
 		#end
 		'Graphics',
 		'Visuals',
-		'Gameplay'
+		'Gameplay',
+		'Switch Engine'
 		#if mobile , 'Mobile Options' #end
 		#if TRANSLATIONS_ALLOWED , 'Language' #end
 		#if mobile , 'Open Data Folder' #end
@@ -42,6 +43,9 @@ class OptionsState extends MusicBeatState
 				openSubState(new funkin.ui.options.GameplaySettingsSubState());
 			case 'Adjust Delay and Combo':
 				MusicBeatState.switchState(new funkin.ui.options.NoteOffsetState());
+			case 'Switch Engine':
+				funkin.ui.switchgame.SwitchEngineState.returnState = () -> new OptionsState();
+				MusicBeatState.switchState(new funkin.ui.switchgame.SwitchEngineState());
 			case 'Language':
 				openSubState(new funkin.ui.options.LanguageSubState());
 			#if mobile
