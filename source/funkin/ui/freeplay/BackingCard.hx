@@ -1,6 +1,9 @@
 package funkin.ui.freeplay;
 
-import flixel.util.FlxSpriteUtil;
+import openfl.display.BitmapData;
+import openfl.display.BitmapDataChannel;
+import openfl.geom.Point;
+import openfl.geom.Rectangle;
 import funkin.ui.freeplay.FreeplayState.ExitMoverData;
 import openfl.display.BlendMode;
 
@@ -49,7 +52,7 @@ class BackingCard extends FlxSpriteGroup
 		add(pinkBack);
 		add(orangeBackShit);
 		add(alsoOrangeLOL);
-		FlxSpriteUtil.alphaMaskFlxSprite(orangeBackShit, pinkBack, orangeBackShit);
+		maskOrange();
 		orangeBackShit.visible = alsoOrangeLOL.visible = false;
 
 		confirmTextGlow.blend = BlendMode.ADD;
@@ -85,6 +88,16 @@ class BackingCard extends FlxSpriteGroup
 
 		for (member in members)
 			if (member != null) member.antialiasing = Save.data.antialiasing;
+	}
+
+	function maskOrange()
+	{
+		var mask:BitmapData = Paths.loadBitmap(Paths.getPath('images/freeplay/pinkBack.${Paths.IMAGE_EXT}', IMAGE));
+		var target:BitmapData = orangeBackShit.pixels;
+		if (mask == null || target == null || mask.image == null) return;
+		target.copyChannel(mask, new Rectangle(0, 0, Math.min(mask.width, target.width), Math.min(mask.height, target.height)), new Point(), BitmapDataChannel.ALPHA, BitmapDataChannel.ALPHA);
+		orangeBackShit.dirty = true;
+		mask.dispose();
 	}
 
 	function scroller(x:Float, y:Float, textIndex:Int, width:Float, bold:Bool, size:Int, color:FlxColor, speed:Float):BGScrollingText
