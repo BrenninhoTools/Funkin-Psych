@@ -1,127 +1,201 @@
 package funkin.api.discord;
 
 #if DISCORD_ALLOWED
-import Sys.sleep;
-import sys.thread.Thread;
+import flixel.util.FlxSignal.FlxTypedSignal;
 import lime.app.Application;
 
-import hxdiscord_rpc.Discord;
-import hxdiscord_rpc.Types;
+enum abstract DiscordStatus(Int) from Int to Int
+{
+	var UNSUPPORTED = -1;
+	var DISCONNECTED = 0;
+	var CONNECTING = 1;
+	var CONNECTED = 2;
+}
 
-import flixel.util.FlxStringUtil;
+enum abstract DiscordActivityType(Int) from Int to Int
+{
+	var PLAYING = 0;
+	var LISTENING = 2;
+	var WATCHING = 3;
+	var COMPETING = 5;
+}
 
+typedef DiscordUserData =
+{
+	var id:String;
+	var username:String;
+	var globalName:String;
+	var avatar:String;
+}
+
+typedef DiscordButtonData =
+{
+	var label:String;
+	var url:String;
+}
+
+#if cpp
+@:include('funkin_discord.h')
+extern class DiscordNative
+{
+	@:native('::funkin_discord::supported') static function supported():Bool;
+	@:native('::funkin_discord::start') static function start(clientId:cpp.ConstCharStar):Void;
+	@:native('::funkin_discord::stop') static function stop():Void;
+	@:native('::funkin_discord::status') static function status():Int;
+	@:native('::funkin_discord::pollEvent') static function pollEvent():Int;
+	@:native('::funkin_discord::setActivity') static function setActivity(type:Int, details:cpp.ConstCharStar, state:cpp.ConstCharStar,
+		largeImage:cpp.ConstCharStar, largeText:cpp.ConstCharStar, smallImage:cpp.ConstCharStar, smallText:cpp.ConstCharStar, start:Float,
+		end:Float):Void;
+	@:native('::funkin_discord::setParty') static function setParty(id:cpp.ConstCharStar, size:Int, max:Int):Void;
+	@:native('::funkin_discord::setButton') static function setButton(index:Int, label:cpp.ConstCharStar, url:cpp.ConstCharStar):Void;
+	@:native('::funkin_discord::clearButtons') static function clearButtons():Void;
+	@:native('::funkin_discord::commit') static function commit():Void;
+	@:native('::funkin_discord::clearActivity') static function clearActivity():Void;
+	@:native('::funkin_discord::userId') static function userId():cpp.ConstCharStar;
+	@:native('::funkin_discord::userName') static function userName():cpp.ConstCharStar;
+	@:native('::funkin_discord::globalName') static function globalName():cpp.ConstCharStar;
+	@:native('::funkin_discord::avatar') static function avatar():cpp.ConstCharStar;
+	@:native('::funkin_discord::lastError') static function lastError():cpp.ConstCharStar;
+	@:native('::funkin_discord::lastErrorCode') static function lastErrorCode():Int;
+}
+
+@:build(funkin.util.macro.NativeLibrary.build('discordrpc'))
+#end
 class DiscordClient
 {
+	static inline final EVENT_READY:Int = 1;
+	static inline final EVENT_DISCONNECTED:Int = 2;
+	static inline final EVENT_ERROR:Int = 3;
+
 	public static var isInitialized:Bool = false;
 	private inline static final _defaultID:String = "863222024192262205";
 	public static var clientID(default, set):String = _defaultID;
-	private static var presence:DiscordPresence = new DiscordPresence();
-	// hides this field from scripts and reflection in general
-	@:unreflective private static var __thread:Thread;
+
+	public static var supported(get, never):Bool;
+	public static var status(get, never):DiscordStatus;
+	public static var connected(get, never):Bool;
+	public static var user(default, null):DiscordUserData = null;
+	public static var lastError(default, null):String = '';
+	public static var lastErrorCode(default, null):Int = 0;
+
+	public static final onReady:FlxTypedSignal<DiscordUserData->Void> = new FlxTypedSignal<DiscordUserData->Void>();
+	public static final onDisconnected:FlxTypedSignal<Void->Void> = new FlxTypedSignal<Void->Void>();
+	public static final onError:FlxTypedSignal<(Int, String)->Void> = new FlxTypedSignal<(Int, String)->Void>();
+
+	public static var activityType:DiscordActivityType = PLAYING;
+	public static var details:String = 'In the Menus';
+	public static var state:String = null;
+	public static var largeImageKey:String = 'icon';
+	public static var largeImageText:String = null;
+	public static var smallImageKey:String = null;
+	public static var smallImageText:String = null;
+	public static var startTimestamp:Float = 0;
+	public static var endTimestamp:Float = 0;
+	public static var partyId:String = null;
+	public static var partySize:Int = 0;
+	public static var partyMax:Int = 0;
+	public static var buttons:Array<DiscordButtonData> = [];
+
+	static var hooked:Bool = false;
+	static var closeHooked:Bool = false;
 
 	public static function check()
 	{
-		if(Save.data.discordRPC) initialize();
-		else if(isInitialized) shutdown();
+		if (Save.data.discordRPC) initialize();
+		else if (isInitialized) shutdown();
 	}
-	
+
 	public static function prepare()
 	{
-		if (!isInitialized && Save.data.discordRPC)
-			initialize();
+		if (!isInitialized && Save.data.discordRPC) initialize();
 
-		Application.current.window.onClose.add(function() {
-			if(isInitialized) shutdown();
-		});
+		if (!closeHooked && Application.current != null && Application.current.window != null)
+		{
+			closeHooked = true;
+			Application.current.window.onClose.add(function() {
+				if (isInitialized) shutdown();
+			});
+		}
 	}
 
 	public dynamic static function shutdown()
 	{
 		isInitialized = false;
-		Discord.Shutdown();
-	}
-	
-	private static function onReady(request:cpp.RawConstPointer<DiscordUser>):Void
-	{
-		final user = cast (request[0].username, String);
-		final discriminator = cast (request[0].discriminator, String);
-
-		var message = '(Discord) Connected to User ';
-		if (discriminator != '0') //Old discriminators
-			message += '($user#$discriminator)';
-		else //New Discord IDs/Discriminator system
-			message += '($user)';
-
-		trace(message);
-		changePresence();
-	}
-
-	private static function onError(errorCode:Int, message:cpp.ConstCharStar):Void
-	{
-		trace('Discord: Error ($errorCode: ${cast(message, String)})');
-	}
-
-	private static function onDisconnected(errorCode:Int, message:cpp.ConstCharStar):Void
-	{
-		trace('Discord: Disconnected ($errorCode: ${cast(message, String)})');
+		user = null;
+		#if cpp
+		DiscordNative.stop();
+		#end
 	}
 
 	public static function initialize()
 	{
-		var discordHandlers:DiscordEventHandlers = new DiscordEventHandlers();
-		discordHandlers.ready = cpp.Function.fromStaticFunction(onReady);
-		discordHandlers.disconnected = cpp.Function.fromStaticFunction(onDisconnected);
-		discordHandlers.errored = cpp.Function.fromStaticFunction(onError);
-		Discord.Initialize(clientID, cpp.RawPointer.addressOf(discordHandlers), true, null);
-
-		if(!isInitialized) trace("Discord Client initialized");
-
-		if (__thread == null)
+		#if cpp
+		if (!DiscordNative.supported()) return;
+		DiscordNative.start(str(clientID));
+		#end
+		if (!hooked)
 		{
-			__thread = Thread.create(() ->
-			{
-				while (true)
-				{
-					if (isInitialized)
-					{
-						#if DISCORD_DISABLE_IO_THREAD
-						Discord.UpdateConnection();
-						#end
-						Discord.RunCallbacks();
-					}
-
-					// Wait 1 second until the next loop...
-					Sys.sleep(1.0);
-				}
-			});
+			hooked = true;
+			FlxG.signals.postUpdate.add(pollEvents);
 		}
 		isInitialized = true;
+		updatePresence();
 	}
 
-	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, largeImageKey:String = 'icon')
+	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, ?hasStartTimestamp:Bool,
+			?endTimestamp:Float, largeImageKey:String = 'icon')
 	{
-		var startTimestamp:Float = 0;
-		if (hasStartTimestamp) startTimestamp = Date.now().getTime();
-		if (endTimestamp > 0) endTimestamp = startTimestamp + endTimestamp;
+		var start:Float = hasStartTimestamp ? Date.now().getTime() : 0;
+		var end:Float = endTimestamp != null && endTimestamp > 0 ? (hasStartTimestamp ? start : Date.now().getTime()) + endTimestamp : 0;
 
-		presence.state = state;
-		presence.details = details;
-		presence.smallImageKey = smallImageKey;
-		presence.largeImageKey = largeImageKey;
-		presence.largeImageText = "Engine Version: " + funkin.ui.mainmenu.MainMenuState.psychEngineVersion;
-		// Obtained times are in milliseconds so they are divided so Discord can use it
-		presence.startTimestamp = Std.int(startTimestamp / 1000);
-		presence.endTimestamp = Std.int(endTimestamp / 1000);
+		DiscordClient.details = details;
+		DiscordClient.state = state;
+		DiscordClient.smallImageKey = smallImageKey;
+		DiscordClient.largeImageKey = largeImageKey;
+		DiscordClient.largeImageText = "Engine Version: " + funkin.ui.mainmenu.MainMenuState.psychEngineVersion;
+		DiscordClient.startTimestamp = Math.ffloor(start / 1000);
+		DiscordClient.endTimestamp = Math.ffloor(end / 1000);
 		updatePresence();
+	}
 
-		//trace('Discord RPC Updated. Arguments: $details, $state, $smallImageKey, $hasStartTimestamp, $endTimestamp, $largeImageKey');
+	public static function setButtons(?list:Array<DiscordButtonData>)
+	{
+		buttons = list != null ? list.slice(0, 2) : [];
+		updatePresence();
+	}
+
+	public static function setParty(?id:String, size:Int = 0, max:Int = 0)
+	{
+		partyId = id;
+		partySize = size;
+		partyMax = max;
+		updatePresence();
+	}
+
+	public static function clearPresence()
+	{
+		#if cpp
+		if (isInitialized) DiscordNative.clearActivity();
+		#end
 	}
 
 	public static function updatePresence()
 	{
-		Discord.UpdatePresence(cpp.RawConstPointer.addressOf(presence.__presence));
+		#if cpp
+		if (!isInitialized) return;
+		DiscordNative.setActivity(activityType, str(details), str(state), str(largeImageKey), str(largeImageText), str(smallImageKey),
+			str(smallImageText), startTimestamp, endTimestamp);
+		DiscordNative.setParty(str(partyId), partySize, partyMax);
+		DiscordNative.clearButtons();
+		for (i in 0...Std.int(Math.min(buttons.length, 2)))
+		{
+			var button:DiscordButtonData = buttons[i];
+			if (button != null) DiscordNative.setButton(i, str(button.label), str(button.url));
+		}
+		DiscordNative.commit();
+		#end
 	}
-	
+
 	inline public static function resetClientID()
 	{
 		clientID = _defaultID;
@@ -129,27 +203,88 @@ class DiscordClient
 
 	private static function set_clientID(newID:String)
 	{
+		if (newID == null || newID.length == 0) newID = _defaultID;
 		var change:Bool = (clientID != newID);
 		clientID = newID;
 
-		if(change && isInitialized)
+		if (change && isInitialized)
 		{
 			shutdown();
 			initialize();
-			updatePresence();
 		}
 		return newID;
 	}
+
+	static function pollEvents()
+	{
+		#if cpp
+		if (!isInitialized) return;
+		var event:Int = DiscordNative.pollEvent();
+		while (event != 0)
+		{
+			switch (event)
+			{
+				case EVENT_READY:
+					user = {
+						id: text(DiscordNative.userId()),
+						username: text(DiscordNative.userName()),
+						globalName: text(DiscordNative.globalName()),
+						avatar: text(DiscordNative.avatar())
+					};
+					onReady.dispatch(user);
+				case EVENT_DISCONNECTED:
+					user = null;
+					onDisconnected.dispatch();
+				case EVENT_ERROR:
+					lastError = text(DiscordNative.lastError());
+					lastErrorCode = DiscordNative.lastErrorCode();
+					onError.dispatch(lastErrorCode, lastError);
+			}
+			event = DiscordNative.pollEvent();
+		}
+		#end
+	}
+
+	static function get_supported():Bool
+	{
+		#if cpp
+		return DiscordNative.supported();
+		#else
+		return false;
+		#end
+	}
+
+	static function get_status():DiscordStatus
+	{
+		#if cpp
+		return DiscordNative.status();
+		#else
+		return UNSUPPORTED;
+		#end
+	}
+
+	static function get_connected():Bool
+	{
+		return status == CONNECTED;
+	}
+
+	#if cpp
+	static inline function str(value:String):cpp.ConstCharStar
+	{
+		return value == null ? null : untyped __cpp__('{0}.utf8_str()', value);
+	}
+
+	static inline function text(value:cpp.ConstCharStar):String
+	{
+		return value == null ? '' : value.toString();
+	}
+	#end
 
 	#if MODS_ALLOWED
 	public static function loadModRPC()
 	{
 		var pack:Dynamic = Mods.getPack();
-		if(pack != null && pack.discordRPC != null && pack.discordRPC != clientID)
-		{
-			clientID = pack.discordRPC;
-			//trace('Changing clientID! $clientID, $_defaultID');
-		}
+		if (pack != null && pack.discordRPC != null && pack.discordRPC != clientID) clientID = pack.discordRPC;
 	}
 	#end
 
@@ -158,112 +293,21 @@ class DiscordClient
 	{
 		Lua_helper.add_callback(lua, "changeDiscordPresence", changePresence);
 		Lua_helper.add_callback(lua, "changeDiscordClientID", function(?newID:String) {
-			if(newID == null) newID = _defaultID;
+			if (newID == null) newID = _defaultID;
 			clientID = newID;
 		});
+		Lua_helper.add_callback(lua, "setDiscordButtons", function(?label1:String, ?url1:String, ?label2:String, ?url2:String) {
+			var list:Array<DiscordButtonData> = [];
+			if (label1 != null && url1 != null) list.push({label: label1, url: url1});
+			if (label2 != null && url2 != null) list.push({label: label2, url: url2});
+			setButtons(list);
+		});
+		Lua_helper.add_callback(lua, "setDiscordParty", function(?id:String, size:Int = 0, max:Int = 0) {
+			setParty(id, size, max);
+		});
+		Lua_helper.add_callback(lua, "clearDiscordPresence", clearPresence);
+		Lua_helper.add_callback(lua, "isDiscordConnected", function() return connected);
 	}
 	#end
-}
-
-@:allow(funkin.api.discord.DiscordClient)
-private final class DiscordPresence
-{
-	public var state(get, set):String;
-	public var details(get, set):String;
-	public var smallImageKey(get, set):String;
-	public var largeImageKey(get, set):String;
-	public var largeImageText(get, set):String;
-	public var startTimestamp(get, set):Int;
-	public var endTimestamp(get, set):Int;
-
-	@:noCompletion private var __presence:DiscordRichPresence;
-
-	function new()
-	{
-		__presence = new DiscordRichPresence();
-	}
-
-	public function toString():String
-	{
-		return FlxStringUtil.getDebugString([
-			LabelValuePair.weak("state", state),
-			LabelValuePair.weak("details", details),
-			LabelValuePair.weak("smallImageKey", smallImageKey),
-			LabelValuePair.weak("largeImageKey", largeImageKey),
-			LabelValuePair.weak("largeImageText", largeImageText),
-			LabelValuePair.weak("startTimestamp", startTimestamp),
-			LabelValuePair.weak("endTimestamp", endTimestamp)
-		]);
-	}
-
-	@:noCompletion inline function get_state():String
-	{
-		return __presence.state;
-	}
-
-	@:noCompletion inline function set_state(value:String):String
-	{
-		return __presence.state = value;
-	}
-
-	@:noCompletion inline function get_details():String
-	{
-		return __presence.details;
-	}
-
-	@:noCompletion inline function set_details(value:String):String
-	{
-		return __presence.details = value;
-	}
-
-	@:noCompletion inline function get_smallImageKey():String
-	{
-		return __presence.smallImageKey;
-	}
-
-	@:noCompletion inline function set_smallImageKey(value:String):String
-	{
-		return __presence.smallImageKey = value;
-	}
-
-	@:noCompletion inline function get_largeImageKey():String
-	{
-		return __presence.largeImageKey;
-	}
-	
-	@:noCompletion inline function set_largeImageKey(value:String):String
-	{
-		return __presence.largeImageKey = value;
-	}
-
-	@:noCompletion inline function get_largeImageText():String
-	{
-		return __presence.largeImageText;
-	}
-
-	@:noCompletion inline function set_largeImageText(value:String):String
-	{
-		return __presence.largeImageText = value;
-	}
-
-	@:noCompletion inline function get_startTimestamp():Int
-	{
-		return __presence.startTimestamp;
-	}
-
-	@:noCompletion inline function set_startTimestamp(value:Int):Int
-	{
-		return __presence.startTimestamp = value;
-	}
-
-	@:noCompletion inline function get_endTimestamp():Int
-	{
-		return __presence.endTimestamp;
-	}
-
-	@:noCompletion inline function set_endTimestamp(value:Int):Int
-	{
-		return __presence.endTimestamp = value;
-	}
 }
 #end

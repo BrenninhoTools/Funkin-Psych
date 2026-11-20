@@ -67,7 +67,7 @@ class Project extends HXProject
 			if (!hasDefine("NO_FOXLITE")) enable("FOXLITE_ALLOWED");
 		}
 		enable("ACHIEVEMENTS_ALLOWED");
-		if (isDesktop()) enable("DISCORD_ALLOWED");
+		if (isDesktop() || isMobile()) enable("DISCORD_ALLOWED");
 		enable("TRANSLATIONS_ALLOWED");
 		enable("IRIS_DEBUG");
 
@@ -205,7 +205,6 @@ class Project extends HXProject
 			addHaxelib("jsonpatch");
 		}
 		if (hasDefine("VIDEOS_ALLOWED")) addHaxelib("hxvlc");
-		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
 		addHaxelib("flxanimate");
 		if (hasDefine("FOXLITE_ALLOWED")) addHaxelib("foxlite");
 		if (hasDefine("BASE_GAME_FILES"))
@@ -221,7 +220,6 @@ class Project extends HXProject
 
 	function setupHaxedefs()
 	{
-		if (hasDefine("DISCORD_ALLOWED")) setHaxedef("DISCORD_DISABLE_IO_THREAD");
 		if (target == Platform.LINUX) setHaxedef("NO_PRECOMPILED_HEADERS");
 
 		if (hasDefine("VIDEOS_ALLOWED"))

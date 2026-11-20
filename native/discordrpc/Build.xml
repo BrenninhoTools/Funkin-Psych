@@ -1,0 +1,18 @@
+<xml>
+	<files id="funkin_discord" dir="${this_dir}">
+		<compilerflag value="-I${this_dir}/include"/>
+		<compilerflag value="-std=c++17" unless="windows"/>
+		<compilerflag value="/std:c++17" if="windows" unless="mingw"/>
+		<depend name="${this_dir}/include/funkin_discord.h"/>
+		<file name="src/discord_rpc.cpp"/>
+	</files>
+
+	<files id="haxe">
+		<compilerflag value="-I${this_dir}/include"/>
+	</files>
+
+	<target id="haxe">
+		<files id="funkin_discord"/>
+		<lib name="-lpthread" if="linux"/>
+	</target>
+</xml>

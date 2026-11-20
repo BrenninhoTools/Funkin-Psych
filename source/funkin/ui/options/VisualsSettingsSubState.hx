@@ -145,7 +145,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
-		#if DISCORD_ALLOWED
+		#if (DISCORD_ALLOWED && !mobile)
 		var option:Option = new Option('Discord Rich Presence',
 			"Uncheck this to prevent accidental leaks, it will hide the Application from your \"Playing\" box on Discord",
 			'discordRPC',

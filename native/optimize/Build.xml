@@ -18,5 +18,6 @@
 		<lib name="-lwinmm" if="mingw"/>
 		<lib name="-lpsapi" if="mingw"/>
 		<lib name="-lpthread" if="linux"/>
+		<flag value="-fuse-ld=mold" if="FUNKIN_FAST_LINK" unless="windows"/>
 	</target>
 </xml>

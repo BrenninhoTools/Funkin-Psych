@@ -310,7 +310,7 @@ jobs:
         if: matrix.host == 'linux' && (matrix.target == 'linux' || steps.lime-state.outputs.rebuild == 'true')
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ${{ env.APT_PACKAGES }} ${{ matrix.target == 'linux' && 'libvlc-dev libvlccore-dev' || '' }}
+          packages: ${{ env.APT_PACKAGES }} ${{ matrix.target == 'linux' && 'libvlc-dev libvlccore-dev mold' || '' }}
           version: ${{ env.CACHE_REV }}-${{ matrix.target }}
 
       - name: Fetch Lime submodules
@@ -437,6 +437,9 @@ jobs:
           if [ '${{ matrix.target }}' = android ] && [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > release.keystore
             FLAGS+=(-D ANDROID_SIGNING)
+          fi
+          if [ '${{ matrix.target }}' = linux ] && command -v mold > /dev/null 2>&1; then
+            export FUNKIN_FAST_LINK=1
           fi
           if [ '${{ matrix.target }}' = android ]; then
             export GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
