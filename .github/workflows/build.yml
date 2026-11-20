@@ -15,7 +15,7 @@ concurrency:
 
 env:
   HAXE_VERSION: '4.3.7'
-  CACHE_REV: 'v8'
+  CACHE_REV: 'v7'
   NDK_VERSION: '27.2.12479018'
   HXCPP_CACHE_MB: '2048'
   APT_PACKAGES: g++ pkg-config libx11-dev libxi-dev libxext-dev libxfixes-dev libxinerama-dev libxrandr-dev libxcursor-dev libxss-dev libxtst-dev libgl-dev libgl1-mesa-dev libegl-dev libgles-dev libasound2-dev libpulse-dev libpipewire-0.3-dev libspa-0.2-dev libwayland-bin libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libdbus-1-dev libudev-dev libdrm-dev libgbm-dev
@@ -312,6 +312,16 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Patch Lime sources
+        if: steps.lime-state.outputs.rebuild == 'true'
+        run: |
+          set -euo pipefail
+          EAX="$LIME_DIR/project/lib/openal/al/eax/api.h"
+          if [ -f "$EAX" ]; then
+            perl -pi -e 's/gsl::narrow<(eax_u?long)>\(x\)/static_cast<$1>(x)/g' "$EAX"
+            grep -n 'static_cast<eax' "$EAX" || true
+          fi
 
       - name: Compile hxcpp tools
         run: |
