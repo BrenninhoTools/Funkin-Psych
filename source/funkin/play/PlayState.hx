@@ -1367,10 +1367,10 @@ class PlayState extends MusicBeatState
 		{
 			if (songData.needsVoices)
 			{
-				var playerVocals = Paths.characterVoices(songData.song, boyfriend.curCharacter, boyfriend.vocalsFile, 'Player');
+				var playerVocals = Paths.characterVoices(songData.song, boyfriend.curCharacter, boyfriend.vocalsFile, 'Player', true, true, songData.variation);
 				if (playerVocals != null) vocals.loadEmbedded(playerVocals);
 
-				var oppVocals = Paths.characterVoices(songData.song, dad.curCharacter, dad.vocalsFile, 'Opponent', false);
+				var oppVocals = Paths.characterVoices(songData.song, dad.curCharacter, dad.vocalsFile, 'Opponent', false, true, songData.variation);
 				if(oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 			}
 		}
@@ -1386,7 +1386,7 @@ class PlayState extends MusicBeatState
 		inst = new FlxSound();
 		try
 		{
-			inst.loadEmbedded(Paths.inst(songData.song));
+			inst.loadEmbedded(Paths.variationInst(songData.song, songData.variation));
 		}
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(inst);

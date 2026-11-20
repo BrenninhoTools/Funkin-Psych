@@ -719,7 +719,10 @@ class FreeplayState extends MusicBeatState
 
 		var previous:String = Mods.currentModDirectory;
 		Mods.currentModDirectory = data.folder;
-		var inst:Sound = Paths.returnSound('${data.songIdFor(currentDifficulty)}/Inst', 'songs', true, false);
+		var source = data.previewFor(currentDifficulty);
+		var inst:Sound = null;
+		if (source.variation != null) inst = Paths.returnSound('${source.audio}/Inst-${source.variation}', 'songs', true, false);
+		if (inst == null) inst = Paths.returnSound('${source.audio}/Inst', 'songs', true, false);
 		Mods.currentModDirectory = previous;
 		if (inst == null) return;
 

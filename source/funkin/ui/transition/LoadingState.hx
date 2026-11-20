@@ -558,12 +558,16 @@ class LoadingState extends MusicBeatState
 				prepare(imgs, snds, mscs);
 			}
 
-			songsToPrepare.push('$folder/Inst');
+			var audioFolder:String = Paths.formatToSongPath(song.song);
+			if (song.variation != null && Paths.fileExists('$audioFolder/Inst-${song.variation}.${Paths.SOUND_EXT}', SOUND, false, 'songs'))
+				songsToPrepare.push('$audioFolder/Inst-${song.variation}');
+			else
+				songsToPrepare.push('$audioFolder/Inst');
 
 			var player1:String = song.player1;
 			var player2:String = song.player2;
 			var gfVersion:String = song.gfVersion;
-			var prefixVocals:String = song.needsVoices ? '$folder/Voices' : null;
+			var prefixVocals:String = song.needsVoices ? '$audioFolder/Voices' : null;
 			if (gfVersion == null) gfVersion = 'gf';
 
 			dontPreloadDefaultVoices = false;

@@ -52,7 +52,7 @@ class FreeplaySongData
 				ratings.set(normalize(field), Std.int(Reflect.field(info.ratings, field)));
 
 		var basePlayer:String = info != null && info.player != null ? Std.string(info.player) : 'bf';
-		variants.push({song: songName, difficulties: baseDifficulties, player: basePlayer, icon: null, ratings: null});
+		variants.push({song: songName, difficulties: baseDifficulties, player: basePlayer, icon: null, ratings: null, audio: songId, variation: null});
 		var extra:Array<Dynamic> = info != null && info.variants != null ? info.variants : [];
 		for (entry in extra)
 		{
@@ -72,7 +72,9 @@ class FreeplaySongData
 				difficulties: diffs,
 				player: entry.player != null ? Std.string(entry.player) : 'bf',
 				icon: entry.icon != null ? Std.string(entry.icon) : null,
-				ratings: variantRatings
+				ratings: variantRatings,
+				audio: entry.audio != null ? Std.string(entry.audio) : songId,
+				variation: entry.variation != null ? Std.string(entry.variation) : null
 			});
 		}
 		setPlayer('bf');
@@ -149,6 +151,13 @@ class FreeplaySongData
 
 	public inline function hasDifficulty(diff:String):Bool
 		return diff != null && charts.exists(normalize(diff));
+
+	public function previewFor(diff:String):{audio:String, variation:String}
+	{
+		var variant:FreeplayVariant = diff != null ? charts.get(normalize(diff)) : null;
+		if (variant == null) return {audio: songId, variation: null};
+		return {audio: Paths.formatToSongPath(variant.audio), variation: variant.variation};
+	}
 
 	public function songIdFor(diff:String):String
 	{
@@ -291,7 +300,9 @@ typedef FreeplayVariant =
 	difficulties:Array<String>,
 	player:String,
 	icon:String,
-	ratings:Map<String, Int>
+	ratings:Map<String, Int>,
+	audio:String,
+	variation:String
 }
 
 typedef FreeplayChart =

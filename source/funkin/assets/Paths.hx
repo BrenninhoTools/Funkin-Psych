@@ -174,8 +174,28 @@ class Paths
 		return list;
 	}
 
-	public static function characterVoices(song:String, ?character:String, ?vocalsFile:String, ?fallback:String, allowPlain:Bool = true, ?modsAllowed:Bool = true):Sound
+	public static function variationInst(song:String, ?variation:String, ?modsAllowed:Bool = true):Sound
 	{
+		if (variation != null && variation.length > 0)
+		{
+			var sound:Sound = returnSound('${formatToSongPath(song)}/Inst-$variation', 'songs', modsAllowed, false);
+			if (sound != null) return sound;
+		}
+		return inst(song, modsAllowed);
+	}
+
+	public static function characterVoices(song:String, ?character:String, ?vocalsFile:String, ?fallback:String, allowPlain:Bool = true, ?modsAllowed:Bool = true, ?variation:String):Sound
+	{
+		if (variation != null && variation.length > 0)
+		{
+			for (postfix in vocalCandidates(character, vocalsFile, fallback))
+			{
+				var sound:Sound = voices(song, '$postfix-$variation', modsAllowed);
+				if (sound != null) return sound;
+			}
+			var plain:Sound = voices(song, variation, modsAllowed);
+			if (plain != null) return plain;
+		}
 		for (postfix in vocalCandidates(character, vocalsFile, fallback))
 		{
 			var sound:Sound = voices(song, postfix, modsAllowed);

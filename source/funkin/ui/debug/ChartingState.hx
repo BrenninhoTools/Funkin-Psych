@@ -1827,7 +1827,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		try
 		{
-			FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0);
+			FlxG.sound.playMusic(Paths.variationInst(PlayState.SONG.song, PlayState.SONG.variation), 0);
 			FlxG.sound.music.pause();
 			FlxG.sound.music.time = time;
 			FlxG.sound.music.onComplete = (function() songFinished = true);
@@ -1844,14 +1844,14 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		{
 			try
 			{
-				var playerVocals:Sound = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player1, characterData.vocalsP1, 'Player');
+				var playerVocals:Sound = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player1, characterData.vocalsP1, 'Player', true, true, PlayState.SONG.variation);
 				if (playerVocals != null) vocals.loadEmbedded(playerVocals);
 				vocals.volume = 0;
 				vocals.play();
 				vocals.pause();
 				vocals.time = time;
 				
-				var oppVocals:Sound = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player2, characterData.vocalsP2, 'Opponent', false);
+				var oppVocals:Sound = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player2, characterData.vocalsP2, 'Opponent', false, true, PlayState.SONG.variation);
 				if(oppVocals != null && oppVocals.length > 0)
 				{
 					opponentVocals.loadEmbedded(oppVocals);

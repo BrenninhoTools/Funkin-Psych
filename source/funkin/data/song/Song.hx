@@ -35,6 +35,7 @@ typedef SwagSong =
 	@:optional var playerNoteStyle:String;
 	@:optional var opponentNoteStyle:String;
 	@:optional var hud:String;
+	@:optional var variation:String;
 }
 
 typedef SwagSection =

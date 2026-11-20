@@ -50,6 +50,7 @@ class ChartParser
 			if (gameOver.end != null) song.gameOverEnd = gameOver.end;
 		}
 		if (DataUtil.toBool(data.disableNoteRGB)) song.disableNoteRGB = true;
+		if (data.variation != null && Std.string(data.variation).length > 0) song.variation = Std.string(data.variation);
 		if (data.arrowSkin != null) song.arrowSkin = data.arrowSkin;
 		if (data.splashSkin != null) song.splashSkin = data.splashSkin;
 		if (data.hud != null) song.hud = data.hud;
@@ -167,6 +168,7 @@ class ChartParser
 		if (song.arrowSkin != null && song.arrowSkin.length > 0) data.arrowSkin = song.arrowSkin;
 		if (song.splashSkin != null && song.splashSkin.length > 0) data.splashSkin = song.splashSkin;
 		if (song.disableNoteRGB == true) data.disableNoteRGB = true;
+		if (song.variation != null && song.variation.length > 0) data.variation = song.variation;
 		if (song.hud != null && song.hud.length > 0) data.hud = song.hud;
 
 		var gameOver:Dynamic = {};
