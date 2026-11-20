@@ -5,8 +5,6 @@ import flixel.input.gamepad.FlxGamepad;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.gamepad.FlxGamepadManager;
 
-import funkin.ui.options.CheckboxThingie;
-import funkin.ui.text.AttachedText;
 import funkin.ui.options.Option;
 import funkin.input.InputFormatter;
 
@@ -17,8 +15,8 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	private var optionsArray:Array<Option>;
 
 	private var grpOptions:FlxTypedGroup<Alphabet>;
-	private var checkboxGroup:FlxTypedGroup<CheckboxThingie>;
-	private var grpTexts:FlxTypedGroup<AttachedText>;
+	private var checkboxes:Map<Int, PreferenceCheckbox> = [];
+	private var valueTexts:Map<Int, Alphabet> = [];
 
 	private var descBox:FlxSprite;
 	private var descText:FlxText;
@@ -27,87 +25,104 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	public var rpcTitle:String;
 
 	public var bg:FlxSprite;
+
+	var menuCamera:FlxCamera;
+	var camFollow:flixel.FlxObject;
+
 	public function new()
 	{
 		super();
 
 		if(title == null) title = 'Options';
 		if(rpcTitle == null) rpcTitle = 'Options Menu';
-		
+
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence(rpcTitle, null);
 		#end
-		
-		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		bg.color = 0xFFea71fd;
-		bg.screenCenter();
-		bg.antialiasing = Save.data.antialiasing;
-		add(bg);
-		funkin.mobile.screen.WideScreen.fit(bg);
 
-		// avoids lagspikes while scrolling through menus!
+		bg = OptionsState.createBackground();
+		add(bg);
+
+		menuCamera = new FlxCamera();
+		menuCamera.bgColor = 0x0;
+		FlxG.cameras.add(menuCamera, false);
+
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
-		grpTexts = new FlxTypedGroup<AttachedText>();
-		add(grpTexts);
+		for (i in 0...optionsArray.length)
+		{
+			var option:Option = optionsArray[i];
+			var optionText:Alphabet = new Alphabet(120, 120 * i + 30, option.name.toUpperCase(), true);
+			optionText.cameras = [menuCamera];
+			grpOptions.add(optionText);
 
-		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
-		add(checkboxGroup);
+			if (option.type == BOOL)
+			{
+				var checkbox:PreferenceCheckbox = new PreferenceCheckbox(0, 120 * i, Std.string(option.getValue()) == 'true');
+				checkbox.cameras = [menuCamera];
+				checkboxes.set(i, checkbox);
+				add(checkbox);
+			}
+			else if (option.type != BUTTON)
+			{
+				var valueText:Alphabet = new Alphabet(15, 120 * i + 30, '', false);
+				valueText.cameras = [menuCamera];
+				valueTexts.set(i, valueText);
+				add(valueText);
+				option.child = valueText;
+			}
+			updateTextFrom(option);
+		}
 
 		descBox = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		descBox.alpha = 0.6;
+		descBox.scrollFactor.set();
 		add(descBox);
-
-		var titleText:Alphabet = new Alphabet(75, 45, title, true);
-		titleText.setScale(0.6);
-		titleText.alpha = 0.4;
-		add(titleText);
 
 		descText = new FlxText(50, 600, 1180, "", 32);
 		descText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		descText.scrollFactor.set();
-		descText.borderSize = 2.4;
+		descText.borderSize = 3;
 		add(descText);
 
-		for (i in 0...optionsArray.length)
-		{
-			var optionText:Alphabet = new Alphabet(220, 260, optionsArray[i].name, false);
-			optionText.isMenuItem = true;
-			/*optionText.forceX = 300;
-			optionText.yMult = 90;*/
-			optionText.targetY = i;
-			grpOptions.add(optionText);
+		camFollow = new flixel.FlxObject(FlxG.width / 2, 0, 140, 70);
+		menuCamera.follow(camFollow, null, 0.085);
+		var margin:Float = 160;
+		menuCamera.deadzone.set(0, margin, menuCamera.width, menuCamera.height - margin * 2);
+		menuCamera.minScrollY = 0;
 
-			if(optionsArray[i].type == BOOL)
-			{
-				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, Std.string(optionsArray[i].getValue()) == 'true');
-				checkbox.sprTracker = optionText;
-				checkbox.ID = i;
-				checkboxGroup.add(checkbox);
-			}
-			else if(optionsArray[i].type != BUTTON)
-			{
-				optionText.x -= 80;
-				optionText.startPosition.x -= 80;
-				//optionText.xAdd -= 80;
-				var valueText:AttachedText = new AttachedText('' + optionsArray[i].getValue(), optionText.width + 60);
-				valueText.sprTracker = optionText;
-				valueText.copyAlpha = true;
-				valueText.ID = i;
-				grpTexts.add(valueText);
-				optionsArray[i].child = valueText;
-			}
-			//optionText.snapToPosition(); //Don't ignore me when i ask for not making a fucking pull request to uncomment this line ok
-			updateTextFrom(optionsArray[i]);
-		}
-
+		silentSelection = true;
 		changeSelection();
-		reloadCheckboxes();
+		silentSelection = false;
+		layoutItems();
+		menuCamera.snapToTarget();
 
 		#if mobile
 		add(funkin.mobile.controls.MobileButton.back());
 		#end
+	}
+
+	function layoutItems()
+	{
+		for (i => item in grpOptions.members)
+		{
+			var offsetX:Float = 0;
+			var valueText:Alphabet = valueTexts.get(i);
+			if (valueText != null) offsetX = valueText.width - 75;
+			offsetX += i == curSelected ? 150 : 120;
+			item.x = offsetX;
+		}
+	}
+
+	override function close()
+	{
+		if (menuCamera != null)
+		{
+			FlxG.cameras.remove(menuCamera);
+			menuCamera = null;
+		}
+		super.close();
 	}
 
 	public function addOption(option:Option) {
@@ -128,6 +143,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		if (menuCamera == null) return;
+		layoutItems();
+		if (grpOptions.members[curSelected] != null) camFollow.y = grpOptions.members[curSelected].y;
 
 		if(bindingKey)
 		{
@@ -137,12 +155,19 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		var touchAccept:Bool = false;
 		#if mobile
-		var tapped:Int = funkin.mobile.input.TouchInput.tappedRow(cast grpOptions.members);
-		funkin.mobile.input.TouchInput.consumeTap();
-		if (tapped > -1)
+		if (funkin.mobile.input.TouchInput.justTapped())
 		{
-			if (tapped == curSelected) touchAccept = true;
-			else changeSelection(tapped - curSelected);
+			for (i => item in grpOptions.members)
+			{
+				var row:Bool = funkin.mobile.input.TouchInput.overlapsScreen(item, funkin.mobile.input.TouchInput.tapX, funkin.mobile.input.TouchInput.tapY, menuCamera, 10);
+				var box:PreferenceCheckbox = checkboxes.get(i);
+				if (!row && box != null) row = funkin.mobile.input.TouchInput.overlapsScreen(box, funkin.mobile.input.TouchInput.tapX, funkin.mobile.input.TouchInput.tapY, menuCamera, 10);
+				if (!row) continue;
+				funkin.mobile.input.TouchInput.consumeTap();
+				if (i == curSelected) touchAccept = true;
+				else changeSelection(i - curSelected);
+				break;
+			}
 		}
 		#end
 
@@ -156,8 +181,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 
 		if (controls.BACK) {
-			close();
 			FunkinSound.playOnce('cancelMenu');
+			close();
+			return;
 		}
 
 		if(nextAccept <= 0)
@@ -430,20 +456,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				text = InputFormatter.getGamepadName(FlxGamepadInputID.fromString(text));
 		}
 
-		var bind:AttachedText = cast option.child;
-		var attach:AttachedText = new AttachedText(text, bind.offsetX);
-		attach.sprTracker = bind.sprTracker;
-		attach.copyAlpha = true;
-		attach.ID = bind.ID;
-		playstationCheck(attach);
-		attach.scaleX = Math.min(1, MAX_KEYBIND_WIDTH / attach.width);
-		attach.x = bind.x;
-		attach.y = bind.y;
-
-		option.child = attach;
-		grpTexts.insert(grpTexts.members.indexOf(bind), attach);
-		grpTexts.remove(bind);
-		bind.destroy();
+		var bind:Alphabet = option.child;
+		if (bind == null) return;
+		bind.scaleX = 1;
+		bind.text = text;
+		playstationCheck(bind);
+		bind.scaleX = Math.min(1, MAX_KEYBIND_WIDTH / Math.max(1, bind.width));
 	}
 
 	function playstationCheck(alpha:Alphabet)
@@ -496,35 +514,32 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		option.text = text.replace('%v', val).replace('%d', def);
 	}
 	
+	var silentSelection:Bool = false;
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, optionsArray.length - 1);
 
 		descText.text = optionsArray[curSelected].description;
-		descText.screenCenter(Y);
+		descText.screenCenter();
 		descText.y += 270;
 
 		for (num => item in grpOptions.members)
 		{
-			item.targetY = num - curSelected;
-			item.alpha = 0.6;
-			if (item.targetY == 0) item.alpha = 1;
-		}
-		for (text in grpTexts)
-		{
-			text.alpha = 0.6;
-			if(text.ID == curSelected) text.alpha = 1;
+			item.alpha = num == curSelected ? 1 : 0.6;
+			var valueText:Alphabet = valueTexts.get(num);
+			if (valueText != null) valueText.alpha = item.alpha;
 		}
 
 		descBox.setPosition(descText.x - 10, descText.y - 10);
 		descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
 		descBox.updateHitbox();
+		descBox.visible = descText.text.length > 0;
 
-		curOption = optionsArray[curSelected]; //shorter lol
-		FunkinSound.playOnce('scrollMenu');
+		curOption = optionsArray[curSelected];
+		if (!silentSelection) FunkinSound.playOnce('scrollMenu');
 	}
 
 	function reloadCheckboxes()
-		for (checkbox in checkboxGroup)
-			checkbox.daValue = Std.string(optionsArray[checkbox.ID].getValue()) == 'true'; //Do not take off the Std.string() from this, it will break a thing in Mod Settings Menu
+		for (index => checkbox in checkboxes)
+			checkbox.currentValue = Std.string(optionsArray[index].getValue()) == 'true';
 }
