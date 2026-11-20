@@ -40,6 +40,7 @@ class SwitchGame
 
 	static var launchedFromCache:String = null;
 	static var parsedArguments:Bool = false;
+	static var introPlayed:Bool = false;
 
 	public static function version():String
 	{
@@ -101,6 +102,27 @@ class SwitchGame
 		return null;
 	}
 
+	public static function describe(id:String):{name:String, color:String}
+	{
+		var raw:Dynamic = UIData.readFile(FOLDER, FILE);
+		var list:Array<Dynamic> = raw != null && raw.engines != null ? raw.engines : [];
+		for (entry in list)
+			if (entry != null && Std.string(entry.id) == id)
+				return {name: entry.name != null ? Std.string(entry.name) : id, color: entry.color != null ? Std.string(entry.color) : '#FFFFFF'};
+		return {name: id, color: '#FFFFFF'};
+	}
+
+	public static function playIntro():Bool
+	{
+		var from:String = launchedFrom;
+		if (from == null || from.length < 1 || introPlayed) return false;
+		introPlayed = true;
+		var source = describe(from);
+		var self = describe(selfId);
+		funkin.ui.switchgame.SwitchTransition.playIn(source.name, UIData.parseColor(source.color, FlxColor.WHITE), self.name, UIData.parseColor(self.color, FlxColor.WHITE));
+		return true;
+	}
+
 	public static function launchFor(engine:SwitchEngine):EngineLaunch
 	{
 		if (engine == null || engine.launch == null) return null;
@@ -140,7 +162,7 @@ class SwitchGame
 	public static function supported(engine:SwitchEngine):Bool
 		return launchFor(engine) != null;
 
-	public static function switchTo(engine:SwitchEngine, exitAfter:Bool = true):Bool
+	public static function switchTo(engine:SwitchEngine, exitAfter:Bool = true, ?delay:Float):Bool
 	{
 		lastError = '';
 		var launch:EngineLaunch = launchFor(engine);
@@ -178,7 +200,7 @@ class SwitchGame
 		if (started && exitAfter)
 		{
 			Save.saveSettings();
-			new FlxTimer().start(exitDelay, (_) -> lime.system.System.exit(0));
+			new FlxTimer().start(delay != null ? delay : exitDelay, (_) -> lime.system.System.exit(0));
 		}
 		return started;
 	}
@@ -218,10 +240,16 @@ class SwitchGame
 	{
 		if (parsedArguments) return launchedFromCache;
 		parsedArguments = true;
+		var arguments:Array<String> = [];
 		#if sys
-		for (argument in Sys.args())
-			if (argument.startsWith(FROM_ARGUMENT)) launchedFromCache = argument.substr(FROM_ARGUMENT.length);
+		arguments = arguments.concat(Sys.args());
 		#end
+		#if cpp
+		var extra:String = SwitchGameNative.launchArguments().toString();
+		if (extra != null && extra.length > 0) arguments = arguments.concat(extra.split('\n'));
+		#end
+		for (argument in arguments)
+			if (argument.startsWith(FROM_ARGUMENT)) launchedFromCache = argument.substr(FROM_ARGUMENT.length);
 		return launchedFromCache;
 	}
 }

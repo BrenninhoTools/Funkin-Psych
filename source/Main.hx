@@ -135,6 +135,7 @@ class Main extends Sprite
 		funkin.mobile.native.NativeCrash.reportPrevious();
 		#end
 
+		FlxG.signals.postStateSwitch.addOnce(() -> funkin.switchgame.SwitchGame.playIntro());
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF, Save.data.fpsStyle);
 		addChild(fpsVar);
 		Lib.current.stage.align = "tl";

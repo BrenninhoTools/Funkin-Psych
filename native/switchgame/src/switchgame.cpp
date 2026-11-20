@@ -25,6 +25,7 @@
 namespace
 {
 	std::string errorText;
+	std::string argumentsText;
 
 	void fail(const std::string& message)
 	{
@@ -306,6 +307,42 @@ namespace switchgame
 	const char* lastError()
 	{
 		return errorText.c_str();
+	}
+
+	const char* launchArguments()
+	{
+		argumentsText.clear();
+#if defined(__ANDROID__)
+		AndroidContext context;
+		if (!androidContext(context)) return argumentsText.c_str();
+		JNIEnv* env = context.env;
+		jclass activityClass = env->GetObjectClass(context.activity);
+		jmethodID getIntent = env->GetMethodID(activityClass, "getIntent", "()Landroid/content/Intent;");
+		jobject intent = env->CallObjectMethod(context.activity, getIntent);
+		env->DeleteLocalRef(activityClass);
+		if (!clearException(env) && intent != NULL)
+		{
+			jclass intentClass = env->GetObjectClass(intent);
+			jmethodID getExtra = env->GetMethodID(intentClass, "getStringExtra", "(Ljava/lang/String;)Ljava/lang/String;");
+			jstring key = env->NewStringUTF("switchgame.arguments");
+			jstring value = (jstring)env->CallObjectMethod(intent, getExtra, key);
+			env->DeleteLocalRef(key);
+			if (!clearException(env) && value != NULL)
+			{
+				const char* chars = env->GetStringUTFChars(value, NULL);
+				if (chars != NULL)
+				{
+					argumentsText = chars;
+					env->ReleaseStringUTFChars(value, chars);
+				}
+				env->DeleteLocalRef(value);
+			}
+			env->DeleteLocalRef(intentClass);
+			env->DeleteLocalRef(intent);
+		}
+		env->DeleteLocalRef(context.activity);
+#endif
+		return argumentsText.c_str();
 	}
 
 	bool pathExists(const char* path)

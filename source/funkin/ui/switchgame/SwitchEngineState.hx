@@ -84,7 +84,7 @@ class SwitchEngineState extends MusicBeatState
 
 			var accept:Bool = controls.ACCEPT;
 			#if mobile
-			var tapped:Int = funkin.mobile.input.TouchInput.tappedRow([for (item in items.members) (item:FlxObject)]);
+			var tapped:Int = funkin.mobile.input.TouchInput.tappedRow([for (item in items.members) (item:flixel.FlxObject)]);
 			if (tapped > -1)
 			{
 				if (tapped == curSelected) accept = true;
@@ -128,18 +128,23 @@ class SwitchEngineState extends MusicBeatState
 		}
 
 		confirming = false;
-		if (SwitchGame.switchTo(engine))
+		busy = true;
+		FlxG.sound.play(Paths.sound('confirmMenu'));
+		statusText.text = 'Opening ${engine.name}...';
+		var transition:SwitchTransition = null;
+		transition = SwitchTransition.playOut(engine.name, UIData.parseColor(engine.color, FlxColor.WHITE), function()
 		{
-			busy = true;
-			FlxG.sound.play(Paths.sound('confirmMenu'));
-			statusText.text = 'Opening ${engine.name}...';
-			FlxG.camera.fade(FlxColor.BLACK, SwitchGame.exitDelay);
-		}
-		else
-		{
+			if (SwitchGame.switchTo(engine, true, 0.05)) return;
 			statusText.text = 'Could not open ${engine.name}: ${SwitchGame.lastError}';
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-		}
+			transition.fail(SwitchGame.lastError, () -> busy = false);
+		});
+	}
+
+	override function destroy()
+	{
+		if (SwitchTransition.current != null && !busy) SwitchTransition.cancelCurrent();
+		super.destroy();
 	}
 
 	function changeSelection(change:Int = 0)

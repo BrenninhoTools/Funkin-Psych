@@ -5,6 +5,7 @@ namespace switchgame
 	const char* version();
 	const char* platform();
 	const char* lastError();
+	const char* launchArguments();
 
 	bool pathExists(const char* path);
 	bool packageInstalled(const char* package);
