@@ -75,11 +75,13 @@ class LevelParser
 	{
 		if (Std.isOfType(song, Array)) return cast song;
 		if (Std.isOfType(song, String)) return [song, 'face', [146, 113, 253]];
-		return [
+		var entry:Array<Dynamic> = [
 			song.name != null ? Std.string(song.name) : 'Unknown',
 			song.icon != null ? Std.string(song.icon) : 'face',
 			DataUtil.rgb(song.color, [146, 113, 253])
 		];
+		if (song.album != null) entry.push(Std.string(song.album));
+		return entry;
 	}
 
 	public static function toV2(file:LevelFile):Dynamic
@@ -98,7 +100,9 @@ class LevelParser
 			songs: [for (song in (file.songs != null ? file.songs : [])) {
 				var entry:Array<Dynamic> = song;
 				var color:Array<Int> = DataUtil.rgb(entry[2], [146, 113, 253]);
-				{name: entry[0], icon: entry[1], color: DataUtil.hex(color)};
+				var song:Dynamic = {name: entry[0], icon: entry[1], color: DataUtil.hex(color)};
+				if (entry.length > 3 && entry[3] != null) song.album = entry[3];
+				song;
 			}]
 		};
 
