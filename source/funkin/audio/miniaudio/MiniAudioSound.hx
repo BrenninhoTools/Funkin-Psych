@@ -15,39 +15,63 @@ class MiniAudioSound
 	public var length(get, never):Float;
 	public var peak(get, never):Float;
 	public var finished(get, never):Bool;
+	public var rms(get, never):Float;
+	public var sampleRate(get, never):Int;
+	public var channels(get, never):Int;
+	public var group(default, null):MiniAudioGroup;
 
 	function new(id:Int)
 	{
 		this.id = id;
 	}
 
-	public static function fromFile(path:String, stream:Bool = false):MiniAudioSound
+	public static function fromFile(path:String, stream:Bool = false, ?group:MiniAudioGroup):MiniAudioSound
 	{
 		#if cpp
-		var id:Int = MiniAudioNative.soundLoadFile(cpp.ConstCharStar.fromString(path), stream);
-		return id < 0 ? null : new MiniAudioSound(id);
+		if (path == null || !MiniAudio.init()) return null;
+		var id:Int = MiniAudioNative.soundLoadFileEx(untyped __cpp__('{0}.utf8_str()', path), stream, group != null ? group.id : -1);
+		return wrap(id, group);
 		#else
 		return null;
 		#end
 	}
 
-	public static function fromBytes(bytes:Bytes):MiniAudioSound
+	public static function fromBytes(bytes:Bytes, ?group:MiniAudioGroup):MiniAudioSound
 	{
 		#if cpp
-		if (bytes == null || bytes.length < 1) return null;
-		var id:Int = MiniAudioNative.soundLoadMemory(cpp.Pointer.arrayElem(bytes.getData(), 0).constRaw, bytes.length);
-		return id < 0 ? null : new MiniAudioSound(id);
+		if (bytes == null || bytes.length < 1 || !MiniAudio.init()) return null;
+		var id:Int = MiniAudioNative.soundLoadMemoryEx(cpp.Pointer.arrayElem(bytes.getData(), 0).constRaw, bytes.length, group != null ? group.id : -1);
+		return wrap(id, group);
 		#else
 		return null;
 		#end
 	}
 
-	public static function fromAsset(key:String):MiniAudioSound
+	static function wrap(id:Int, group:MiniAudioGroup):MiniAudioSound
+	{
+		if (id < 0) return null;
+		var sound:MiniAudioSound = new MiniAudioSound(id);
+		sound.group = group;
+		return sound;
+	}
+
+	public function clone(?group:MiniAudioGroup):MiniAudioSound
+	{
+		#if cpp
+		if (!valid) return null;
+		var target:MiniAudioGroup = group != null ? group : this.group;
+		return wrap(MiniAudioNative.soundClone(id, target != null ? target.id : -1), target);
+		#else
+		return null;
+		#end
+	}
+
+	public static function fromAsset(key:String, stream:Bool = false, ?group:MiniAudioGroup):MiniAudioSound
 	{
 		#if sys
-		if (sys.FileSystem.exists(key)) return fromBytes(sys.io.File.getBytes(key));
+		if (sys.FileSystem.exists(key)) return stream ? fromFile(key, true, group) : fromBytes(sys.io.File.getBytes(key), group);
 		#end
-		if (openfl.utils.Assets.exists(key)) return fromBytes(openfl.utils.Assets.getBytes(key));
+		if (openfl.utils.Assets.exists(key)) return fromBytes(openfl.utils.Assets.getBytes(key), group);
 		return null;
 	}
 
@@ -55,6 +79,36 @@ class MiniAudioSound
 	{
 		#if cpp
 		if (valid) MiniAudioNative.soundPlay(id);
+		#end
+		return this;
+	}
+
+	public function playDelayed(milliseconds:Float):MiniAudioSound
+	{
+		#if cpp
+		if (valid) MiniAudioNative.soundPlayDelayed(id, milliseconds);
+		#end
+		return this;
+	}
+
+	public function fade(from:Float, to:Float, milliseconds:Float):MiniAudioSound
+	{
+		#if cpp
+		if (valid) MiniAudioNative.soundFade(id, from, to, milliseconds);
+		#end
+		return this;
+	}
+
+	public function fadeIn(milliseconds:Float, to:Float = 1):MiniAudioSound
+	{
+		play();
+		return fade(0, to, milliseconds);
+	}
+
+	public function fadeOut(milliseconds:Float):MiniAudioSound
+	{
+		#if cpp
+		if (valid) MiniAudioNative.soundStopFade(id, milliseconds);
 		#end
 		return this;
 	}
@@ -73,6 +127,7 @@ class MiniAudioSound
 		if (valid) MiniAudioNative.soundRelease(id);
 		#end
 		id = -1;
+		group = null;
 	}
 
 	inline function get_valid():Bool
@@ -167,6 +222,33 @@ class MiniAudioSound
 	{
 		#if cpp
 		return valid ? MiniAudioNative.soundGetPeak(id) : 0;
+		#else
+		return 0;
+		#end
+	}
+
+	function get_rms():Float
+	{
+		#if cpp
+		return valid ? MiniAudioNative.soundGetRms(id) : 0;
+		#else
+		return 0;
+		#end
+	}
+
+	function get_sampleRate():Int
+	{
+		#if cpp
+		return valid ? MiniAudioNative.soundSampleRate(id) : 0;
+		#else
+		return 0;
+		#end
+	}
+
+	function get_channels():Int
+	{
+		#if cpp
+		return valid ? MiniAudioNative.soundChannels(id) : 0;
 		#else
 		return 0;
 		#end

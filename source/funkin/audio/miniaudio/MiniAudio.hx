@@ -10,12 +10,24 @@ class MiniAudio
 	public static var available(get, never):Bool;
 	public static var ready(get, never):Bool;
 	public static var version(get, never):String;
+	public static var backend(get, never):String;
 	public static var masterVolume(get, set):Float;
+	public static var suspended(get, never):Bool;
+	public static var time(get, never):Float;
+	public static var latency(get, never):Float;
+	public static var peak(get, never):Float;
+	public static var soundCount(get, never):Int;
+	public static var autoSuspend:Bool = true;
 
-	public static function init():Bool
+	static var hooked:Bool = false;
+	static var focusSuspended:Bool = false;
+
+	public static function init(sampleRate:Int = 0, periodMilliseconds:Int = 0, lowLatency:Bool = true):Bool
 	{
 		#if cpp
-		return MiniAudioNative.engineInit();
+		var result:Bool = MiniAudioNative.engineInitEx(sampleRate, periodMilliseconds, lowLatency);
+		if (result) hook();
+		return result;
 		#else
 		return false;
 		#end
@@ -25,6 +37,31 @@ class MiniAudio
 	{
 		#if cpp
 		MiniAudioNative.engineShutdown();
+		#end
+	}
+
+	public static function suspend():Bool
+	{
+		#if cpp
+		return MiniAudioNative.engineSuspend();
+		#else
+		return false;
+		#end
+	}
+
+	public static function resume():Bool
+	{
+		#if cpp
+		return MiniAudioNative.engineResume();
+		#else
+		return false;
+		#end
+	}
+
+	public static function update():Void
+	{
+		#if cpp
+		if (MiniAudioNative.engineReady()) MiniAudioNative.engineUpdate();
 		#end
 	}
 
@@ -80,6 +117,9 @@ class MiniAudio
 					case 2:
 						var raw:Int = bytes.getUInt16(position);
 						(raw > 32767 ? raw - 65536 : raw) / 32768;
+					case 3:
+						var raw:Int = bytes.get(position) | (bytes.get(position + 1) << 8) | (bytes.get(position + 2) << 16);
+						(raw > 8388607 ? raw - 16777216 : raw) / 8388608;
 					case 4: bytes.getFloat(position);
 					default: 0;
 				}
@@ -89,6 +129,28 @@ class MiniAudio
 			frame += step;
 		}
 		return peak > 1 ? 1 : peak;
+	}
+
+	static function hook():Void
+	{
+		if (hooked) return;
+		hooked = true;
+		FlxG.signals.postUpdate.add(update);
+		FlxG.signals.focusLost.add(onFocusLost);
+		FlxG.signals.focusGained.add(onFocusGained);
+	}
+
+	static function onFocusLost():Void
+	{
+		if (!autoSuspend || !FlxG.autoPause || suspended) return;
+		focusSuspended = suspend();
+	}
+
+	static function onFocusGained():Void
+	{
+		if (!focusSuspended) return;
+		focusSuspended = false;
+		resume();
 	}
 
 	static function get_available():Bool
@@ -112,9 +174,18 @@ class MiniAudio
 	static function get_version():String
 	{
 		#if cpp
-		return MiniAudioNative.version().toString();
+		return untyped __cpp__('::String::create(::funkin_miniaudio::version())');
 		#else
 		return 'unavailable';
+		#end
+	}
+
+	static function get_backend():String
+	{
+		#if cpp
+		return untyped __cpp__('::String::create(::funkin_miniaudio::backendName())');
+		#else
+		return 'none';
 		#end
 	}
 
@@ -133,5 +204,50 @@ class MiniAudio
 		MiniAudioNative.setMasterVolume(value);
 		#end
 		return value;
+	}
+
+	static function get_suspended():Bool
+	{
+		#if cpp
+		return MiniAudioNative.engineSuspended();
+		#else
+		return false;
+		#end
+	}
+
+	static function get_time():Float
+	{
+		#if cpp
+		return MiniAudioNative.engineTime();
+		#else
+		return 0;
+		#end
+	}
+
+	static function get_latency():Float
+	{
+		#if cpp
+		return MiniAudioNative.engineLatency();
+		#else
+		return 0;
+		#end
+	}
+
+	static function get_peak():Float
+	{
+		#if cpp
+		return MiniAudioNative.enginePeak();
+		#else
+		return 0;
+		#end
+	}
+
+	static function get_soundCount():Int
+	{
+		#if cpp
+		return MiniAudioNative.soundCount();
+		#else
+		return 0;
+		#end
 	}
 }

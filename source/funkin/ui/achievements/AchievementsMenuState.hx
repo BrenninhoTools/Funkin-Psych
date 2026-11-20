@@ -43,6 +43,7 @@ class AchievementsMenuState extends MusicBeatState
 		add(camFollow);
 
 		var menuBG:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuBGBlue'));
+		funkin.graphics.FullScreenScaleMode.cover(menuBG);
 		menuBG.antialiasing = Save.data.antialiasing;
 		menuBG.setGraphicSize(Std.int(menuBG.width * 1.1));
 		menuBG.updateHitbox();

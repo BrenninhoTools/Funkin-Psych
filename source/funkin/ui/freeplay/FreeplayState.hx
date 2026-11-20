@@ -152,6 +152,7 @@ class FreeplayState extends MusicBeatState
 		songsOffset = cutoutWidth * SONGS_POS_MULTI;
 
 		var menuBG:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuBG'));
+		funkin.graphics.FullScreenScaleMode.cover(menuBG);
 		menuBG.antialiasing = Save.data.antialiasing;
 		menuBG.setGraphicSize(FlxG.width + 1, 0);
 		menuBG.updateHitbox();

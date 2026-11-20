@@ -169,6 +169,10 @@ class Main extends Sprite
 		DiscordClient.prepare();
 		#end
 
+		#if android
+		funkin.api.playgames.PlayGames.init();
+		#end
+
 		// shader coords fix
 		FlxG.signals.gameResized.add(function (w, h) {
 		     if (FlxG.cameras != null) {

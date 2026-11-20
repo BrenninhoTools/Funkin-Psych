@@ -139,6 +139,11 @@ class Save {
 		}
 		#end
 		
+		if (!main.has('screenStyleVersion'))
+		{
+			data.screenStyle = 'Full';
+			data.screenStyleVersion = 1;
+		}
 		if (!main.has('hapticsMode') && main.has('haptics'))
 			data.hapticsMode = main.get('haptics') == false ? 'None' : 'All';
 		if (!main.has('fpsStyle') && main.has('showFPS'))
@@ -171,7 +176,7 @@ class Save {
 			FlxG.sound.muted = FlxG.save.data.mute;
 
 		#if DISCORD_ALLOWED DiscordClient.check(); #end
-		#if mobile funkin.mobile.screen.ScreenStyle.apply(); #end
+		funkin.graphics.ScreenFit.apply();
 
 		{
 			if(controls.has('keyboard'))

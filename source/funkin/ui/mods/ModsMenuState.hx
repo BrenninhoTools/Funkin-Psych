@@ -71,6 +71,7 @@ class ModsMenuState extends MusicBeatState
 		#end
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = 0xFF665AFF;
 		bg.antialiasing = Save.data.antialiasing;
 		add(bg);

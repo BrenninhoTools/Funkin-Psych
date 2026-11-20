@@ -64,6 +64,7 @@ class MainMenuState extends MusicBeatState
 		persistentUpdate = persistentDraw = true;
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuBG'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.scrollFactor.set(#if mobile 0.17 #else 0 #end, 0.17);
 		bg.setGraphicSize(Std.int(FlxG.width * 1.2));
 		bg.updateHitbox();
@@ -75,6 +76,7 @@ class MainMenuState extends MusicBeatState
 		add(camFollow);
 
 		magenta = new FlxSprite().loadGraphic(Paths.image('menuBGMagenta'));
+		funkin.graphics.FullScreenScaleMode.cover(magenta);
 		magenta.scrollFactor.copyFrom(bg.scrollFactor);
 		magenta.setGraphicSize(Std.int(bg.width));
 		magenta.updateHitbox();

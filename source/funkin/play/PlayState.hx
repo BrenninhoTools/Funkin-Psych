@@ -2622,6 +2622,9 @@ class PlayState extends MusicBeatState
 			var percent:Float = ratingPercent;
 			if(Math.isNaN(percent)) percent = 0;
 			Highscore.saveScore(Song.loadedSongName, songScore, storyDifficulty, percent);
+			#if android
+			if (!practiceMode && !cpuControlled && !chartingMode) funkin.api.playgames.PlayGames.submitSongScore(Song.loadedSongName, Difficulty.getString(storyDifficulty, false), songScore);
+			#end
 			#end
 			playbackRate = 1;
 

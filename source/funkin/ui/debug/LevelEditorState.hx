@@ -563,6 +563,7 @@ class LevelEditorFreeplayState extends MusicBeatState implements PsychUIEventHan
 
 	override function create() {
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.antialiasing = Save.data.antialiasing;
 		bg.color = FlxColor.WHITE;
 		add(bg);

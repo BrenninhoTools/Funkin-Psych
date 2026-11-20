@@ -45,6 +45,14 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Screen Fit:',
+			'Original: the classic 16:9 screen with black bars on wide or tall screens.\nFull: fills the whole screen with no stretching, showing more of the game on the sides.',
+			'screenStyle',
+			STRING,
+			funkin.graphics.ScreenFit.MODES);
+		addOption(option);
+		option.onChange = funkin.graphics.ScreenFit.apply;
+
 		#if !html5 //Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
 		var option:Option = new Option('Framerate',
 			"Pretty self explanatory, isn't it?",

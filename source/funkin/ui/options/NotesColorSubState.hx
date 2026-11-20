@@ -58,6 +58,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		
 		onPixel = PlayState.isPixelStage;
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = 0xFFEA71FD;
 		bg.screenCenter();
 		bg.antialiasing = Save.data.antialiasing;

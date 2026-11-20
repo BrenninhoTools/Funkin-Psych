@@ -20,6 +20,7 @@ class ErrorState extends MusicBeatState
 	override function create()
 	{
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = FlxColor.GRAY;
 		bg.antialiasing = Save.data.antialiasing;
 		add(bg);

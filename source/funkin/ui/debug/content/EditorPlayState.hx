@@ -97,6 +97,7 @@ class EditorPlayState extends MusicBeatSubstate
 
 		/* setting up Editor PlayState stuff */
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.antialiasing = Save.data.antialiasing;
 		bg.scrollFactor.set();
 		bg.color = 0xFF101010;

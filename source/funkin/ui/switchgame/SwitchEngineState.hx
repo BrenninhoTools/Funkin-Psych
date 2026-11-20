@@ -27,6 +27,7 @@ class SwitchEngineState extends MusicBeatState
 		available = [for (engine in engines) SwitchGame.isAvailable(engine)];
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();
 		add(bg);

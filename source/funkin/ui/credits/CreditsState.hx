@@ -28,6 +28,7 @@ class CreditsState extends MusicBeatState
 
 		persistentUpdate = true;
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.antialiasing = Save.data.antialiasing;
 		add(bg);
 		bg.screenCenter();

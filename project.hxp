@@ -131,6 +131,11 @@ class Project extends HXProject
 			dependencies.push(new Dependency("psychmobile", "project/android/psychmobile"));
 			config.push("android.extension", "org.psychengine.mobile.FileDialogs");
 			config.push("android.extension", "org.psychengine.mobile.ScreenExtension");
+			if (!hasDefine("NO_PLAY_GAMES"))
+			{
+				dependencies.push(new Dependency("playgames", "project/android/playgames"));
+				config.push("android.extension", "org.psychengine.playgames.PlayGamesExtension");
+			}
 		}
 
 		if (target == Platform.IOS)

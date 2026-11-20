@@ -14,6 +14,7 @@ class LanguageSubState extends MusicBeatSubstate
 		super();
 
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = 0xFFea71fd;
 		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();

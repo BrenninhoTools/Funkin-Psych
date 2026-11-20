@@ -73,6 +73,7 @@ class ControlsSubState extends MusicBeatSubstate
 		options.push([true, defaultKey]);
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = keyboardColor;
 		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();

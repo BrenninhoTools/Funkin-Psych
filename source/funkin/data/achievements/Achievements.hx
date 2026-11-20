@@ -156,6 +156,7 @@ class Achievements {
 		if(Achievements.isUnlocked(name)) return null;
 
 		achievementsUnlocked.push(name);
+		#if android funkin.api.playgames.PlayGames.unlockAchievement(name); #end
 
 		var time:Float = openfl.Lib.getTimer();
 		if(Math.abs(time - _lastUnlock) >= 100)

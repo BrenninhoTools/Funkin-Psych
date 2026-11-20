@@ -67,6 +67,7 @@ class MobileControlsState extends MusicBeatState
 		Hitbox.reloadImage();
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
+		funkin.graphics.FullScreenScaleMode.cover(bg);
 		bg.color = 0xFF221A36;
 		bg.antialiasing = Save.data.antialiasing;
 		bg.screenCenter();

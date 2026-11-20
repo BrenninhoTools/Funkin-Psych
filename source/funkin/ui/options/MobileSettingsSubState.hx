@@ -76,13 +76,24 @@ class MobileSettingsSubState extends BaseOptionsMenu
 		option.onChange = function() funkin.util.HapticUtil.vibrate(0, 0.05, 1, 1, [ALL, NOTES_ONLY]);
 		addOption(option);
 
-		var option:Option = new Option('Screen Style:',
-			'Original: the classic 16:9 screen with black bars on wide phones.\nFull: fills the whole screen with no stretching or zoom, showing more of the game on the sides.',
-			'screenStyle',
-			STRING,
-			['Original', 'Full']);
-		addOption(option);
-		option.onChange = funkin.mobile.screen.ScreenStyle.apply;
+		#if android
+		if (funkin.api.playgames.PlayGames.configured)
+		{
+			var option:Option = new Option('Play Games Achievements',
+				'Opens your Google Play Games achievements. Signs in first if needed.',
+				'',
+				BUTTON);
+			option.onChange = function() funkin.api.playgames.PlayGames.showAchievements();
+			addOption(option);
+
+			var option:Option = new Option('Play Games Leaderboards',
+				'Opens the Google Play Games leaderboards. Signs in first if needed.',
+				'',
+				BUTTON);
+			option.onChange = function() funkin.api.playgames.PlayGames.showLeaderboard();
+			addOption(option);
+		}
+		#end
 
 		#if android
 		Save.data.storageType = funkin.mobile.storage.StorageUtil.getStorageType();

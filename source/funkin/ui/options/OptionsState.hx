@@ -49,9 +49,7 @@ class OptionsState extends MusicBeatState
 			else bg.color = 0xFFEA71FD;
 		}
 		else bg.color = 0xFFEA71FD;
-		bg.setGraphicSize(Std.int(FlxG.width * 1.1));
-		bg.updateHitbox();
-		bg.screenCenter();
+		funkin.graphics.FullScreenScaleMode.cover(bg, 1.1);
 		bg.scrollFactor.set();
 		return bg;
 	}
