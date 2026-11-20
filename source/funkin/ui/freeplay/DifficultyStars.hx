@@ -3,7 +3,7 @@ package funkin.ui.freeplay;
 class DifficultyStars extends FlxSpriteGroup
 {
 	public var difficulty(default, set):Int = 1;
-	public var stars:FlxAnimate;
+	public var stars:FreeplayAnimate;
 	public var flames:FreeplayFlames;
 
 	var curDifficulty(default, set):Int = 0;
@@ -12,9 +12,7 @@ class DifficultyStars extends FlxSpriteGroup
 	{
 		super(x, y);
 		flames = new FreeplayFlames(flameX - x, 91 - y);
-		stars = new FlxAnimate();
-		Paths.loadAnimateAtlas(stars, 'freeplay/freeplayStars');
-		stars.antialiasing = Save.data.antialiasing;
+		stars = new FreeplayAnimate(0, 0, 'freeplay/freeplayStars', TOP_RIGHT(220));
 		stars.anim.play('diff stars', true);
 		add(flames);
 		add(stars);

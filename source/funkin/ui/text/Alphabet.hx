@@ -281,13 +281,21 @@ class AlphaCharacter extends FlxSprite
 
 	public static function loadAlphabetData(request:String = 'alphabet')
 	{
-		var path:String = Paths.getPath('images/$request.json');
-		#if MODS_ALLOWED
-		if(!FileSystem.exists(path))
-		#else
-		if(!Assets.exists(path, TEXT))
-		#end
-			path = Paths.getPath('images/alphabet.json');
+		var path:String = null;
+		for (candidate in [request, 'ui/$request', 'alphabet', 'ui/alphabet'])
+		{
+			var file:String = Paths.getPath('images/$candidate.json');
+			#if MODS_ALLOWED
+			if(FileSystem.exists(file))
+			#else
+			if(Assets.exists(file, TEXT))
+			#end
+			{
+				path = file;
+				break;
+			}
+		}
+		if (path == null) path = Paths.getPath('images/ui/alphabet.json');
 
 		allLetters = new Map<String, Null<Letter>>();
 		try
@@ -408,8 +416,19 @@ class AlphaCharacter extends FlxSprite
 			|| (ascii >= 248 && ascii <= 255);
 	}
 
+	public static function resolveImage(name:String):String
+	{
+		if (name == null || name.contains('/')) return name;
+		#if MODS_ALLOWED
+		if (FileSystem.exists(Paths.modFolders('images/$name.png'))) return name;
+		#end
+		if (Paths.fileExists('images/ui/$name.png', IMAGE)) return 'ui/$name';
+		return name;
+	}
+
 	private function set_image(name:String)
 	{
+		name = resolveImage(name);
 		if(frames == null) //first setup
 		{
 			image = name;

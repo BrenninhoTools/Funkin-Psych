@@ -100,14 +100,13 @@ class LetterSort extends FlxSpriteGroup
 	}
 }
 
-class FreeplayLetter extends FlxAnimate
+class FreeplayLetter extends FreeplayAnimate
 {
 	public var curLetter:Int = 0;
 
 	public function new(x:Float, y:Float, letterIndex:Int, curSelected:Int)
 	{
-		super(x, y);
-		Paths.loadAnimateAtlas(this, 'freeplay/sortedLetters');
+		super(x, y, 'freeplay/sortedLetters', TOP_LEFT);
 		curLetter = letterIndex;
 		playLetter();
 		if (curSelected != curLetter) anim.pause();

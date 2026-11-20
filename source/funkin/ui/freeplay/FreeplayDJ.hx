@@ -56,6 +56,14 @@ class FreeplayDJ extends FlxAnimate
 			return;
 		}
 
+		var stageX:Float = 0;
+		var stageY:Float = 0;
+		if (animatePosition && anim.stageInstance != null && anim.stageInstance.matrix != null)
+		{
+			stageX = anim.stageInstance.matrix.tx;
+			stageY = anim.stageInstance.matrix.ty;
+		}
+
 		var animations:Array<Dynamic> = data.animations != null ? data.animations : [];
 		for (entry in animations)
 		{
@@ -65,7 +73,7 @@ class FreeplayDJ extends FlxAnimate
 			try
 			{
 				if (anim.getFrameLabel(prefix) == null) continue;
-				anim.addByFrameLabel(name, prefix, 24, false);
+				anim.addByFrameLabel(name, prefix, 24, false, stageX, stageY);
 				available.set(name, true);
 			}
 			catch (e:Dynamic) {}

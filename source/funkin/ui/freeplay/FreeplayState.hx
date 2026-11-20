@@ -243,7 +243,8 @@ class FreeplayState extends MusicBeatState
 		#else
 		var hint:String = Language.getPhrase('freeplay_hint', '[CTRL] Modifiers • [RESET] Reset Score • [F] Favorite • [Q/E] Sort');
 		#end
-		hintText = new FlxText(0, 22, FlxG.width, hint, 20);
+		var hintX:Float = topLeftBg.x + topLeftBg.width + 24;
+		hintText = new FlxText(hintX, 14, FlxG.width - hintX * 2, hint, 16);
 		hintText.font = Paths.font('5by7.ttf');
 		hintText.alignment = CENTER;
 		hintText.color = 0xFF5F5F5F;

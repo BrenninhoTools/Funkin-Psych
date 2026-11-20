@@ -671,7 +671,7 @@ class PlayState extends MusicBeatState
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
 		if(Save.data.hitsoundVolume > 0) Paths.sound('hitsound');
 		if(!Save.data.ghostTapping) for (i in 1...4) Paths.sound('missnote$i');
-		Paths.image('alphabet');
+		Paths.image(funkin.ui.text.Alphabet.AlphaCharacter.resolveImage('alphabet'));
 
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
