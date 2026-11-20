@@ -116,6 +116,7 @@ class TitleState extends MusicBeatState
 	var gfDance:FlxSprite;
 	var danceLeft:Bool = false;
 	var titleText:FlxSprite;
+	var titleAtlas:FlxAnimate;
 	var swagShader:ColorSwap = null;
 	var menu:funkin.data.menu.MenuData;
 	var introSprites:Map<String, FlxSprite> = [];
@@ -126,26 +127,27 @@ class TitleState extends MusicBeatState
 			version: funkin.data.menu.MenuData.VERSION,
 			music: {name: 'freakyMenu', bpm: 102, volume: 0.7, fadeIn: 4},
 			background: {image: '', color: null},
-			logo: {render: {type: 'sparrow', image: 'title/logoBumpin'}, position: [-150, -100], animation: {prefix: 'logo bumpin', fps: 24}},
+			logo: {render: {type: 'sparrow', image: 'logoBumpin'}, position: [-150, -100], animation: {prefix: 'logo bumpin', fps: 24}},
+			logoOnTop: false,
 			character: {
-				render: {type: 'sparrow', image: 'title/gfDanceTitle'},
-				position: [512, 40],
+				render: {type: 'sparrow', image: 'gfDanceTitle'},
+				position: [512, 50.4],
 				animation: 'gfDance',
 				fps: 24,
 				idle: false,
 				danceLeft: [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
 				danceRight: [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 			},
-			enter: {render: {type: 'sparrow', image: 'title/titleEnter'}, position: [100, 576], colors: ['#33FFFF', '#3333CC'], alphas: [1, 0.64]},
+			enter: {render: {type: 'atlas', image: 'title-screen-text'}, position: [100, 576], mobilePosition: [50, 576], idle: 'Idle', press: 'Confirm', colors: ['#33FFFF', '#3333CC'], alphas: [1, 0.64]},
 			flash: {color: '#FFFFFF', duration: 4},
 			confirm: {sound: 'confirmMenu', volume: 0.7, delay: 1, flash: 1},
 			introTexts: 'data/introText.txt',
 			intro: [
-				{beat: 2, action: 'create', text: ['Psych Engine by'], offset: 40},
-				{beat: 4, action: 'add', text: ['Shadow Mario', 'Riveren'], offset: 40},
+				{beat: 2, action: 'create', text: ['The', 'Funkin Crew Inc']},
+				{beat: 4, action: 'add', text: ['presents']},
 				{beat: 5, action: 'clear'},
-				{beat: 6, action: 'create', text: ['Not associated', 'with'], offset: -40},
-				{beat: 8, action: 'add', text: ['newgrounds'], offset: -40, show: 'newgrounds'},
+				{beat: 6, action: 'create', text: ['In association', 'with']},
+				{beat: 8, action: 'add', text: ['newgrounds'], show: 'newgrounds'},
 				{beat: 9, action: 'clear', hide: 'newgrounds'},
 				{beat: 10, action: 'create', text: ['{wacky0}']},
 				{beat: 12, action: 'add', text: ['{wacky1}']},
@@ -156,7 +158,7 @@ class TitleState extends MusicBeatState
 				{beat: 17, action: 'skip'}
 			],
 			introSprites: [
-				{name: 'newgrounds', image: 'newgrounds_logo', position: [0, 374.4], scale: [0.8, 0.8], centerX: true}
+				{name: 'newgrounds', image: 'newgrounds_logo', position: [0, 374.4], scale: [0.8, 0.8], centerX: true, randomVariants: true}
 			],
 			sprites: []
 		};
@@ -237,28 +239,60 @@ class TitleState extends MusicBeatState
 		if (alphas != null && alphas.length > 1)
 			titleTextAlphas = [DataUtil.toFloat(alphas[0], 1), DataUtil.toFloat(alphas[1], 0.64)];
 
-		var animFrames:Array<FlxFrame> = [];
+		var enterInfo:Dynamic = menu.element('enter');
 		var enterPos:Array<Float> = menu.position('enter');
-		titleText = new FlxSprite(enterPos[0] + funkin.mobile.screen.WideScreen.offset, enterPos[1]);
-		loadFrames(titleText, menu.element('enter'));
-		@:privateAccess
+		#if mobile
+		if (enterInfo.mobilePosition != null) enterPos = DataUtil.vector(enterInfo.mobilePosition, enterPos[0], enterPos[1]);
+		#end
+		var enterRender:Dynamic = enterInfo.render != null ? enterInfo.render : enterInfo;
+		var enterImage:String = funkin.graphics.FrameLoader.joinImages(enterRender.image);
+		#if mobile
+		if (Paths.fileExists('images/$enterImage-mobile/Animation.json', TEXT)) enterImage += '-mobile';
+		#end
+		if (funkin.graphics.FrameLoader.resolveType(enterImage, enterRender.type) == 'atlas')
 		{
-			titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
-			titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
-		}
-
-		if (newTitle = animFrames.length > 0)
-		{
-			titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
-			titleText.animation.addByPrefix('press', Save.data.flashing ? "ENTER PRESSED" : "ENTER FREEZE", 24);
+			var atlas:funkin.ui.freeplay.FreeplayAnimate = new funkin.ui.freeplay.FreeplayAnimate(enterPos[0] + funkin.mobile.screen.WideScreen.offset, enterPos[1], enterImage, TOP_LEFT);
+			var labels:Array<Array<Dynamic>> = [['idle', enterInfo.idle != null ? Std.string(enterInfo.idle) : 'Idle', true], ['press', enterInfo.press != null ? Std.string(enterInfo.press) : 'Confirm', false]];
+			for (entry in labels)
+			{
+				var name:String = entry[0];
+				var label:String = entry[1];
+				var loop:Bool = entry[2];
+				try
+				{
+					if (atlas.anim.getFrameLabel(label) != null) atlas.anim.addByFrameLabel(name, label, 24, loop);
+				}
+				catch (e:Dynamic) {}
+			}
+			atlas.anim.play('idle', true);
+			titleAtlas = atlas;
+			titleText = atlas;
 		}
 		else
 		{
-			titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
-			titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
+			var animFrames:Array<FlxFrame> = [];
+			titleText = new FlxSprite(enterPos[0] + funkin.mobile.screen.WideScreen.offset, enterPos[1]);
+			loadFrames(titleText, enterInfo);
+			@:privateAccess
+			{
+				titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
+				titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
+			}
+
+			if (newTitle = animFrames.length > 0)
+			{
+				titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
+				titleText.animation.addByPrefix('press', Save.data.flashing ? "ENTER PRESSED" : "ENTER FREEZE", 24);
+			}
+			else
+			{
+				titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
+				titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
+			}
+			titleText.animation.play('idle');
+			titleText.updateHitbox();
 		}
-		titleText.animation.play('idle');
-		titleText.updateHitbox();
+		if (swagShader != null) titleText.shader = swagShader.shader;
 		titleText.visible = menu.visible('enter');
 
 		blackScreen = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
@@ -270,8 +304,16 @@ class TitleState extends MusicBeatState
 		credTextShit.screenCenter();
 		credTextShit.visible = false;
 
-		add(gfDance);
-		add(logoBl);
+		if (DataUtil.toBool(menu.data.logoOnTop))
+		{
+			add(gfDance);
+			add(logoBl);
+		}
+		else
+		{
+			add(logoBl);
+			add(gfDance);
+		}
 		add(titleText);
 
 		var front:FlxSpriteGroup = new FlxSpriteGroup();
@@ -288,11 +330,35 @@ class TitleState extends MusicBeatState
 			add(sprite);
 		}
 		ngSpr = introSprites.get('newgrounds');
+		for (info in menu.list('introSprites'))
+			if (info != null && info.name == 'newgrounds' && DataUtil.toBool(info.randomVariants) && ngSpr != null)
+				randomizeNewgrounds(ngSpr);
 
 		if (initialized)
 			skipIntro();
 		else
 			initialized = true;
+	}
+
+	function randomizeNewgrounds(sprite:FlxSprite)
+	{
+		var baseY:Float = sprite.y;
+		if (FlxG.random.bool(1) && Paths.fileExists('images/newgrounds_logo_classic.png', IMAGE))
+		{
+			sprite.loadGraphic(Paths.image('newgrounds_logo_classic'));
+			sprite.scale.set(1, 1);
+		}
+		else if (FlxG.random.bool(30) && Paths.fileExists('images/newgrounds_logo_animated.png', IMAGE))
+		{
+			sprite.loadGraphic(Paths.image('newgrounds_logo_animated'), true, 600);
+			sprite.animation.add('idle', [0, 1], 4);
+			sprite.animation.play('idle');
+			sprite.setGraphicSize(Std.int(sprite.width * 0.55));
+			sprite.y = baseY + 25;
+		}
+		else return;
+		sprite.updateHitbox();
+		sprite.screenCenter(X);
 	}
 
 	function loadFrames(sprite:FlxSprite, info:Dynamic)
@@ -450,7 +516,8 @@ class TitleState extends MusicBeatState
 				titleText.color = FlxColor.WHITE;
 				titleText.alpha = 1;
 				
-				if(titleText != null) titleText.animation.play('press');
+				if (titleAtlas != null) titleAtlas.anim.play('press', true);
+				else if (titleText != null) titleText.animation.play('press');
 
 				FlxG.camera.flash(Save.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, menu.float('confirm', 'flash', 1));
 				FunkinSound.playOnce(menu.string('confirm', 'sound', 'confirmMenu'), menu.float('confirm', 'volume', 0.7));
@@ -526,7 +593,46 @@ class TitleState extends MusicBeatState
 			if(controls.UI_RIGHT) swagShader.hue += elapsed * 0.1;
 		}
 
+		if (!cheatActive && skippedIntro && !transitioning) cheatCodeInput();
+
+		#if desktop
+		if (FlxG.keys.justPressed.Y)
+		{
+			FlxTween.cancelTweensOf(FlxG.stage.window, ['x', 'y']);
+			FlxTween.tween(FlxG.stage.window, {x: FlxG.stage.window.x + 300}, 1.4, {ease: FlxEase.quadInOut, type: PINGPONG, startDelay: 0.35});
+			FlxTween.tween(FlxG.stage.window, {y: FlxG.stage.window.y + 100}, 0.7, {ease: FlxEase.quadInOut, type: PINGPONG});
+		}
+		#end
+
 		super.update(elapsed);
+	}
+
+	static final CHEAT_CODE:Array<Int> = [1, 1, 0, 0, 2, 3, 2, 3];
+	var cheatPosition:Int = 0;
+	var cheatActive:Bool = false;
+
+	function cheatCodeInput()
+	{
+		var input:Int = -1;
+		if (controls.UI_UP_P || controls.NOTE_UP_P) input = 0;
+		else if (controls.UI_DOWN_P || controls.NOTE_DOWN_P) input = 1;
+		else if (controls.UI_LEFT_P || controls.NOTE_LEFT_P) input = 2;
+		else if (controls.UI_RIGHT_P || controls.NOTE_RIGHT_P) input = 3;
+		if (input < 0) return;
+
+		if (input == CHEAT_CODE[cheatPosition])
+		{
+			cheatPosition++;
+			if (cheatPosition >= CHEAT_CODE.length)
+			{
+				cheatActive = true;
+				FunkinSound.playMusic('girlfriendsRingtone/girlfriendsRingtone', 0);
+				if (FlxG.sound.music != null) FlxG.sound.music.fadeIn(4, 0, 1);
+				FlxG.camera.flash(FlxColor.WHITE, 1);
+				FunkinSound.playOnce('confirmMenu', 0.7);
+			}
+		}
+		else cheatPosition = input == CHEAT_CODE[0] ? 1 : 0;
 	}
 
 	function createCoolText(textArray:Array<String>, ?offset:Float = 0)
@@ -569,6 +675,8 @@ class TitleState extends MusicBeatState
 	override function beatHit()
 	{
 		super.beatHit();
+
+		if (cheatActive && curBeat % 2 == 0 && swagShader != null) swagShader.hue += 0.125;
 
 		if(logoBl != null)
 			logoBl.animation.play('bump', true);
