@@ -22,7 +22,7 @@ class AlbumRoll extends FlxSpriteGroup
 	public function new()
 	{
 		super();
-		albumArt = new FlxAnimate(FlxG.width - 360, 220);
+		albumArt = new FlxAnimate(FlxG.width - 676, 352);
 		Paths.loadAnimateAtlas(albumArt, 'freeplay/albumRoll/freeplayAlbum');
 		albumArt.antialiasing = Save.data.antialiasing;
 		for (label in ['intro', 'switch', 'idle'])
