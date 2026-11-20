@@ -155,6 +155,35 @@ class Paths
 		return returnSound(songKey, 'songs', modsAllowed, false);
 	}
 
+	public static function vocalCandidates(?character:String, ?vocalsFile:String, ?fallback:String):Array<String>
+	{
+		var list:Array<String> = [];
+		function push(value:String)
+			if (value != null && value.length > 0 && !list.contains(value)) list.push(value);
+		push(vocalsFile);
+		if (character != null)
+		{
+			var parts:Array<String> = character.split('-');
+			while (parts.length > 0)
+			{
+				push(parts.join('-'));
+				parts.pop();
+			}
+		}
+		push(fallback);
+		return list;
+	}
+
+	public static function characterVoices(song:String, ?character:String, ?vocalsFile:String, ?fallback:String, allowPlain:Bool = true, ?modsAllowed:Bool = true):Sound
+	{
+		for (postfix in vocalCandidates(character, vocalsFile, fallback))
+		{
+			var sound:Sound = voices(song, postfix, modsAllowed);
+			if (sound != null) return sound;
+		}
+		return allowPlain ? voices(song, null, modsAllowed) : null;
+	}
+
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)
 		return sound(key + FlxG.random.int(min, max), modsAllowed);
 

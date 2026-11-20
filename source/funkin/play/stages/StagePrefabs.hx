@@ -16,7 +16,7 @@ class StagePrefabs
 			case 'phillyTrain':
 				new PhillyTrain(x, y, data.image != null ? Std.string(data.image) : 'philly/train', data.sound != null ? Std.string(data.sound) : 'train_passes');
 			case 'mallCrowd':
-				new MallCrowd(x, y, data.image != null ? Std.string(data.image) : 'christmas/bottomBop', data.idle != null ? Std.string(data.idle) : 'Bottom Level Boppers Idle', data.hey != null ? Std.string(data.hey) : 'Bottom Level Boppers HEY');
+				new MallCrowd(x, y, data.image != null ? Std.string(data.image) : 'christmas/bottomBop', data.idle != null ? Std.string(data.idle) : 'Bottom Level Boppers', data.hey != null ? Std.string(data.hey) : 'Bottom Level Boppers HEY');
 			case 'backgroundGirls':
 				new BackgroundGirls(x, y);
 			case 'backgroundDancer':

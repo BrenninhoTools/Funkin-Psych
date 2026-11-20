@@ -521,8 +521,7 @@ class FreeplayState extends MusicBeatState
 					try
 					{
 						var playerVocals:String = getVocalFromCharacter(PlayState.SONG.player1);
-						var loadedVocals = Paths.voices(PlayState.SONG.song, (playerVocals != null && playerVocals.length > 0) ? playerVocals : 'Player');
-						if(loadedVocals == null) loadedVocals = Paths.voices(PlayState.SONG.song);
+						var loadedVocals = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player1, playerVocals, 'Player');
 						
 						if(loadedVocals != null && loadedVocals.length > 0)
 						{
@@ -545,7 +544,7 @@ class FreeplayState extends MusicBeatState
 					{
 						//trace('please work...');
 						var oppVocals:String = getVocalFromCharacter(PlayState.SONG.player2);
-						var loadedVocals = Paths.voices(PlayState.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
+						var loadedVocals = Paths.characterVoices(PlayState.SONG.song, PlayState.SONG.player2, oppVocals, 'Opponent', false);
 						
 						if(loadedVocals != null && loadedVocals.length > 0)
 						{

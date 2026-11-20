@@ -1367,10 +1367,10 @@ class PlayState extends MusicBeatState
 		{
 			if (songData.needsVoices)
 			{
-				var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-				vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
-				
-				var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+				var playerVocals = Paths.characterVoices(songData.song, boyfriend.curCharacter, boyfriend.vocalsFile, 'Player');
+				if (playerVocals != null) vocals.loadEmbedded(playerVocals);
+
+				var oppVocals = Paths.characterVoices(songData.song, dad.curCharacter, dad.vocalsFile, 'Opponent', false);
 				if(oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
 			}
 		}
