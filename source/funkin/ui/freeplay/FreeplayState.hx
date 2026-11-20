@@ -46,6 +46,7 @@ class FreeplayState extends MusicBeatState
 	static inline var FADE_IN_DELAY:Float = 0.25;
 	static inline var MAX_DOTS_PER_ROW:Int = 8;
 
+	public static var currentCharacter:String = 'bf';
 	public static var vocals:FlxSound = null;
 	public static var opponentVocals:FlxSound = null;
 
@@ -157,7 +158,10 @@ class FreeplayState extends MusicBeatState
 		menuBG.screenCenter();
 		add(menuBG);
 
-		var djData:Dynamic = FreeplayDJ.loadData('bf');
+		funkin.ui.charSelect.PlayerData.reload();
+		if (!funkin.ui.charSelect.PlayerData.exists(currentCharacter)) currentCharacter = funkin.ui.charSelect.PlayerData.DEFAULT;
+		var djData:Dynamic = funkin.ui.charSelect.PlayerData.freeplayDJ(currentCharacter);
+		if (djData == null) djData = FreeplayDJ.loadData('bf');
 		var djTexts:Array<String> = null;
 		if (djData != null)
 		{
@@ -239,9 +243,9 @@ class FreeplayState extends MusicBeatState
 		ostName.shader = new StrokeShader(0xFFFFFFFF, 2, 2);
 
 		#if mobile
-		var hint:String = Language.getPhrase('freeplay_hint_mobile', 'Drag to scroll • Tap a song twice to play • Swipe sideways to change difficulty');
+		var hint:String = Language.getPhrase('freeplay_hint_mobile', 'Drag to scroll • Tap a song twice to play • Swipe to change difficulty • Tap the DJ to change character');
 		#else
-		var hint:String = Language.getPhrase('freeplay_hint', '[CTRL] Modifiers • [RESET] Reset Score • [F] Favorite • [Q/E] Sort');
+		var hint:String = Language.getPhrase('freeplay_hint', '[TAB] Characters • [CTRL] Modifiers • [RESET] Reset • [F] Favorite • [Q/E] Sort');
 		#end
 		var hintX:Float = topLeftBg.x + topLeftBg.width + 24;
 		hintText = new FlxText(hintX, 14, FlxG.width - hintX * 2, hint, 16);
@@ -336,6 +340,8 @@ class FreeplayState extends MusicBeatState
 			for (entry in level.songs)
 			{
 				var data:FreeplaySongData = new FreeplaySongData(entry, level, i);
+				data.setPlayer(currentCharacter);
+				if (!data.available) continue;
 				songs.push(data);
 				for (diff in data.difficulties)
 				{
@@ -366,7 +372,8 @@ class FreeplayState extends MusicBeatState
 			capsuleTextColors: ['#00ccff', '#00ccff'],
 			startDelay: 1.0
 		};
-		var raw:String = Paths.getTextFromFile('data/ui/freeplay/styles/bf.json');
+		var raw:String = Paths.getTextFromFile('data/ui/freeplay/styles/${funkin.ui.charSelect.PlayerData.styleId(currentCharacter)}.json');
+		if (raw == null) raw = Paths.getTextFromFile('data/ui/freeplay/styles/bf.json');
 		if (raw == null) return;
 		try
 		{
@@ -712,14 +719,14 @@ class FreeplayState extends MusicBeatState
 
 		var previous:String = Mods.currentModDirectory;
 		Mods.currentModDirectory = data.folder;
-		var inst:Sound = Paths.returnSound('${data.songId}/Inst', 'songs', true, false);
+		var inst:Sound = Paths.returnSound('${data.songIdFor(currentDifficulty)}/Inst', 'songs', true, false);
 		Mods.currentModDirectory = previous;
 		if (inst == null) return;
 
 		if (FlxG.sound.music != null) FlxG.sound.music.stop();
 		FlxG.sound.playMusic(inst, 0);
 		FlxG.sound.music.fadeIn(2, 0, volume);
-		Conductor.bpm = data.bpm;
+		Conductor.bpm = data.bpmFor(currentDifficulty);
 		Conductor.bpmChangeMap = [];
 		curStep = curBeat = 0;
 	}
@@ -807,11 +814,32 @@ class FreeplayState extends MusicBeatState
 		else if (FlxG.keys.justPressed.E) letterSort.changeSelection(1);
 
 		if (FlxG.keys.justPressed.F) toggleFavorite();
+		if (FlxG.keys.justPressed.TAB)
+		{
+			openCharSelect();
+			return;
+		}
 
 		if (controls.BACK) goBack();
 		else if (FlxG.keys.justPressed.CONTROL) openChangers();
 		else if (controls.RESET) openReset();
 		else if (controls.ACCEPT) acceptSelection();
+	}
+
+	function openCharSelect()
+	{
+		if (funkin.ui.charSelect.PlayerData.list().length < 2) return;
+		uiState = Exiting;
+		clearPreviews();
+		previewToken++;
+		FunkinSound.playOnce('confirmMenu');
+		if (FlxG.sound.music != null) FlxG.sound.music.fadeOut(0.5, 0);
+		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, function()
+		{
+			startingSong = true;
+			FlxTransitionableState.skipNextTransIn = true;
+			MusicBeatState.switchState(new funkin.ui.charSelect.CharSelectState(currentCharacter));
+		});
 	}
 
 	function toggleFavorite()
@@ -841,9 +869,11 @@ class FreeplayState extends MusicBeatState
 		var data:FreeplaySongData = currentCapsule != null ? currentCapsule.freeplayData : null;
 		if (data == null) return;
 		persistentUpdate = false;
+		var chart:FreeplaySongData.FreeplayChart = data.chartFor(currentDifficulty);
+		if (chart == null) return;
 		Mods.currentModDirectory = data.folder;
-		Difficulty.copyFrom(data.difficulties);
-		openSubState(new ResetScoreSubState(data.songName, data.diffIndex(currentDifficulty), data.icon));
+		Difficulty.copyFrom(chart.list);
+		openSubState(new ResetScoreSubState(chart.song, chart.index, data.icon));
 		FunkinSound.playOnce('scrollMenu');
 	}
 
@@ -902,12 +932,14 @@ class FreeplayState extends MusicBeatState
 	{
 		Mods.currentModDirectory = data.folder;
 		PlayState.storyWeek = data.levelIndex;
-		Difficulty.copyFrom(data.difficulties);
-		var index:Int = Std.int(Math.max(0, data.diffIndex(currentDifficulty)));
+		var chart:FreeplaySongData.FreeplayChart = data.chartFor(currentDifficulty);
+		var chartSong:String = chart != null ? chart.song : data.songId;
+		Difficulty.copyFrom(chart != null ? chart.list : data.difficulties);
+		var index:Int = chart != null ? chart.index : 0;
 
 		try
 		{
-			Song.loadFromJson(Highscore.formatSong(data.songId, index), data.songId);
+			Song.loadFromJson(Highscore.formatSong(chartSong, index), chartSong);
 			PlayState.isStoryMode = false;
 			PlayState.storyDifficulty = index;
 		}
@@ -1065,6 +1097,12 @@ class FreeplayState extends MusicBeatState
 			var change:Int = i < 2 ? -1 : 1;
 			letterSort.changeSelection(change);
 			if (i == 0 || i == 4) letterSort.changeSelection(change, false);
+			return true;
+		}
+
+		if (tapX < djOffset + 250 && tapY > 220 && dj != null)
+		{
+			openCharSelect();
 			return true;
 		}
 
