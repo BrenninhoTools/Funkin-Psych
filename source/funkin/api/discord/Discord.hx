@@ -51,11 +51,6 @@ extern class DiscordNative
 	@:native('::funkin_discord::clearButtons') static function clearButtons():Void;
 	@:native('::funkin_discord::commit') static function commit():Void;
 	@:native('::funkin_discord::clearActivity') static function clearActivity():Void;
-	@:native('::funkin_discord::userId') static function userId():cpp.ConstCharStar;
-	@:native('::funkin_discord::userName') static function userName():cpp.ConstCharStar;
-	@:native('::funkin_discord::globalName') static function globalName():cpp.ConstCharStar;
-	@:native('::funkin_discord::avatar') static function avatar():cpp.ConstCharStar;
-	@:native('::funkin_discord::lastError') static function lastError():cpp.ConstCharStar;
 	@:native('::funkin_discord::lastErrorCode') static function lastErrorCode():Int;
 }
 
@@ -226,17 +221,17 @@ class DiscordClient
 			{
 				case EVENT_READY:
 					user = {
-						id: text(DiscordNative.userId()),
-						username: text(DiscordNative.userName()),
-						globalName: text(DiscordNative.globalName()),
-						avatar: text(DiscordNative.avatar())
+						id: nativeUserId(),
+						username: nativeUserName(),
+						globalName: nativeGlobalName(),
+						avatar: nativeAvatar()
 					};
 					onReady.dispatch(user);
 				case EVENT_DISCONNECTED:
 					user = null;
 					onDisconnected.dispatch();
 				case EVENT_ERROR:
-					lastError = text(DiscordNative.lastError());
+					lastError = nativeLastError();
 					lastErrorCode = DiscordNative.lastErrorCode();
 					onError.dispatch(lastErrorCode, lastError);
 			}
@@ -271,12 +266,32 @@ class DiscordClient
 	#if cpp
 	static inline function str(value:String):cpp.ConstCharStar
 	{
-		return value == null ? null : untyped __cpp__('{0}.utf8_str()', value);
+		return untyped __cpp__('({0}.__s ? {0}.utf8_str() : (const char *)0)', value);
 	}
 
-	static inline function text(value:cpp.ConstCharStar):String
+	static function nativeUserId():String
 	{
-		return value == null ? '' : value.toString();
+		return untyped __cpp__('::String::create(::funkin_discord::userId())');
+	}
+
+	static function nativeUserName():String
+	{
+		return untyped __cpp__('::String::create(::funkin_discord::userName())');
+	}
+
+	static function nativeGlobalName():String
+	{
+		return untyped __cpp__('::String::create(::funkin_discord::globalName())');
+	}
+
+	static function nativeAvatar():String
+	{
+		return untyped __cpp__('::String::create(::funkin_discord::avatar())');
+	}
+
+	static function nativeLastError():String
+	{
+		return untyped __cpp__('::String::create(::funkin_discord::lastError())');
 	}
 	#end
 
