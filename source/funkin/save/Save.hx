@@ -139,6 +139,8 @@ class Save {
 		}
 		#end
 		
+		if (!main.has('hapticsMode') && main.has('haptics'))
+			data.hapticsMode = main.get('haptics') == false ? 'None' : 'All';
 		if (!main.has('fpsStyle') && main.has('showFPS'))
 			data.fpsStyle = main.get('showFPS') == false ? 'Disable' : 'Simple';
 		if(Main.fpsVar != null)

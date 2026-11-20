@@ -516,6 +516,7 @@ class TitleState extends MusicBeatState
 				titleText.color = FlxColor.WHITE;
 				titleText.alpha = 1;
 				
+				funkin.util.HapticUtil.vibrate(0, 0.1, 1);
 				if (titleAtlas != null) titleAtlas.anim.play('press', true);
 				else if (titleText != null) titleText.animation.play('press');
 

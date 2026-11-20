@@ -55,11 +55,12 @@ class MobileSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		var option:Option = new Option('Haptics',
-			'If checked, the phone vibrates when you hit a note, while you hold a sustain\nand a bit stronger when you miss.',
-			'haptics',
-			BOOL);
-		option.onChange = function() funkin.mobile.MobileAPI.haptic(funkin.mobile.MobileAPI.HAPTIC_MEDIUM);
+		var option:Option = new Option('Haptics:',
+			'All: vibrates on notes and menus.\nNotes Only: vibrates only on notes.\nNone: no vibrations.',
+			'hapticsMode',
+			STRING,
+			funkin.util.HapticUtil.MODES);
+		option.onChange = function() funkin.util.HapticUtil.vibrate(0, 0.05, 1, 1, [ALL, NOTES_ONLY]);
 		addOption(option);
 
 		var option:Option = new Option('Haptics Intensity',
@@ -72,7 +73,7 @@ class MobileSettingsSubState extends BaseOptionsMenu
 		option.maxValue = 5.0;
 		option.changeValue = 0.1;
 		option.decimals = 1;
-		option.onChange = function() funkin.mobile.MobileAPI.haptic(funkin.mobile.MobileAPI.HAPTIC_MEDIUM, 0.12);
+		option.onChange = function() funkin.util.HapticUtil.vibrate(0, 0.05, 1, 1, [ALL, NOTES_ONLY]);
 		addOption(option);
 
 		var option:Option = new Option('Screen Style:',

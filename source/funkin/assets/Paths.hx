@@ -672,22 +672,42 @@ class Paths
 		if (Std.isOfType(folderOrImg, String))
 		{
 			var originalPath:String = folderOrImg;
+			if (!changedAnimJson)
+			{
+				changedAnimJson = true;
+				animationJson = getTextFromFile('images/$originalPath/Animation.json');
+			}
+
+			if (!changedAtlasJson)
+			{
+				var images:Array<FlxGraphic> = [];
+				var maps:Array<String> = [];
+				for (i in 0...64)
+				{
+					var st:String = i == 0 ? '' : '$i';
+					var map:String = getTextFromFile('images/$originalPath/spritemap$st.json');
+					if (map == null)
+					{
+						if (i > 1) break;
+						continue;
+					}
+					var graphic:FlxGraphic = image('$originalPath/spritemap$st');
+					if (graphic == null) continue;
+					images.push(graphic);
+					maps.push(map);
+					if (i == 0) break;
+				}
+				if (images.length > 0)
+				{
+					spr.loadSpritemaps(images, maps, animationJson);
+					return;
+				}
+			}
+
 			for (i in 0...10)
 			{
 				var st:String = i == 0 ? '' : '$i';
-
-				if (!changedAtlasJson)
-				{
-					spriteJson = getTextFromFile('images/$originalPath/spritemap$st.json');
-					if (spriteJson != null)
-					{
-						changedImage = true;
-						changedAtlasJson = true;
-						folderOrImg = image('$originalPath/spritemap$st');
-						break;
-					}
-				}
-				else if (fileExists('images/$originalPath/spritemap$st.png', IMAGE))
+				if (fileExists('images/$originalPath/spritemap$st.png', IMAGE))
 				{
 					changedImage = true;
 					folderOrImg = image('$originalPath/spritemap$st');
@@ -699,12 +719,6 @@ class Paths
 			{
 				changedImage = true;
 				folderOrImg = image(originalPath);
-			}
-
-			if (!changedAnimJson)
-			{
-				changedAnimJson = true;
-				animationJson = getTextFromFile('images/$originalPath/Animation.json');
 			}
 		}
 

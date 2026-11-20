@@ -209,6 +209,7 @@ class OptionsState extends MusicBeatState
 	{
 		var label:String = options[curSelected];
 		FunkinSound.playOnce('confirmMenu');
+		funkin.util.HapticUtil.menuConfirm();
 		if (label == 'EXIT' || label == 'LAG ADJUSTMENT' || label == 'SWITCH ENGINE')
 		{
 			busy = true;
@@ -236,7 +237,11 @@ class OptionsState extends MusicBeatState
 		curSelected = FlxMath.wrap(curSelected + change, 0, options.length - 1);
 		for (num => item in grpOptions.members) item.alpha = num == curSelected ? 1 : 0.6;
 		camFocusPoint.y = grpOptions.members[curSelected].y;
-		if (playSound) FunkinSound.playOnce('scrollMenu');
+		if (playSound)
+		{
+			FunkinSound.playOnce('scrollMenu');
+			funkin.util.HapticUtil.menuScroll();
+		}
 	}
 
 	override function destroy()

@@ -536,7 +536,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		descBox.visible = descText.text.length > 0;
 
 		curOption = optionsArray[curSelected];
-		if (!silentSelection) FunkinSound.playOnce('scrollMenu');
+		if (!silentSelection)
+		{
+			FunkinSound.playOnce('scrollMenu');
+			funkin.util.HapticUtil.menuScroll();
+		}
 	}
 
 	function reloadCheckboxes()

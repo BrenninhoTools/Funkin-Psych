@@ -5,11 +5,8 @@ import flixel.input.keyboard.FlxKey;
 import openfl.events.KeyboardEvent;
 #if android
 import lime.system.JNI;
-import extension.haptics.android.HapticAndroid;
 #end
-#if mobile
-import extension.haptics.Haptic;
-#end
+import funkin.util.HapticUtil.HapticsMode;
 
 class MobileAPI
 {
@@ -44,67 +41,22 @@ class MobileAPI
 
 	public static function vibrate(duration:Int = 100)
 	{
-		#if mobile
-		if (duration <= 0 || !initHaptics()) return;
-		Haptic.vibrateOneShot(duration / 1000, 1, 0.5);
-		#end
+		if (duration <= 0) return;
+		funkin.util.HapticUtil.vibrate(0, duration / 1000, 1, 0.5, [ALL, NOTES_ONLY]);
 	}
 
-	static final HAPTIC_AMPLITUDES:Array<Float> = [0.3, 0.55, 0.85];
-	static final HAPTIC_DURATIONS:Array<Float> = [0.012, 0.022, 0.04];
-	static final HAPTIC_SHARPNESS:Array<Float> = [0.9, 0.7, 0.45];
-	#if android
-	static final HAPTIC_PRIMITIVES:Array<Array<Int>> = [[7], [1], [1, 2]];
-	static var primitivesSupported:Null<Bool> = null;
-	#end
-	static var hapticsReady:Bool = false;
+	static final HAPTIC_AMPLITUDES:Array<Float> = [0.3, 0.55, 0.9];
+	static final HAPTIC_DURATIONS:Array<Float> = [0.01, 0.025, 0.05];
 	static var lastHapticTime:Float = -1;
-
-	#if mobile
-	static function initHaptics():Bool
-	{
-		if (!hapticsReady)
-		{
-			hapticsReady = true;
-			try
-			{
-				Haptic.initialize();
-			}
-			catch (e:Dynamic) {}
-		}
-		return true;
-	}
-	#end
 
 	public static function haptic(strength:Int = HAPTIC_LIGHT, minInterval:Float = 0)
 	{
-		if (!Save.data.haptics) return;
-		var intensity:Float = Save.data.hapticsIntensity;
-		if (intensity <= 0) return;
+		if (!funkin.util.HapticUtil.available) return;
 		var now:Float = haxe.Timer.stamp();
 		if (minInterval > 0 && lastHapticTime >= 0 && now - lastHapticTime < minInterval) return;
 		lastHapticTime = now;
-		#if mobile
-		initHaptics();
 		var index:Int = strength < 0 ? 0 : (strength > 2 ? 2 : strength);
-		var amount:Float = Math.min(1, HAPTIC_AMPLITUDES[index] * intensity);
-		var duration:Float = HAPTIC_DURATIONS[index] * (intensity <= 1 ? 1 : 1 + (intensity - 1) * 0.25);
-		try
-		{
-			#if android
-			if (primitivesSupported == null)
-				primitivesSupported = HapticAndroid.isPrimitiveSupported(1) && HapticAndroid.isPrimitiveSupported(2) && HapticAndroid.isPrimitiveSupported(7);
-			if (primitivesSupported)
-			{
-				var ids:Array<Int> = HAPTIC_PRIMITIVES[index];
-				HapticAndroid.vibratePredefined(ids, [for (id in ids) amount], [for (id in ids) 0]);
-				return;
-			}
-			#end
-			Haptic.vibrateOneShot(duration, amount, HAPTIC_SHARPNESS[index]);
-		}
-		catch (e:Dynamic) {}
-		#end
+		funkin.util.HapticUtil.vibrate(0, HAPTIC_DURATIONS[index], HAPTIC_AMPLITUDES[index]);
 	}
 
 	public static function toast(text:String, longDuration:Bool = false)

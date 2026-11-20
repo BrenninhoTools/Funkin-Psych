@@ -215,7 +215,8 @@ class PlayState extends MusicBeatState
 	var savedDownScroll:Null<Bool> = null;
 	static final ARROW_CENTERS:Array<Float> = [0.24, 0.4, 0.6, 0.76];
 	static inline final ARROWS_SCALE:Float = 1.2;
-	static inline final ARROWS_TOUCH_PADDING:Float = 26;
+	static inline final ARROWS_HITBOX_WIDTH:Float = 1.35;
+	static inline final ARROWS_HITBOX_REACH:Float = 2.5;
 	static inline final ARROWS_OPPONENT_SCALE:Float = 0.5;
 	static inline final ARROWS_OPPONENT_MARGIN:Float = 20;
 	static inline final ARROWS_OPPONENT_TOP:Float = 55;
@@ -1599,7 +1600,6 @@ class PlayState extends MusicBeatState
 	#if mobile
 	function applyArrowsLayout()
 	{
-		var rects:Array<Array<Float>> = [];
 		for (i => strum in playerStrums.members)
 		{
 			if (strum == null) continue;
@@ -1609,8 +1609,8 @@ class PlayState extends MusicBeatState
 			strum.x = center - strum.width / 2;
 			strum.y = FlxG.height - strum.height - 70;
 			strum.downScroll = true;
-			rects.push([strum.x - ARROWS_TOUCH_PADDING, strum.y - ARROWS_TOUCH_PADDING, strum.width + ARROWS_TOUCH_PADDING * 2, strum.height + ARROWS_TOUCH_PADDING * 2]);
 		}
+		updateArrowsHitbox();
 		var nextX:Float = ARROWS_OPPONENT_MARGIN;
 		for (strum in opponentStrums.members)
 		{
@@ -1623,7 +1623,64 @@ class PlayState extends MusicBeatState
 			strum.visible = Save.data.opponentStrums;
 			nextX += strum.width + ARROWS_OPPONENT_SPACING;
 		}
-		funkin.mobile.input.TouchInput.laneRects = rects;
+	}
+
+	var arrowsRects:Array<Array<Float>> = [];
+
+	function updateArrowsHitbox()
+	{
+		var strums:Array<StrumNote> = [for (strum in playerStrums.members) if (strum != null && strum.exists) strum];
+		if (strums.length < 1)
+		{
+			funkin.mobile.input.TouchInput.laneRects = null;
+			return;
+		}
+
+		var cam:FlxCamera = strums[0].cameras != null && strums[0].cameras.length > 0 ? strums[0].cameras[0] : FlxG.camera;
+		var zoom:Float = cam != null ? cam.zoom : 1;
+		var centers:Array<Float> = [];
+		var tops:Array<Float> = [];
+		var bottoms:Array<Float> = [];
+		var widths:Array<Float> = [];
+		for (strum in strums)
+		{
+			var screenX:Float = strum.x + strum.width / 2;
+			var screenY:Float = strum.y;
+			if (cam != null)
+			{
+				screenX = (screenX - cam.scroll.x * strum.scrollFactor.x - cam.width / 2) * zoom + cam.width / 2 + cam.x;
+				screenY = (screenY - cam.scroll.y * strum.scrollFactor.y - cam.height / 2) * zoom + cam.height / 2 + cam.y;
+			}
+			var height:Float = strum.height * zoom;
+			centers.push(screenX);
+			widths.push(strum.width * zoom * ARROWS_HITBOX_WIDTH);
+			if (strum.downScroll)
+			{
+				tops.push(screenY - height * ARROWS_HITBOX_REACH);
+				bottoms.push(FlxG.height);
+			}
+			else
+			{
+				tops.push(0);
+				bottoms.push(screenY + height * (1 + ARROWS_HITBOX_REACH));
+			}
+		}
+
+		while (arrowsRects.length < strums.length) arrowsRects.push([0, 0, 0, 0]);
+		while (arrowsRects.length > strums.length) arrowsRects.pop();
+		for (i in 0...strums.length)
+		{
+			var left:Float = centers[i] - widths[i] / 2;
+			var right:Float = centers[i] + widths[i] / 2;
+			if (i > 0) left = Math.min(left, (centers[i - 1] + centers[i]) / 2);
+			if (i < strums.length - 1) right = Math.max(right, (centers[i] + centers[i + 1]) / 2);
+			var rect:Array<Float> = arrowsRects[i];
+			rect[0] = left;
+			rect[1] = tops[i];
+			rect[2] = right - left;
+			rect[3] = bottoms[i] - tops[i];
+		}
+		funkin.mobile.input.TouchInput.laneRects = arrowsRects;
 	}
 
 	function prepareArrowsNote(note:Note)
@@ -1792,6 +1849,10 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		#if mobile
+		funkin.util.HapticUtil.flushNotes();
+		if (arrowsMode && playerStrums != null) updateArrowsHitbox();
+		#end
 		if(!inCutscene && !paused && !freezeCamera) {
 			FlxG.camera.followLerp = 0.04 * cameraSpeed * playbackRate;
 			var idleAnim:Bool = (boyfriend.getAnimationName().startsWith('idle') || boyfriend.getAnimationName().startsWith('danceLeft') || boyfriend.getAnimationName().startsWith('danceRight'));
@@ -3022,7 +3083,7 @@ class PlayState extends MusicBeatState
 	function noteMissCommon(direction:Int, note:Note = null)
 	{
 		#if mobile
-		if (!cpuControlled && (note == null || !note.isSustainNote)) funkin.mobile.MobileAPI.haptic(funkin.mobile.MobileAPI.HAPTIC_MEDIUM);
+		if (!cpuControlled && (note == null || !note.isSustainNote)) funkin.util.HapticUtil.noteMiss();
 		#end
 		// score and data
 		var subtract:Float = pressMissDamage;
@@ -3170,8 +3231,9 @@ class PlayState extends MusicBeatState
 		#if mobile
 		if (!cpuControlled)
 		{
-			if (isSus) funkin.mobile.MobileAPI.haptic(funkin.mobile.MobileAPI.HAPTIC_LIGHT, 0.07);
-			else funkin.mobile.MobileAPI.haptic(note.hitCausesMiss ? funkin.mobile.MobileAPI.HAPTIC_HEAVY : funkin.mobile.MobileAPI.HAPTIC_MEDIUM);
+			if (isSus) funkin.util.HapticUtil.holdNote(note.animation.curAnim != null && note.animation.curAnim.name.endsWith('end'));
+			else if (note.hitCausesMiss) funkin.util.HapticUtil.noteMiss();
+			else funkin.util.HapticUtil.noteHit();
 		}
 		#end
 

@@ -551,7 +551,11 @@ class FreeplayState extends MusicBeatState
 		var previous:Int = curSelected;
 		curSelected = FlxMath.wrap(curSelected + change, 0, count - 1);
 		curSelectedFloat = curSelected;
-		if (playSound && curSelected != previous) FunkinSound.playOnce('scrollMenu', 0.4);
+		if (playSound && curSelected != previous)
+		{
+			FunkinSound.playOnce('scrollMenu', 0.4);
+			funkin.util.HapticUtil.menuScroll();
+		}
 		if (dj != null && change != 0) dj.onPlayerAction();
 
 		var data:FreeplaySongData = currentCapsule.freeplayData;
@@ -611,6 +615,7 @@ class FreeplayState extends MusicBeatState
 		}
 
 		FunkinSound.playOnce('scrollMenu', 0.4);
+		funkin.util.HapticUtil.menuScroll();
 		(change > 0 ? diffSelRight : diffSelLeft).press();
 
 		var index:Int = FlxMath.wrap(previousIndex + change, 0, allDifficulties.length - 1);
@@ -916,6 +921,7 @@ class FreeplayState extends MusicBeatState
 		clearPreviews();
 		previewToken++;
 		FunkinSound.playOnce('confirmMenu');
+		funkin.util.HapticUtil.increasingVibrate(funkin.util.HapticUtil.MIN_AMPLITUDE, funkin.util.HapticUtil.MAX_AMPLITUDE, 0.6);
 		if (dj != null) dj.onConfirm();
 		capsule.forcePosition();
 		capsule.confirm();

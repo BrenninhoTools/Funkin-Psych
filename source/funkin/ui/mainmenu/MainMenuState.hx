@@ -40,6 +40,10 @@ class MainMenuState extends MusicBeatState
 	var entries:Array<MainMenuEntry> = [];
 	var curSelected:Int = 0;
 	var busy:Bool = false;
+	var itemScale:Float = 1;
+	var itemCenters:Array<FlxPoint> = [];
+	var onSideButton:Bool = false;
+	var achievementsButton:FlxSprite;
 
 	#if mobile
 	var editorsButton:funkin.mobile.controls.ImageButton;
@@ -93,9 +97,6 @@ class MainMenuState extends MusicBeatState
 		#if MODS_ALLOWED
 		addEntry('mods', 'mainmenu/menu_mods', () -> exitTo(() -> new ModsMenuState()));
 		#end
-		#if ACHIEVEMENTS_ALLOWED
-		addEntry('achievements', 'mainmenu/menu_achievements', () -> exitTo(() -> new AchievementsMenuState()));
-		#end
 		addEntry('merch', 'mainmenu/merch', function()
 		{
 			CoolUtil.browserLoad('https://needlejuicerecords.com/pages/friday-night-funkin');
@@ -114,13 +115,30 @@ class MainMenuState extends MusicBeatState
 		});
 		addEntry('credits', 'mainmenu/credits', () -> exitTo(() -> new CreditsState()));
 
-		var top:Float = (FlxG.height - (SPACING * (menuItems.length - 1))) / 2;
+		var spacing:Float = Math.min(SPACING, (FlxG.height - 170) / Math.max(1, menuItems.length - 1));
+		itemScale = Math.min(1, spacing / SPACING + 0.12);
+		var top:Float = (FlxG.height - spacing * (menuItems.length - 1)) / 2;
 		for (index => item in menuItems.members)
 		{
-			item.x = FlxG.width / 2;
-			item.y = top + SPACING * index;
-			item.scrollFactor.set(#if mobile 0.4 #else 0 #end, 0.4);
+			item.scale.set(itemScale, itemScale);
+			itemCenters.push(FlxPoint.get(FlxG.width / 2, top + spacing * index));
+			item.scrollFactor.set(0, 0.25);
+			changeAnim(item, 'idle');
 		}
+
+		#if ACHIEVEMENTS_ALLOWED
+		achievementsButton = new FlxSprite();
+		achievementsButton.frames = Paths.getSparrowAtlas('mainmenu/menu_achievements');
+		achievementsButton.animation.addByPrefix('idle', 'achievements idle', 24);
+		achievementsButton.animation.addByPrefix('selected', 'achievements selected', 24);
+		achievementsButton.animation.play('idle');
+		achievementsButton.scale.set(0.6, 0.6);
+		achievementsButton.updateHitbox();
+		achievementsButton.antialiasing = Save.data.antialiasing;
+		achievementsButton.scrollFactor.set();
+		achievementsButton.setPosition(FlxG.width - achievementsButton.width - 24, FlxG.height - achievementsButton.height - 24);
+		add(achievementsButton);
+		#end
 
 		var versionText:FlxText = new FlxText(5, FlxG.height - 38, 0, 'Funkin\' Psych v$psychEngineVersion\nFriday Night Funkin\' v${Application.current.meta.get('version')}', 12);
 		versionText.setFormat(Paths.font('vcr.ttf'), 16, FlxColor.WHITE, LEFT, flixel.text.FlxText.FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -175,18 +193,50 @@ class MainMenuState extends MusicBeatState
 	{
 		item.animation.play(name);
 		item.updateHitbox();
-		item.centerOrigin();
-		item.offset.copyFrom(item.origin);
+		var center:FlxPoint = itemCenters[item.ID];
+		if (center == null) return;
+		item.x = center.x - item.width / 2;
+		item.y = center.y - item.height / 2;
 	}
 
 	function selectItem(index:Int, playSound:Bool = true)
 	{
+		setSideButton(false);
 		changeAnim(menuItems.members[curSelected], 'idle');
 		curSelected = FlxMath.wrap(index, 0, menuItems.length - 1);
 		var item:FlxSprite = menuItems.members[curSelected];
 		changeAnim(item, 'selected');
-		camFollow.setPosition(item.getGraphicMidpoint().x, item.getGraphicMidpoint().y);
-		if (playSound) FunkinSound.playOnce('scrollMenu');
+		var center:FlxPoint = itemCenters[curSelected];
+		if (center != null) camFollow.setPosition(FlxG.width / 2, center.y);
+		if (playSound)
+		{
+			FunkinSound.playOnce('scrollMenu');
+			funkin.util.HapticUtil.menuScroll();
+		}
+	}
+
+	function setSideButton(value:Bool, playSound:Bool = false)
+	{
+		if (achievementsButton == null || onSideButton == value) return;
+		onSideButton = value;
+		achievementsButton.animation.play(value ? 'selected' : 'idle');
+		achievementsButton.centerOffsets();
+		changeAnim(menuItems.members[curSelected], value ? 'idle' : 'selected');
+		if (playSound)
+		{
+			FunkinSound.playOnce('scrollMenu');
+			funkin.util.HapticUtil.menuScroll();
+		}
+	}
+
+	function acceptSideButton()
+	{
+		#if ACHIEVEMENTS_ALLOWED
+		busy = true;
+		FunkinSound.playOnce('confirmMenu');
+		funkin.util.HapticUtil.menuConfirm();
+		FlxFlicker.flicker(achievementsButton, 1, 0.06, true, false, function(_) exitTo(() -> new AchievementsMenuState()));
+		#end
 	}
 
 	function accept()
@@ -195,6 +245,7 @@ class MainMenuState extends MusicBeatState
 		var item:FlxSprite = menuItems.members[curSelected];
 		busy = true;
 		FunkinSound.playOnce('confirmMenu');
+		funkin.util.HapticUtil.menuConfirm();
 		if (entry.instant)
 		{
 			entry.callback();
@@ -210,8 +261,13 @@ class MainMenuState extends MusicBeatState
 		var duration:Float = 0.4;
 		for (item in menuItems.members)
 		{
-			if (item.ID != curSelected) FlxTween.tween(item, {alpha: 0}, duration, {ease: FlxEase.quadOut});
+			if (item.ID != curSelected || onSideButton) FlxTween.tween(item, {alpha: 0}, duration, {ease: FlxEase.quadOut});
 			else item.visible = false;
+		}
+		if (achievementsButton != null)
+		{
+			if (onSideButton) achievementsButton.visible = false;
+			else FlxTween.tween(achievementsButton, {alpha: 0}, duration, {ease: FlxEase.quadOut});
 		}
 		new FlxTimer().start(duration, function(_) MusicBeatState.switchState(factory()));
 	}
@@ -226,18 +282,32 @@ class MainMenuState extends MusicBeatState
 
 	function handleInputs()
 	{
-		if (controls.UI_UP_P) selectItem(curSelected - 1);
-		if (controls.UI_DOWN_P) selectItem(curSelected + 1);
+		if (controls.UI_UP_P) selectItem(onSideButton ? curSelected : curSelected - 1);
+		if (controls.UI_DOWN_P) selectItem(onSideButton ? curSelected : curSelected + 1);
+		if (achievementsButton != null)
+		{
+			if (controls.UI_RIGHT_P) setSideButton(true, true);
+			if (controls.UI_LEFT_P) setSideButton(false, true);
+		}
 		if (FlxG.mouse.wheel != 0) selectItem(curSelected - FlxG.mouse.wheel);
 
 		#if !mobile
 		if (FlxG.mouse.justMoved || FlxG.mouse.justPressed)
 		{
 			FlxG.mouse.visible = true;
-			for (item in menuItems.members)
+			if (achievementsButton != null && FlxG.mouse.overlaps(achievementsButton))
+			{
+				if (!onSideButton) setSideButton(true, true);
+				else if (FlxG.mouse.justPressed)
+				{
+					acceptSideButton();
+					return;
+				}
+			}
+			else for (item in menuItems.members)
 			{
 				if (!FlxG.mouse.overlaps(item)) continue;
-				if (item.ID != curSelected) selectItem(item.ID);
+				if (item.ID != curSelected || onSideButton) selectItem(item.ID);
 				else if (FlxG.mouse.justPressed)
 				{
 					accept();
@@ -251,11 +321,18 @@ class MainMenuState extends MusicBeatState
 		#if mobile
 		if (funkin.mobile.input.TouchInput.justTapped())
 		{
+			if (achievementsButton != null && funkin.mobile.input.TouchInput.tappedOn(achievementsButton))
+			{
+				funkin.mobile.input.TouchInput.consumeTap();
+				if (onSideButton) acceptSideButton();
+				else setSideButton(true, true);
+				return;
+			}
 			for (item in menuItems.members)
 			{
 				if (!funkin.mobile.input.TouchInput.tappedOn(item)) continue;
 				funkin.mobile.input.TouchInput.consumeTap();
-				if (item.ID == curSelected) accept();
+				if (item.ID == curSelected && !onSideButton) accept();
 				else selectItem(item.ID);
 				return;
 			}
@@ -292,7 +369,18 @@ class MainMenuState extends MusicBeatState
 			FunkinSound.playOnce('cancelMenu');
 			MusicBeatState.switchState(new TitleState());
 		}
-		else if (controls.ACCEPT) accept();
+		else if (controls.ACCEPT)
+		{
+			if (onSideButton) acceptSideButton();
+			else accept();
+		}
+	}
+
+	override function destroy()
+	{
+		for (point in itemCenters) point.put();
+		itemCenters = [];
+		super.destroy();
 	}
 
 	override function closeSubState()

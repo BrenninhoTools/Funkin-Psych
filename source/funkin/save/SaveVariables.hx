@@ -10,7 +10,7 @@ import flixel.input.gamepad.FlxGamepadInputID;
 	public var fpsStyle:String = 'Simple';
 	public var hitboxMode:String = 'Four Lanes';
 	public var touchCursor:Bool = true;
-	public var haptics:Bool = true;
+	public var hapticsMode:String = 'All';
 	public var hapticsIntensity:Float = 1.0;
 	public var hitboxInvisible:Bool = false;
 	public var hitboxOpacity:Float = 0.2;

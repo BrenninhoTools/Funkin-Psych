@@ -374,6 +374,7 @@ class CharSelectState extends MusicBeatState
 	{
 		cursors.resetDeny();
 		if (selectSound != null) selectSound.play(true);
+		funkin.util.HapticUtil.menuScroll();
 	}
 
 	function accept()
@@ -383,12 +384,14 @@ class CharSelectState extends MusicBeatState
 			playerChill.playLabel('cannot select Label', true);
 			if (lockedSound != null) lockedSound.play(true);
 			cursors.deny();
+			funkin.util.HapticUtil.vibrate(0, 0.05, 0.3);
 			return;
 		}
 
 		pressedSelect = true;
 		cursors.confirm();
 		FunkinSound.playOnce('CS_confirm');
+		funkin.util.HapticUtil.vibrate(0, 0.2);
 		if (FlxG.sound.music != null)
 		{
 			FlxTween.cancelTweensOf(FlxG.sound.music);
