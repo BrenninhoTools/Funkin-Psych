@@ -53,7 +53,7 @@ class FrameLoader
 		if (kind == 'atlas') return true;
 		if (kind != 'auto') return false;
 		var images:Array<String> = splitImages(image);
-		return images.length == 1 && Paths.fileExists('images/${images[0]}/Animation.json', TEXT);
+		return images.length == 1 && detectType(images) == 'atlas';
 	}
 
 	public static function detectType(image:Dynamic):String
@@ -62,8 +62,8 @@ class FrameLoader
 		if (images.length == 0) return 'image';
 		if (images.length > 1) return 'multisparrow';
 		var key:String = images[0];
-		if (Paths.fileExists('images/$key/Animation.json', TEXT)) return 'atlas';
 		if (Paths.fileExists('images/$key.xml', TEXT)) return 'sparrow';
+		if (Paths.fileExists('images/$key/Animation.json', TEXT)) return 'atlas';
 		if (Paths.fileExists('images/$key.json', TEXT)) return 'aseprite';
 		if (Paths.fileExists('images/$key.txt', TEXT)) return 'packer';
 		return 'image';

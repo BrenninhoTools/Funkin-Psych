@@ -28,6 +28,14 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 	var menuCamera:FlxCamera;
 	var camFollow:flixel.FlxObject;
+	var listTopMargin:Float = 0;
+
+	static inline var LABEL_X:Float = 150;
+	static inline var LABEL_SELECTED_X:Float = 175;
+	static inline var CHECKBOX_X:Float = 25;
+	static inline var VALUE_MARGIN:Float = 50;
+	static inline var VALUE_GAP:Float = 40;
+	static inline var CAMERA_MARGIN:Float = 160;
 
 	public function new()
 	{
@@ -53,20 +61,20 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		for (i in 0...optionsArray.length)
 		{
 			var option:Option = optionsArray[i];
-			var optionText:Alphabet = new Alphabet(120, 120 * i + 30, option.name.toUpperCase(), true);
+			var optionText:Alphabet = new Alphabet(LABEL_X, 120 * i + 30, option.name.toUpperCase(), true);
 			optionText.cameras = [menuCamera];
 			grpOptions.add(optionText);
 
 			if (option.type == BOOL)
 			{
-				var checkbox:PreferenceCheckbox = new PreferenceCheckbox(0, 120 * i, Std.string(option.getValue()) == 'true');
+				var checkbox:PreferenceCheckbox = new PreferenceCheckbox(CHECKBOX_X, 120 * i, Std.string(option.getValue()) == 'true');
 				checkbox.cameras = [menuCamera];
 				checkboxes.set(i, checkbox);
 				add(checkbox);
 			}
 			else if (option.type != BUTTON)
 			{
-				var valueText:Alphabet = new Alphabet(15, 120 * i + 30, '', false);
+				var valueText:Alphabet = new Alphabet(0, 120 * i + 30, '', false);
 				valueText.cameras = [menuCamera];
 				valueTexts.set(i, valueText);
 				add(valueText);
@@ -88,8 +96,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		camFollow = new flixel.FlxObject(FlxG.width / 2, 0, 140, 70);
 		menuCamera.follow(camFollow, null, 0.085);
-		var margin:Float = 160;
-		menuCamera.deadzone.set(0, margin, menuCamera.width, menuCamera.height - margin * 2);
+		updateDeadzone();
 		menuCamera.minScrollY = 0;
 
 		silentSelection = true;
@@ -107,12 +114,22 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	{
 		for (i => item in grpOptions.members)
 		{
-			var offsetX:Float = 0;
+			item.x = i == curSelected ? LABEL_SELECTED_X : LABEL_X;
 			var valueText:Alphabet = valueTexts.get(i);
-			if (valueText != null) offsetX = valueText.width - 75;
-			offsetX += i == curSelected ? 150 : 120;
-			item.x = offsetX;
+			if (valueText != null)
+			{
+				valueText.x = Math.max(FlxG.width - VALUE_MARGIN - valueText.width, item.x + item.width + VALUE_GAP);
+				valueText.y = item.y;
+			}
 		}
+	}
+
+	function updateDeadzone()
+	{
+		if (menuCamera == null) return;
+		var top:Float = Math.max(CAMERA_MARGIN, listTopMargin);
+		var bottom:Float = CAMERA_MARGIN + 40;
+		menuCamera.deadzone.set(0, top, menuCamera.width, Math.max(1, menuCamera.height - top - bottom));
 	}
 
 	override function close()

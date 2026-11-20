@@ -10,7 +10,10 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	var noteOptionID:Int = -1;
 	var notes:FlxTypedGroup<StrumNote>;
 	var splashes:FlxTypedGroup<NoteSplash>;
-	var noteY:Float = 90;
+	var noteY:Float = 70;
+	var previewBand:FlxSprite;
+	static inline var PREVIEW_HEIGHT:Float = 210;
+	static inline var PREVIEW_HIDDEN_Y:Float = -240;
 	public function new()
 	{
 		title = Language.getPhrase('visuals_menu', 'Visuals Settings');
@@ -160,15 +163,44 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		super();
+
+		previewBand = new FlxSprite(0, PREVIEW_HIDDEN_Y).makeGraphic(1, 1, FlxColor.BLACK);
+		previewBand.scale.set(FlxG.width, PREVIEW_HEIGHT);
+		previewBand.updateHitbox();
+		previewBand.alpha = 0.6;
+		previewBand.scrollFactor.set();
+		previewBand.cameras = [menuCamera];
+		add(previewBand);
+
+		for (note in notes.members)
+		{
+			note.scrollFactor.set();
+			note.cameras = [menuCamera];
+		}
+		for (splash in splashes.members)
+		{
+			splash.scrollFactor.set();
+			splash.cameras = [menuCamera];
+		}
 		add(notes);
 		add(splashes);
+		silentSelection = true;
+		changeSelection();
+		silentSelection = false;
+	}
+
+	override function update(elapsed:Float)
+	{
+		if (previewBand != null && notes.members[0] != null) previewBand.y = notes.members[0].y - noteY;
+		super.update(elapsed);
 	}
 
 	var notesShown:Bool = false;
 	override function changeSelection(change:Int = 0)
 	{
 		super.changeSelection(change);
-		
+		if (notes == null || previewBand == null) return;
+
 		switch(curOption.variable)
 		{
 			case 'noteSkin', 'splashSkin', 'splashAlpha':
@@ -177,23 +209,26 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 					for (note in notes.members)
 					{
 						FlxTween.cancelTweensOf(note);
-						FlxTween.tween(note, {y: noteY}, Math.abs(note.y / (200 + noteY)) / 3, {ease: FlxEase.quadInOut});
+						FlxTween.tween(note, {y: noteY}, 0.3, {ease: FlxEase.quadOut});
 					}
 				}
 				notesShown = true;
+				listTopMargin = PREVIEW_HEIGHT + 40;
 				if(curOption.variable.startsWith('splash') && Math.abs(notes.members[0].y - noteY) < 25) playNoteSplashes();
 
 			default:
-				if(notesShown) 
+				if(notesShown)
 				{
 					for (note in notes.members)
 					{
 						FlxTween.cancelTweensOf(note);
-						FlxTween.tween(note, {y: -200}, Math.abs(note.y / (200 + noteY)) / 3, {ease: FlxEase.quadInOut});
+						FlxTween.tween(note, {y: PREVIEW_HIDDEN_Y}, 0.3, {ease: FlxEase.quadIn});
 					}
 				}
 				notesShown = false;
+				listTopMargin = 0;
 		}
+		updateDeadzone();
 	}
 
 	var changedMusic:Bool = false;

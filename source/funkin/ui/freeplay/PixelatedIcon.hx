@@ -16,11 +16,27 @@ class PixelatedIcon extends FlxSprite
 		});
 	}
 
+	static final ALIASES:Map<String, String> = [
+		'parents' => 'parents-christmas',
+		'mom-dad' => 'parents-christmas',
+		'dad-mom' => 'parents-christmas',
+		'monster-christmas' => 'monster',
+		'bf-christmas' => 'bf',
+		'gf-christmas' => 'gf'
+	];
+
+	static function resolveAlias(name:String):String
+	{
+		if (name == null) return '';
+		var key:String = name.toLowerCase();
+		return ALIASES.exists(key) ? ALIASES.get(key) : key;
+	}
+
 	public function setCharacter(name:String):Void
 	{
 		if (char == name) return;
 
-		var parts:Array<String> = name.split('-');
+		var parts:Array<String> = resolveAlias(name).split('-');
 		var current:String = '';
 		var found:String = null;
 		for (i in 0...parts.length)
