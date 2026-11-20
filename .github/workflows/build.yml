@@ -37,7 +37,7 @@ jobs:
             host: linux
             artifact: linuxBuild
           - target: windows
-            os: windows-latest
+            os: windows-2022
             host: windows
             artifact: windowsBuild
           - target: mac
@@ -115,6 +115,8 @@ jobs:
           CACHE_DIR="${RUNNER_TEMP//\\//}/hxcpp_cache"
           mkdir -p "$CACHE_DIR"
           echo "HXCPP_COMPILE_CACHE=$CACHE_DIR" >> "$GITHUB_ENV"
+          LIME_REF="$(tr -d '\r\n\t ' < hmm.json | grep -o '"name":"lime"[^}]*' | grep -o '"ref":"[^"]*"' | cut -d'"' -f4)"
+          echo "LIME_REF=${LIME_REF:-unknown}" >> "$GITHUB_ENV"
           echo "CACHE_STAMP=${RUNNER_TEMP//\\//}/cache.stamp" >> "$GITHUB_ENV"
           echo "HAXELIB_GLOBAL=$(haxelib config | tr -d '\r' | sed 's|\\|/|g; s|/$||')" >> "$GITHUB_ENV"
           case '${{ matrix.host }}' in
@@ -146,9 +148,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
-          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.run_id }}
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ github.run_id }}
           restore-keys: |
-            hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-
+            hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-
 
       - name: Restore Gradle
         if: matrix.target == 'android'
@@ -246,9 +248,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .haxelib/lime/git/ndll
-          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-${{ github.run_id }}
           restore-keys: |
-            lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-
+            lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-
 
       - name: Check Lime state
         id: lime-state
@@ -482,14 +484,14 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: .haxelib/lime/git/ndll
-          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          key: lime-ndll-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ env.LIME_REF }}-${{ github.run_id }}
 
       - name: Save hxcpp
         if: always() && steps.changes.outputs.hxcpp == 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/hxcpp_cache
-          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ github.run_id }}
+          key: hxcpp-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Save Gradle
         if: always() && matrix.target == 'android' && steps.changes.outputs.gradle == 'true'

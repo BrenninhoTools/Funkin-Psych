@@ -152,9 +152,9 @@ class SwitchGame
 		var launch:EngineLaunch = launchFor(engine);
 		if (launch == null) return false;
 		#if cpp
-		if (launch.packageName != null) return SwitchGameNative.packageInstalled(cpp.ConstCharStar.fromString(launch.packageName));
-		if (launch.path != null) return SwitchGameNative.pathExists(cpp.ConstCharStar.fromString(resolvePath(launch.path)));
-		if (launch.url != null) return SwitchGameNative.urlAvailable(cpp.ConstCharStar.fromString(launch.url));
+		if (launch.packageName != null) return SwitchGameNative.packageInstalled(native(launch.packageName));
+		if (launch.path != null) return SwitchGameNative.pathExists(native(resolvePath(launch.path)));
+		if (launch.url != null) return SwitchGameNative.urlAvailable(native(launch.url));
 		#end
 		return false;
 	}
@@ -178,15 +178,15 @@ class SwitchGame
 		#if cpp
 		var joined:String = args.join('\n');
 		if (launch.packageName != null)
-			started = SwitchGameNative.launchPackage(cpp.ConstCharStar.fromString(launch.packageName), cpp.ConstCharStar.fromString(joined));
+			started = SwitchGameNative.launchPackage(native(launch.packageName), native(joined));
 		else if (launch.path != null)
 		{
 			var path:String = resolvePath(launch.path);
 			var directory:String = launch.workingDirectory != null ? resolvePath(launch.workingDirectory) : Path.directory(path);
-			started = SwitchGameNative.launchExecutable(cpp.ConstCharStar.fromString(path), cpp.ConstCharStar.fromString(joined), cpp.ConstCharStar.fromString(directory));
+			started = SwitchGameNative.launchExecutable(native(path), native(joined), native(directory));
 		}
 		else if (launch.url != null)
-			started = SwitchGameNative.launchUrl(cpp.ConstCharStar.fromString(launch.url));
+			started = SwitchGameNative.launchUrl(native(launch.url));
 		if (!started) lastError = SwitchGameNative.lastError().toString();
 		#else
 		if (launch.url != null)
@@ -228,6 +228,14 @@ class SwitchGame
 		if (!Path.isAbsolute(result)) result = Path.join([gameDirectory(), result]);
 		return Path.normalize(result);
 	}
+
+	#if cpp
+	static function native(value:String):cpp.ConstCharStar
+	{
+		var text:String = value != null ? value : '';
+		return cpp.ConstCharStar.fromString(text);
+	}
+	#end
 
 	static function stringList(value:Dynamic):Array<String>
 	{
