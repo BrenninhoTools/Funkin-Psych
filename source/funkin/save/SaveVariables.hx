@@ -33,6 +33,8 @@ import flixel.input.gamepad.FlxGamepadInputID;
 	public var shaders:Bool = true;
 	public var cacheOnGPU:Bool = #if (switch || mobile) true #else false #end;
 	public var framerate:Int = 60;
+	public var nativeOptimizations:Bool = true;
+	public var pinBigCores:Bool = false;
 	public var fpsRework:String = 'Off';
 	public var camZooms:Bool = true;
 	public var hideHud:Bool = false;

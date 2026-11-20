@@ -1,0 +1,22 @@
+<xml>
+	<files id="funkin_optimize" dir="${this_dir}">
+		<compilerflag value="-I${this_dir}/include"/>
+		<depend name="${this_dir}/include/funkin_optimize.h"/>
+		<file name="src/optimize.c"/>
+		<file name="src/frame_pacer.cpp"/>
+	</files>
+
+	<files id="haxe">
+		<compilerflag value="-I${this_dir}/include"/>
+	</files>
+
+	<target id="haxe">
+		<files id="funkin_optimize"/>
+		<lib name="-ldl" if="android"/>
+		<lib name="winmm.lib" if="windows" unless="mingw"/>
+		<lib name="psapi.lib" if="windows" unless="mingw"/>
+		<lib name="-lwinmm" if="mingw"/>
+		<lib name="-lpsapi" if="mingw"/>
+		<lib name="-lpthread" if="linux"/>
+	</target>
+</xml>

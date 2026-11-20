@@ -156,6 +156,7 @@ class Save {
 		#end
 
 		FPSManager.apply();
+		funkin.optimize.Optimizer.init();
 
 		if(main.has('gameplaySettings'))
 		{

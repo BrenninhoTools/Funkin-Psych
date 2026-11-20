@@ -68,6 +68,24 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.onChange = onChangeFramerate;
 		#end
 
+		#if cpp
+		var option:Option = new Option('Native Optimizations',
+			"If checked, uses the native optimization framework: precise frame timing,\nhigher thread priority, performance hints and smarter memory cleanup.",
+			'nativeOptimizations',
+			BOOL);
+		option.onChange = funkin.optimize.Optimizer.refresh;
+		addOption(option);
+
+		#if (android || linux)
+		var option:Option = new Option('Use Fast Cores',
+			"If checked, the game runs on the fastest CPU cores of your device.\nCan raise FPS on phones, but uses a bit more battery.",
+			'pinBigCores',
+			BOOL);
+		option.onChange = funkin.optimize.Optimizer.refresh;
+		addOption(option);
+		#end
+		#end
+
 		super();
 		insert(1, boyfriend);
 	}

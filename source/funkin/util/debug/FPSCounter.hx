@@ -127,7 +127,20 @@ class FPSCounter extends Sprite
 		var fps:String = 'FPS: $currentFPS' + (rework.length > 0 ? ' ($rework)' : '');
 		var memory:String = 'Memory: ${FlxStringUtil.formatBytes(memoryMegas)} / ${FlxStringUtil.formatBytes(memoryPeak)}';
 		var lines:Array<String> = [[fps, memory].join(SEPARATOR)];
-		if (style == ADVANCED) lines.push(['Task: ${describeTask()}', 'System: $systemName'].join(SEPARATOR));
+		if (style == ADVANCED)
+		{
+			lines.push(['Task: ${describeTask()}', 'System: $systemName'].join(SEPARATOR));
+			if (funkin.optimize.Optimizer.enabled && funkin.optimize.Optimizer.frameTimeMs() > 0)
+			{
+				var frame:Array<String> = [
+					'Frame: ${FlxMath.roundDecimal(funkin.optimize.Optimizer.frameTimeMs(), 2)}ms',
+					'Work: ${FlxMath.roundDecimal(funkin.optimize.Optimizer.workTimeMs(), 2)}ms',
+					'1% Low: ${Math.round(funkin.optimize.Optimizer.lowFps())}'
+				];
+				if (funkin.optimize.Optimizer.thermal != UNKNOWN) frame.push('Thermal: ${funkin.optimize.Optimizer.thermalName()}');
+				lines.push(frame.join(SEPARATOR));
+			}
+		}
 		label.text = lines.join('\n');
 		label.textColor = currentFPS < funkin.util.FPSManager.warningFPS() ? 0xFFFF4040 : 0xFFFFFFFF;
 	}
