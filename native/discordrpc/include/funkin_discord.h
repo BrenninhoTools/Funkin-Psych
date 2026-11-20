@@ -39,6 +39,7 @@ namespace funkin_discord
 	const char *avatar();
 	const char *lastError();
 	int lastErrorCode();
+	const char *platformName();
 }
 
 #endif

@@ -69,6 +69,7 @@ class DiscordClient
 	public static var supported(get, never):Bool;
 	public static var status(get, never):DiscordStatus;
 	public static var connected(get, never):Bool;
+	public static var platform(get, never):String;
 	public static var user(default, null):DiscordUserData = null;
 	public static var lastError(default, null):String = '';
 	public static var lastErrorCode(default, null):Int = 0;
@@ -258,6 +259,15 @@ class DiscordClient
 		#end
 	}
 
+	static function get_platform():String
+	{
+		#if cpp
+		return nativePlatform();
+		#else
+		return 'none';
+		#end
+	}
+
 	static function get_connected():Bool
 	{
 		return status == CONNECTED;
@@ -287,6 +297,11 @@ class DiscordClient
 	static function nativeAvatar():String
 	{
 		return untyped __cpp__('::String::create(::funkin_discord::avatar())');
+	}
+
+	static function nativePlatform():String
+	{
+		return untyped __cpp__('::String::create(::funkin_discord::platformName())');
 	}
 
 	static function nativeLastError():String
