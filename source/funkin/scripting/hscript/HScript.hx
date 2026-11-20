@@ -279,6 +279,9 @@ class HScript
 		set('FlxG', flixel.FlxG);
 		set('FlxMath', flixel.math.FlxMath);
 		set('FlxSprite', flixel.FlxSprite);
+		#if foxlite
+		set('Scene3D', funkin.graphics.three.Scene3D);
+		#end
 		set('FlxText', flixel.text.FlxText);
 		set('FlxCamera', funkin.graphics.PsychCamera);
 		set('PsychCamera', funkin.graphics.PsychCamera);

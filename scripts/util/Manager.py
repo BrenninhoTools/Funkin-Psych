@@ -213,33 +213,35 @@ class BuildManager:
             )
             return 1
 
-        hmm_file = self.root / "hmm.json"
+        hxpkg_file = self.root / ".hxpkg"
 
-        if not hmm_file.exists():
+        if not hxpkg_file.exists():
             self.log(
-                "hmm.json not found.",
+                ".hxpkg not found.",
                 "ERROR"
             )
             return 1
 
-        self.log("Installing HMM dependencies...")
-
-        if not self.command_exists("hmm"):
-            result = self.execute([
-                "haxelib",
-                "install",
-                "hmm",
-                "--quiet"
-            ])
-
-            if result != 0:
-                return result
+        self.log("Installing HxPKG dependencies...")
 
         result = self.execute([
             "haxelib",
+            "--global",
+            "install",
+            "hxpkg",
+            "--quiet"
+        ])
+
+        if result != 0:
+            return result
+
+        result = self.execute([
+            "haxelib",
+            "--global",
             "run",
-            "hmm",
-            "install"
+            "hxpkg",
+            "install",
+            "--force"
         ])
 
         if result == 0:

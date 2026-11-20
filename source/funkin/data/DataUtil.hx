@@ -32,6 +32,32 @@ class DataUtil
 		return [toFloat(Reflect.field(value, 'x'), defaultX), toFloat(Reflect.field(value, 'y'), defaultY)];
 	}
 
+	public static function vector3(value:Dynamic, defaultX:Float = 0, defaultY:Float = 0, defaultZ:Float = 0):Array<Float>
+	{
+		if (value == null) return [defaultX, defaultY, defaultZ];
+		if (Std.isOfType(value, Array))
+		{
+			var list:Array<Dynamic> = cast value;
+			return [
+				list.length > 0 ? toFloat(list[0], defaultX) : defaultX,
+				list.length > 1 ? toFloat(list[1], defaultY) : defaultY,
+				list.length > 2 ? toFloat(list[2], defaultZ) : defaultZ
+			];
+		}
+		if (Std.isOfType(value, Float) || Std.isOfType(value, Int))
+		{
+			var single:Float = toFloat(value, defaultX);
+			return [single, single, single];
+		}
+		return [toFloat(Reflect.field(value, 'x'), defaultX), toFloat(Reflect.field(value, 'y'), defaultY), toFloat(Reflect.field(value, 'z'), defaultZ)];
+	}
+
+	public static function array(value:Dynamic):Array<Dynamic>
+	{
+		if (value == null) return [];
+		return Std.isOfType(value, Array) ? cast value : [value];
+	}
+
 	public static function intVector(value:Dynamic):Array<Int>
 	{
 		if (value == null) return null;

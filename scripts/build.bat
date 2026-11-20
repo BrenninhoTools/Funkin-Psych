@@ -110,13 +110,13 @@ if not exist "%LIME_DIR%\ndll\Windows64\lime.ndll" (
 exit /b 0
 
 :dependencies
-echo [INFO] Installing haxelib and hmm with FunkinCrew patches...
+echo [INFO] Installing haxelib with FunkinCrew patches and hxpkg...
 call haxelib --global --never install haxelib 4.1.0 >nul
 call haxelib --global set haxelib 4.1.0 >nul
 call haxelib --global --never git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies || exit /b 1
-call haxelib --global --never git hmm https://github.com/FunkinCrew/hmm.git funkin-patches || exit /b 1
-echo [INFO] Installing project libraries from hmm.json...
-call haxelib --global run hmm install || exit /b 1
+call haxelib --global --never install hxpkg || exit /b 1
+echo [INFO] Installing project libraries from .hxpkg...
+call haxelib --global run hxpkg install --force || exit /b 1
 call :lime_path || exit /b 1
 echo [INFO] Fetching Lime submodules...
 git -C "%LIME_DIR%" submodule update --init --recursive --depth 1 || exit /b 1

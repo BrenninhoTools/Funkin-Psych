@@ -122,12 +122,15 @@ jobs:
               VS_PATH="$("$VSWHERE" -latest -products '*' -property installationPath 2>/dev/null | tr -d '\r' | sed 's|\\|/|g' || true)"
               TOOLCHAIN="msvc-$(tr -d '\r\n ' < "$VS_PATH/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt" 2>/dev/null || echo unknown)"
               ;;
-            mac|ios) TOOLCHAIN="xcode-$(xcodebuild -version | head -n 1 | awk '{print $2}')" ;;
+            mac|ios)
+              XCODE_INFO="$(xcodebuild -version 2>/dev/null || true)"
+              TOOLCHAIN="xcode-$(printf '%s\n' "$XCODE_INFO" | awk 'NR==1 {print $2}')"
+              ;;
             *) TOOLCHAIN="gcc-$(gcc -dumpfullversion 2>/dev/null || echo unknown)" ;;
           esac
           echo "Toolchain: $TOOLCHAIN"
           echo "TOOLCHAIN_ID=$TOOLCHAIN" >> "$GITHUB_ENV"
-          LIME_REF="$(tr -d '\r\n\t ' < hmm.json | grep -o '"name":"lime"[^}]*' | grep -o '"ref":"[^"]*"' | cut -d'"' -f4)"
+          LIME_REF="$(tr -d '\r\n\t ' < .hxpkg | grep -o '"name":"lime"[^}]*' | grep -o '"branch":"[^"]*"' | cut -d'"' -f4)"
           echo "LIME_REF=${LIME_REF:-unknown}" >> "$GITHUB_ENV"
           echo "CACHE_STAMP=${RUNNER_TEMP//\\//}/cache.stamp" >> "$GITHUB_ENV"
           echo "HAXELIB_GLOBAL=$(haxelib config | tr -d '\r' | sed 's|\\|/|g; s|/$||')" >> "$GITHUB_ENV"
@@ -145,16 +148,17 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ env.HAXELIB_GLOBAL }}
-          key: haxe-tools-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}
+          key: haxe-tools-hxpkg-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
         id: haxelib-cache
         uses: actions/cache/restore@v6
         with:
           path: .haxelib
-          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          key: haxelib-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}-${{ github.run_id }}
           restore-keys: |
-            haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-
+            haxelib-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}-
+            haxelib-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}-
 
       - name: Restore hxcpp
         uses: actions/cache/restore@v6
@@ -223,36 +227,47 @@ jobs:
 
       - name: Install Haxelibs
         id: install-haxelibs
+        env:
+          HAXELIB_PREFIX: haxelib-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}-
+          MATCHED_KEY: ${{ steps.haxelib-cache.outputs.cache-matched-key }}
         run: |
           set -euo pipefail
-          if [ '${{ steps.tools-cache.outputs.cache-hit }}' != true ] || ! haxelib --global libpath hmm > /dev/null 2>&1; then
+          if [ '${{ steps.tools-cache.outputs.cache-hit }}' != true ] || ! haxelib --global libpath hxpkg > /dev/null 2>&1; then
             haxelib fixrepo --global || true
             haxelib --never --global install haxelib 4.1.0
             haxelib --global set haxelib 4.1.0
             haxelib --global remove haxelib git || true
-            haxelib --global remove hmm || true
             haxelib --never --global git haxelib https://github.com/FunkinCrew/haxelib.git funkin-patches --skip-dependencies
-            haxelib --never --global git hmm https://github.com/FunkinCrew/hmm.git funkin-patches
+            haxelib --never --global install hxpkg
           fi
           haxelib version
-          NEED_INSTALL=0
-          if [ -z '${{ steps.haxelib-cache.outputs.cache-matched-key }}' ]; then
-            NEED_INSTALL=1
-          else
-            for LIB in hxcpp lime openfl flixel flixel-addons hscript polymod haxeui-core haxeui-flixel; do
+          PACKAGES="$(tr -d '\r' < .hxpkg | grep -o '"name": *"[^"]*"' | cut -d'"' -f4)"
+          missing() {
+            for LIB in $PACKAGES; do
               if ! haxelib libpath "$LIB" > /dev/null 2>&1; then
-                echo "::warning::Cached haxelib $LIB is broken, reinstalling"
-                NEED_INSTALL=1
-                break
+                echo "$LIB"
               fi
             done
+          }
+          NEED_INSTALL=0
+          if [ -z "$MATCHED_KEY" ] || [ "${MATCHED_KEY#"$HAXELIB_PREFIX"}" = "$MATCHED_KEY" ]; then
+            NEED_INSTALL=1
+          elif [ -n "$(missing)" ]; then
+            echo "::warning::Cached haxelibs are incomplete: $(missing | tr '\n' ' ')"
+            NEED_INSTALL=1
           fi
           if [ "$NEED_INSTALL" = 1 ]; then
-            haxelib --global run hmm install -q
+            if [ -d .haxelib ]; then
+              haxelib --global run hxpkg install --force
+            else
+              haxelib --global run hxpkg install
+            fi
           fi
-          for LIB in hxcpp lime openfl flixel; do
-            haxelib libpath "$LIB" > /dev/null
-          done
+          MISSING="$(missing)"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing haxelibs: $(echo "$MISSING" | tr '\n' ' ')"
+            exit 1
+          fi
           echo "installed=$NEED_INSTALL" >> "$GITHUB_OUTPUT"
           haxelib list | head -n 60
 
@@ -490,7 +505,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: .haxelib
-          key: haxelib-${{ env.CACHE_REV }}-${{ matrix.target }}-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}-${{ github.run_id }}
+          key: haxelib-${{ env.CACHE_REV }}-${{ runner.os }}-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}-${{ github.run_id }}
 
       - name: Save Lime libraries
         if: always() && steps.changes.outputs.ndll == 'true'

@@ -58,11 +58,11 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
-        id: hmm-cache
+        id: hxpkg-cache
         uses: actions/cache@v4
         with:
           path: .haxelib
-          key: hmm-android-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: hxpkg-android-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}
 
       - name: Restore hxcpp Cache
         uses: actions/cache@v4
@@ -86,9 +86,9 @@ jobs:
           echo "HXCPP_COMPILE_CACHE=$RUNNER_TEMP/hxcpp_cache" >> $GITHUB_ENV
           echo "HXCPP_COMPILE_THREADS=$(nproc)" >> $GITHUB_ENV
           echo "GRADLE_OPTS=-Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.vfs.watch=false -Dkotlin.incremental=false" >> $GITHUB_ENV
-          haxelib --global install hmm --quiet
-          if [ "${{ steps.hmm-cache.outputs.cache-hit }}" != "true" ]; then
-            haxelib --global run hmm install
+          haxelib --global install hxpkg --quiet
+          if [ "${{ steps.hxpkg-cache.outputs.cache-hit }}" != "true" ]; then
+            haxelib --global run hxpkg install --force
             (cd "$(haxelib libpath hxcpp)/tools/hxcpp" && haxe compile.hxml)
           fi
           haxelib list
@@ -185,11 +185,11 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
-        id: hmm-cache
+        id: hxpkg-cache
         uses: actions/cache@v4
         with:
           path: .haxelib
-          key: hmm-ios-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: hxpkg-ios-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}
 
       - name: Restore hxcpp Cache
         uses: actions/cache@v4
@@ -203,9 +203,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/hxcpp_cache"
           echo "HXCPP_COMPILE_CACHE=$RUNNER_TEMP/hxcpp_cache" >> $GITHUB_ENV
           echo "HXCPP_COMPILE_THREADS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
-          arch -x86_64 haxelib --global install hmm --quiet
-          if [ "${{ steps.hmm-cache.outputs.cache-hit }}" != "true" ]; then
-            arch -x86_64 haxelib --global run hmm install
+          arch -x86_64 haxelib --global install hxpkg --quiet
+          if [ "${{ steps.hxpkg-cache.outputs.cache-hit }}" != "true" ]; then
+            arch -x86_64 haxelib --global run hxpkg install --force
             (cd "$(arch -x86_64 haxelib libpath hxcpp)/tools/hxcpp" && arch -x86_64 haxe compile.hxml)
           fi
           arch -x86_64 haxelib list
@@ -294,11 +294,11 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
-        id: hmm-cache
+        id: hxpkg-cache
         uses: actions/cache@v4
         with:
           path: .haxelib
-          key: hmm-windows-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: hxpkg-windows-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}
 
       - name: Restore hxcpp Cache
         uses: actions/cache@v4
@@ -312,9 +312,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/hxcpp_cache"
           echo "HXCPP_COMPILE_CACHE=$RUNNER_TEMP\\hxcpp_cache" >> $GITHUB_ENV
           echo "HXCPP_COMPILE_THREADS=$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
-          haxelib --global install hmm --quiet
-          if [ "${{ steps.hmm-cache.outputs.cache-hit }}" != "true" ]; then
-            haxelib --global run hmm install
+          haxelib --global install hxpkg --quiet
+          if [ "${{ steps.hxpkg-cache.outputs.cache-hit }}" != "true" ]; then
+            haxelib --global run hxpkg install --force
             (cd "$(haxelib libpath hxcpp)/tools/hxcpp" && haxe compile.hxml)
           fi
           haxelib list
@@ -367,11 +367,11 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
-        id: hmm-cache
+        id: hxpkg-cache
         uses: actions/cache@v4
         with:
           path: .haxelib
-          key: hmm-mac-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: hxpkg-mac-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}
 
       - name: Restore hxcpp Cache
         uses: actions/cache@v4
@@ -385,9 +385,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/hxcpp_cache"
           echo "HXCPP_COMPILE_CACHE=$RUNNER_TEMP/hxcpp_cache" >> $GITHUB_ENV
           echo "HXCPP_COMPILE_THREADS=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
-          arch -x86_64 haxelib --global install hmm --quiet
-          if [ "${{ steps.hmm-cache.outputs.cache-hit }}" != "true" ]; then
-            arch -x86_64 haxelib --global run hmm install
+          arch -x86_64 haxelib --global install hxpkg --quiet
+          if [ "${{ steps.hxpkg-cache.outputs.cache-hit }}" != "true" ]; then
+            arch -x86_64 haxelib --global run hxpkg install --force
             (cd "$(arch -x86_64 haxelib libpath hxcpp)/tools/hxcpp" && arch -x86_64 haxe compile.hxml)
           fi
           arch -x86_64 haxelib list
@@ -452,11 +452,11 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       - name: Restore Haxelibs
-        id: hmm-cache
+        id: hxpkg-cache
         uses: actions/cache@v4
         with:
           path: .haxelib
-          key: hmm-linux-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: hxpkg-linux-${{ env.HAXE_VERSION }}-${{ hashFiles('.hxpkg') }}
 
       - name: Restore hxcpp Cache
         uses: actions/cache@v4
@@ -470,9 +470,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/hxcpp_cache"
           echo "HXCPP_COMPILE_CACHE=$RUNNER_TEMP/hxcpp_cache" >> $GITHUB_ENV
           echo "HXCPP_COMPILE_THREADS=$(nproc)" >> $GITHUB_ENV
-          haxelib --global install hmm --quiet
-          if [ "${{ steps.hmm-cache.outputs.cache-hit }}" != "true" ]; then
-            haxelib --global run hmm install
+          haxelib --global install hxpkg --quiet
+          if [ "${{ steps.hxpkg-cache.outputs.cache-hit }}" != "true" ]; then
+            haxelib --global run hxpkg install --force
             (cd "$(haxelib libpath hxcpp)/tools/hxcpp" && haxe compile.hxml)
           fi
           haxelib list

@@ -61,6 +61,7 @@ class Project extends HXProject
 			enable("LUA_ALLOWED");
 			enable("POLYMOD_ALLOWED");
 			if (!hasDefine("NO_CPPIA")) enable("CPPIA_ALLOWED");
+			if (!hasDefine("NO_FOXLITE")) enable("FOXLITE_ALLOWED");
 		}
 		enable("ACHIEVEMENTS_ALLOWED");
 		if (isDesktop()) enable("DISCORD_ALLOWED");
@@ -202,6 +203,7 @@ class Project extends HXProject
 		if (hasDefine("VIDEOS_ALLOWED")) addHaxelib("hxvlc");
 		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
 		addHaxelib("flxanimate");
+		if (hasDefine("FOXLITE_ALLOWED")) addHaxelib("foxlite");
 		if (hasDefine("BASE_GAME_FILES"))
 		{
 			addHaxelib("grig.audio");

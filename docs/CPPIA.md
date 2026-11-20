@@ -46,7 +46,7 @@ If the file has no class with its name, the script's `static function main()` ru
 haxe -cp scripts -main MyScript -cppia MyScript.cppia -D dll_import=path/to/export_classes.info -L flixel -L openfl -L lime
 ```
 
-Use the same haxelib versions as the game (see `hmm.json`) and add `-cp` for the game's `source` folder so the engine classes are known at compile time.
+Use the same haxelib versions as the game (see `.hxpkg`) and add `-cp` for the game's `source` folder so the engine classes are known at compile time.
 
 ## Where to put scripts
 

@@ -5,7 +5,7 @@ import funkin.play.stages.objects.*;
 
 class StagePrefabs
 {
-	public static final TYPES:Array<String> = ['phillyTrain', 'mallCrowd', 'backgroundGirls', 'backgroundDancer', 'dadBattleFog'];
+	public static final TYPES:Array<String> = ['phillyTrain', 'mallCrowd', 'backgroundGirls', 'backgroundDancer', 'dadBattleFog', 'scene3D'];
 
 	public static function create(type:String, data:Dynamic):FlxSprite
 	{
@@ -23,6 +23,15 @@ class StagePrefabs
 				new BackgroundDancer(x, y);
 			case 'dadBattleFog':
 				new DadBattleFog();
+			case 'scene3D':
+				#if foxlite
+				var scene = funkin.graphics.three.Scene3D.fromData(data);
+				scene.setPosition(x, y);
+				scene;
+				#else
+				FlxG.log.warn('3D stage objects need the foxlite library');
+				null;
+				#end
 			default:
 				null;
 		}

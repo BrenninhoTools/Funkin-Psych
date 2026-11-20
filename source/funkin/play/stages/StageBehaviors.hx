@@ -447,6 +447,13 @@ class StageBehaviors extends BaseStage
 				if (action.sounds != null) for (sound in (cast action.sounds:Array<Dynamic>)) Paths.sound(Std.string(sound));
 				if (action.images != null) for (image in (cast action.images:Array<Dynamic>)) Paths.image(Std.string(image));
 
+			case 'play3D':
+				#if foxlite
+				for (target in targets(action))
+					if (Std.isOfType(target, funkin.graphics.three.Scene3D))
+						(cast target:funkin.graphics.three.Scene3D).playAnimation(Std.string(action.object), Std.string(action.anim));
+				#end
+
 			case 'stopTweens':
 				for (target in targets(action)) FlxTween.cancelTweensOf(target);
 
