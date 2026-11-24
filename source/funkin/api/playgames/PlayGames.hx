@@ -2,7 +2,7 @@ package funkin.api.playgames;
 
 import flixel.util.FlxSignal.FlxTypedSignal;
 #if android
-import lime.system.JNI;
+import androidmanager.games.PlayGames as AndroidPlayGames;
 #end
 
 typedef PlayGamesPlayer =
@@ -13,16 +13,12 @@ typedef PlayGamesPlayer =
 
 class PlayGames
 {
-	#if android
-	static inline final CLASS:String = 'org/psychengine/playgames/PlayGamesExtension';
-	#end
 	static inline final MAPPING_FILE:String = 'data/playgames.json';
 
 	public static var supported(get, never):Bool;
 	public static var configured(get, never):Bool;
 	public static var signedIn(get, never):Bool;
-	public static var busy(get, never):Bool;
-	public static var player(default, null):PlayGamesPlayer = null;
+	public static var player(get, never):PlayGamesPlayer;
 	public static var lastError(default, null):String = '';
 
 	public static final onSignIn:FlxTypedSignal<PlayGamesPlayer->Void> = new FlxTypedSignal<PlayGamesPlayer->Void>();
@@ -33,7 +29,6 @@ class PlayGames
 	static var leaderboardIds:Map<String, String> = new Map();
 	static var pendingAchievements:Array<String> = [];
 	static var started:Bool = false;
-	static var methods:Map<String, Dynamic> = new Map();
 
 	public static function init():Void
 	{
@@ -41,8 +36,17 @@ class PlayGames
 		started = true;
 		loadMapping();
 		#if android
-		call('initialize', '()Z');
-		FlxG.signals.postUpdate.add(poll);
+		if (!AndroidPlayGames.available) return;
+		AndroidPlayGames.onSignInChanged.add(function(value:Bool) {
+			if (value) handleSignIn();
+			else onSignOut.dispatch();
+		});
+		AndroidPlayGames.onStateChange.add(function(_, error) {
+			if (error != null) fail(error.code + ': ' + error.message);
+		});
+		AndroidPlayGames.init(function(ok:Bool) {
+			if (ok) handleSignIn();
+		});
 		#end
 	}
 
@@ -65,14 +69,17 @@ class PlayGames
 		}
 		catch (e:Dynamic)
 		{
-			fail('mapping:' + Std.string(e));
+			fail('mapping: ' + Std.string(e));
 		}
 	}
 
 	public static function signIn():Void
 	{
 		#if android
-		call('signIn', '()V');
+		AndroidPlayGames.connect(function(ok:Bool, ?error) {
+			if (ok) handleSignIn();
+			else if (error != null) fail(error.code + ': ' + error.message);
+		});
 		#end
 	}
 
@@ -86,7 +93,8 @@ class PlayGames
 			return false;
 		}
 		#if android
-		return call('unlockAchievement', '(Ljava/lang/String;)Z', [id]) == true;
+		AndroidPlayGames.unlockAchievement(id);
+		return true;
 		#else
 		return false;
 		#end
@@ -95,9 +103,10 @@ class PlayGames
 	public static function incrementAchievement(name:String, steps:Int = 1):Bool
 	{
 		var id:String = resolveAchievement(name);
-		if (id == null || steps <= 0) return false;
+		if (id == null || steps <= 0 || !signedIn) return false;
 		#if android
-		return call('incrementAchievement', '(Ljava/lang/String;I)Z', [id, steps]) == true;
+		AndroidPlayGames.incrementAchievement(id, steps);
+		return true;
 		#else
 		return false;
 		#end
@@ -106,9 +115,10 @@ class PlayGames
 	public static function setAchievementSteps(name:String, steps:Int):Bool
 	{
 		var id:String = resolveAchievement(name);
-		if (id == null || steps <= 0) return false;
+		if (id == null || steps <= 0 || !signedIn) return false;
 		#if android
-		return call('setAchievementSteps', '(Ljava/lang/String;I)Z', [id, steps]) == true;
+		AndroidPlayGames.setAchievementSteps(id, steps);
+		return true;
 		#else
 		return false;
 		#end
@@ -117,20 +127,22 @@ class PlayGames
 	public static function revealAchievement(name:String):Bool
 	{
 		var id:String = resolveAchievement(name);
-		if (id == null) return false;
+		if (id == null || !signedIn) return false;
 		#if android
-		return call('revealAchievement', '(Ljava/lang/String;)Z', [id]) == true;
+		AndroidPlayGames.revealAchievement(id);
+		return true;
 		#else
 		return false;
 		#end
 	}
 
-	public static function submitScore(leaderboard:String, score:Float):Bool
+	public static function submitScore(leaderboard:String, score:Float, ?tag:String):Bool
 	{
 		var id:String = resolveLeaderboard(leaderboard);
-		if (id == null || score < 0) return false;
+		if (id == null || score < 0 || !signedIn) return false;
 		#if android
-		return call('submitScore', '(Ljava/lang/String;D)Z', [id, Math.ffloor(score)]) == true;
+		AndroidPlayGames.submitScore(id, Math.ffloor(score), tag);
+		return true;
 		#else
 		return false;
 		#end
@@ -143,19 +155,21 @@ class PlayGames
 		var diff:String = difficulty == null ? '' : Paths.formatToSongPath(difficulty);
 		var keys:Array<String> = diff.length > 0 ? ['$base-$diff', base] : [base];
 		for (key in keys)
-			if (leaderboardIds.exists(key)) return submitScore(key, score);
+			if (leaderboardIds.exists(key)) return submitScore(key, score, diff);
 		return false;
 	}
 
 	public static function showAchievements():Bool
 	{
 		#if android
+		if (!configured) return false;
 		if (!signedIn)
 		{
 			signIn();
 			return false;
 		}
-		return call('showAchievements', '()Z') == true;
+		AndroidPlayGames.showAchievements();
+		return true;
 		#else
 		return false;
 		#end
@@ -164,13 +178,16 @@ class PlayGames
 	public static function showLeaderboard(?leaderboard:String):Bool
 	{
 		#if android
+		if (!configured) return false;
 		if (!signedIn)
 		{
 			signIn();
 			return false;
 		}
-		var id:String = leaderboard == null ? '' : resolveLeaderboard(leaderboard);
-		return call('showLeaderboard', '(Ljava/lang/String;)Z', [id == null ? '' : id]) == true;
+		var id:String = leaderboard == null ? null : resolveLeaderboard(leaderboard);
+		if (id == null) AndroidPlayGames.showAllLeaderboards();
+		else AndroidPlayGames.showLeaderboard(id);
+		return true;
 		#else
 		return false;
 		#end
@@ -181,6 +198,16 @@ class PlayGames
 
 	public static function hasLeaderboard(name:String):Bool
 		return resolveLeaderboard(name) != null;
+
+	static function handleSignIn():Void
+	{
+		#if android
+		AndroidPlayGames.getCurrentPlayer(function(_, ?_) {
+			flushPending();
+			onSignIn.dispatch(player);
+		});
+		#end
+	}
 
 	static function resolveAchievement(name:String):String
 	{
@@ -209,36 +236,6 @@ class PlayGames
 		}
 	}
 
-	static function poll():Void
-	{
-		#if android
-		var guard:Int = 0;
-		while (guard++ < 16)
-		{
-			var raw:Dynamic = call('pollEvent', '()Ljava/lang/String;');
-			if (raw == null) return;
-			var text:String = Std.string(raw);
-			if (text.length == 0) return;
-			var split:Int = text.indexOf('\n');
-			var type:String = split < 0 ? text : text.substr(0, split);
-			var data:String = split < 0 ? '' : text.substr(split + 1);
-			switch (type)
-			{
-				case 'signin':
-					var parts:Array<String> = data.split('\t');
-					player = {id: parts[0], name: parts.length > 1 ? parts[1] : ''};
-					flushPending();
-					onSignIn.dispatch(player);
-				case 'signout':
-					player = null;
-					onSignOut.dispatch();
-				case 'error':
-					fail(data);
-			}
-		}
-		#end
-	}
-
 	static function flushPending():Void
 	{
 		var list:Array<String> = pendingAchievements;
@@ -256,29 +253,6 @@ class PlayGames
 		onError.dispatch(message);
 	}
 
-	#if android
-	static function call(name:String, signature:String, ?args:Array<Dynamic>):Dynamic
-	{
-		try
-		{
-			var key:String = name + signature;
-			var method:Dynamic = methods.get(key);
-			if (method == null)
-			{
-				method = JNI.createStaticMethod(CLASS, name, signature);
-				methods.set(key, method);
-			}
-			if (method == null) return null;
-			return Reflect.callMethod(null, method, args == null ? [] : args);
-		}
-		catch (e:Dynamic)
-		{
-			lastError = Std.string(e);
-			return null;
-		}
-	}
-	#end
-
 	static function get_supported():Bool
 	{
 		#if android
@@ -291,7 +265,7 @@ class PlayGames
 	static function get_configured():Bool
 	{
 		#if android
-		return call('isConfigured', '()Z') == true;
+		return AndroidPlayGames.available;
 		#else
 		return false;
 		#end
@@ -300,18 +274,19 @@ class PlayGames
 	static function get_signedIn():Bool
 	{
 		#if android
-		return player != null && call('isAuthenticated', '()Z') == true;
+		return AndroidPlayGames.available && AndroidPlayGames.signedIn;
 		#else
 		return false;
 		#end
 	}
 
-	static function get_busy():Bool
+	static function get_player():PlayGamesPlayer
 	{
 		#if android
-		return call('isBusy', '()Z') == true;
+		var current = AndroidPlayGames.player;
+		return current == null ? null : {id: current.id, name: current.displayName};
 		#else
-		return false;
+		return null;
 		#end
 	}
 }

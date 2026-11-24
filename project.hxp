@@ -131,11 +131,7 @@ class Project extends HXProject
 			dependencies.push(new Dependency("psychmobile", "project/android/psychmobile"));
 			config.push("android.extension", "org.psychengine.mobile.FileDialogs");
 			config.push("android.extension", "org.psychengine.mobile.ScreenExtension");
-			if (!hasDefine("NO_PLAY_GAMES"))
-			{
-				dependencies.push(new Dependency("playgames", "project/android/playgames"));
-				config.push("android.extension", "org.psychengine.playgames.PlayGamesExtension");
-			}
+			setupPlayGames();
 		}
 
 		if (target == Platform.IOS)
@@ -217,6 +213,7 @@ class Project extends HXProject
 			addHaxelib("grig.audio");
 			addHaxelib("funkin.vis");
 		}
+		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
 		if (target == Platform.ANDROID) addHaxelib("android-manager");
 		if (target == Platform.IOS) addHaxelib("extension-iostools");
 		if (isMobile()) addHaxelib("extension-haptics");
@@ -288,6 +285,26 @@ class Project extends HXProject
 		icons.push(new Icon("art/icons/icon32.png", 32));
 		icons.push(new Icon("art/icons/icon64.png", 64));
 		icons.push(new Icon("art/icons/iconOG.png"));
+	}
+
+	function setupPlayGames()
+	{
+		if (hasDefine("NO_PLAY_GAMES")) return;
+
+		var appId:String = hasDefine("PLAY_GAMES_APP_ID") ? defines.get("PLAY_GAMES_APP_ID") : Sys.getEnv("PLAY_GAMES_APP_ID");
+		if (appId == null || appId.length == 0)
+		{
+			var file:String = "project/android/play_games_app_id.txt";
+			if (sys.FileSystem.exists(file)) appId = sys.io.File.getContent(file);
+		}
+		if (appId == null) return;
+		appId = StringTools.trim(appId);
+		if (!~/^[0-9]+$/.match(appId)) return;
+
+		setDefine("PLAY_GAMES_APP_ID", appId);
+		setHaxedef("PLAY_GAMES_APP_ID", appId);
+		if (!hasDefine("PLAY_GAMES_SIGN_IN")) setDefine("PLAY_GAMES_SIGN_IN", "silent");
+		if (config.getInt("android.minimum-sdk-version", 21) < 23) config.set("android.minimum-sdk-version", 23);
 	}
 
 	function enable(name:String)

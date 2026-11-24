@@ -3,6 +3,8 @@ package funkin.api.discord;
 #if DISCORD_ALLOWED
 import flixel.util.FlxSignal.FlxTypedSignal;
 import lime.app.Application;
+import hxdiscord_rpc.DiscordEvents.DiscordEvents as RpcEvents;
+import hxdiscord_rpc.DiscordEvents.DiscordPresence as RpcPresence;
 
 enum abstract DiscordStatus(Int) from Int to Int
 {
@@ -34,34 +36,8 @@ typedef DiscordButtonData =
 	var url:String;
 }
 
-#if cpp
-@:include('funkin_discord.h')
-extern class DiscordNative
-{
-	@:native('::funkin_discord::supported') static function supported():Bool;
-	@:native('::funkin_discord::start') static function start(clientId:cpp.ConstCharStar):Void;
-	@:native('::funkin_discord::stop') static function stop():Void;
-	@:native('::funkin_discord::status') static function status():Int;
-	@:native('::funkin_discord::pollEvent') static function pollEvent():Int;
-	@:native('::funkin_discord::setActivity') static function setActivity(type:Int, details:cpp.ConstCharStar, state:cpp.ConstCharStar,
-		largeImage:cpp.ConstCharStar, largeText:cpp.ConstCharStar, smallImage:cpp.ConstCharStar, smallText:cpp.ConstCharStar, start:Float,
-		end:Float):Void;
-	@:native('::funkin_discord::setParty') static function setParty(id:cpp.ConstCharStar, size:Int, max:Int):Void;
-	@:native('::funkin_discord::setButton') static function setButton(index:Int, label:cpp.ConstCharStar, url:cpp.ConstCharStar):Void;
-	@:native('::funkin_discord::clearButtons') static function clearButtons():Void;
-	@:native('::funkin_discord::commit') static function commit():Void;
-	@:native('::funkin_discord::clearActivity') static function clearActivity():Void;
-	@:native('::funkin_discord::lastErrorCode') static function lastErrorCode():Int;
-}
-
-@:build(funkin.util.macro.NativeLibrary.build('discordrpc'))
-#end
 class DiscordClient
 {
-	static inline final EVENT_READY:Int = 1;
-	static inline final EVENT_DISCONNECTED:Int = 2;
-	static inline final EVENT_ERROR:Int = 3;
-
 	public static var isInitialized:Bool = false;
 	private inline static final _defaultID:String = "863222024192262205";
 	public static var clientID(default, set):String = _defaultID;
@@ -94,6 +70,7 @@ class DiscordClient
 
 	static var hooked:Bool = false;
 	static var closeHooked:Bool = false;
+	static var presence:RpcPresence = new RpcPresence();
 
 	public static function check()
 	{
@@ -118,17 +95,12 @@ class DiscordClient
 	{
 		isInitialized = false;
 		user = null;
-		#if cpp
-		DiscordNative.stop();
-		#end
+		RpcEvents.shutdown();
 	}
 
 	public static function initialize()
 	{
-		#if cpp
-		if (!DiscordNative.supported()) return;
-		DiscordNative.start(str(clientID));
-		#end
+		if (!RpcEvents.init(clientID)) return;
 		if (!hooked)
 		{
 			hooked = true;
@@ -170,26 +142,31 @@ class DiscordClient
 
 	public static function clearPresence()
 	{
-		#if cpp
-		if (isInitialized) DiscordNative.clearActivity();
-		#end
+		if (isInitialized) RpcEvents.clearPresence();
 	}
 
 	public static function updatePresence()
 	{
-		#if cpp
 		if (!isInitialized) return;
-		DiscordNative.setActivity(activityType, str(details), str(state), str(largeImageKey), str(largeImageText), str(smallImageKey),
-			str(smallImageText), startTimestamp, endTimestamp);
-		DiscordNative.setParty(str(partyId), partySize, partyMax);
-		DiscordNative.clearButtons();
-		for (i in 0...Std.int(Math.min(buttons.length, 2)))
-		{
-			var button:DiscordButtonData = buttons[i];
-			if (button != null) DiscordNative.setButton(i, str(button.label), str(button.url));
-		}
-		DiscordNative.commit();
-		#end
+		presence.type = activityType;
+		presence.details = clip(details);
+		presence.state = clip(state);
+		presence.largeImageKey = largeImageKey;
+		presence.largeImageText = clip(largeImageText);
+		presence.smallImageKey = smallImageKey;
+		presence.smallImageText = clip(smallImageText);
+		presence.startTimestamp = startTimestamp;
+		presence.endTimestamp = endTimestamp;
+		presence.partyId = partyId;
+		presence.partySize = partySize;
+		presence.partyMax = partyMax;
+		var first:DiscordButtonData = buttons.length > 0 ? buttons[0] : null;
+		var second:DiscordButtonData = buttons.length > 1 ? buttons[1] : null;
+		presence.button1Label = first != null ? first.label : null;
+		presence.button1Url = first != null ? first.url : null;
+		presence.button2Label = second != null ? second.label : null;
+		presence.button2Url = second != null ? second.url : null;
+		RpcEvents.updatePresence(presence);
 	}
 
 	inline public static function resetClientID()
@@ -213,59 +190,50 @@ class DiscordClient
 
 	static function pollEvents()
 	{
-		#if cpp
 		if (!isInitialized) return;
-		var event:Int = DiscordNative.pollEvent();
-		while (event != 0)
-		{
+		RpcEvents.update();
+		RpcEvents.pollAll(function(event) {
 			switch (event)
 			{
-				case EVENT_READY:
+				case Ready(data):
 					user = {
-						id: nativeUserId(),
-						username: nativeUserName(),
-						globalName: nativeGlobalName(),
-						avatar: nativeAvatar()
+						id: data.userId,
+						username: data.username,
+						globalName: data.globalName,
+						avatar: data.avatar
 					};
+					updatePresence();
 					onReady.dispatch(user);
-				case EVENT_DISCONNECTED:
+				case Disconnected(code, message):
 					user = null;
+					lastErrorCode = code;
+					lastError = message;
 					onDisconnected.dispatch();
-				case EVENT_ERROR:
-					lastError = nativeLastError();
-					lastErrorCode = DiscordNative.lastErrorCode();
-					onError.dispatch(lastErrorCode, lastError);
+				case Errored(code, message):
+					lastErrorCode = code;
+					lastError = message;
+					onError.dispatch(code, message);
+				default:
 			}
-			event = DiscordNative.pollEvent();
-		}
-		#end
+		});
+	}
+
+	static function clip(value:String):String
+	{
+		if (value == null || value.length <= 128) return value;
+		return value.substr(0, 125) + '...';
 	}
 
 	static function get_supported():Bool
 	{
-		#if cpp
-		return DiscordNative.supported();
-		#else
-		return false;
-		#end
+		return RpcEvents.supported;
 	}
 
 	static function get_status():DiscordStatus
 	{
-		#if cpp
-		return DiscordNative.status();
-		#else
-		return UNSUPPORTED;
-		#end
-	}
-
-	static function get_platform():String
-	{
-		#if cpp
-		return nativePlatform();
-		#else
-		return 'none';
-		#end
+		if (!RpcEvents.supported) return UNSUPPORTED;
+		if (!isInitialized) return DISCONNECTED;
+		return RpcEvents.ready ? CONNECTED : CONNECTING;
 	}
 
 	static function get_connected():Bool
@@ -273,42 +241,22 @@ class DiscordClient
 		return status == CONNECTED;
 	}
 
-	#if cpp
-	static inline function str(value:String):cpp.ConstCharStar
+	static function get_platform():String
 	{
-		return untyped __cpp__('({0}.__s ? {0}.utf8_str() : (const char *)0)', value);
+		#if windows
+		return 'windows';
+		#elseif mac
+		return 'macos';
+		#elseif linux
+		return 'linux';
+		#elseif android
+		return 'android';
+		#elseif ios
+		return 'ios';
+		#else
+		return 'unknown';
+		#end
 	}
-
-	static function nativeUserId():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::userId())');
-	}
-
-	static function nativeUserName():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::userName())');
-	}
-
-	static function nativeGlobalName():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::globalName())');
-	}
-
-	static function nativeAvatar():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::avatar())');
-	}
-
-	static function nativePlatform():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::platformName())');
-	}
-
-	static function nativeLastError():String
-	{
-		return untyped __cpp__('::String::create(::funkin_discord::lastError())');
-	}
-	#end
 
 	#if MODS_ALLOWED
 	public static function loadModRPC()

@@ -65,9 +65,14 @@
 				"dir": "src"
 			},
 			{
+				"name": "hxdiscord_rpc",
+				"link": "https://github.com/BrenninhoTools/hxdiscord_rpc",
+				"branch": "d678bfc6c0eefb000d14317139de3d382e18f78a"
+			},
+			{
 				"name": "android-manager",
 				"link": "https://github.com/BrenninhoTools/android-manager",
-				"branch": "273b79a94a61730a040bf99138bdaf4da3a5adf5"
+				"branch": "940373f688fd1da5f13a3898675a3b2108a9da23"
 			},
 			{
 				"name": "extension-iostools",

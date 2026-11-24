@@ -76,28 +76,19 @@ class FullScreenScaleMode extends BaseScaleMode
 		#if android
 		try
 		{
-			var raw:Dynamic = lime.system.JNI.createStaticMethod('org/psychengine/mobile/ScreenExtension', 'getSafeInsets', '()Ljava/lang/String;')();
-			if (raw != null)
+			var safe = androidmanager.view.Window.getSafeArea();
+			if (safe != null)
 			{
-				var parts:Array<String> = Std.string(raw).split(',');
-				if (parts.length == 4)
+				var values:Array<Float> = [safe.left, safe.top, safe.right, safe.bottom];
+				var game:flixel.FlxGame = FlxG.game;
+				if (game != null && FlxG.scaleMode != null)
 				{
-					var values:Array<Float> = [for (part in parts) Std.parseFloat(part)];
-					var valid:Bool = true;
-					for (value in values) if (Math.isNaN(value)) valid = false;
-					if (valid)
-					{
-						var game:flixel.FlxGame = FlxG.game;
-						if (game != null)
-						{
-							values[0] = Math.max(0, values[0] - game.x);
-							values[1] = Math.max(0, values[1] - game.y);
-							values[2] = Math.max(0, values[2] - (FlxG.stage.stageWidth - game.x - FlxG.scaleMode.gameSize.x));
-							values[3] = Math.max(0, values[3] - (FlxG.stage.stageHeight - game.y - FlxG.scaleMode.gameSize.y));
-						}
-						return values;
-					}
+					values[0] = Math.max(0, values[0] - game.x);
+					values[1] = Math.max(0, values[1] - game.y);
+					values[2] = Math.max(0, values[2] - (FlxG.stage.stageWidth - game.x - FlxG.scaleMode.gameSize.x));
+					values[3] = Math.max(0, values[3] - (FlxG.stage.stageHeight - game.y - FlxG.scaleMode.gameSize.y));
 				}
+				return values;
 			}
 		}
 		catch (e:Dynamic) {}

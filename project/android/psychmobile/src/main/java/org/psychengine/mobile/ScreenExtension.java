@@ -3,10 +3,7 @@ package org.psychengine.mobile;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.DisplayCutout;
-import android.view.View;
 import android.view.Window;
-import android.view.WindowInsets;
 import android.view.WindowManager;
 import org.haxe.extension.Extension;
 
@@ -22,20 +19,6 @@ public class ScreenExtension extends Extension
 	public void onResume()
 	{
 		useCutoutArea();
-	}
-
-	public static String getSafeInsets()
-	{
-		if (Build.VERSION.SDK_INT < 28) return "0,0,0,0";
-		Activity activity = Extension.mainActivity;
-		if (activity == null || activity.getWindow() == null) return "0,0,0,0";
-		View decor = activity.getWindow().getDecorView();
-		if (decor == null) return "0,0,0,0";
-		WindowInsets insets = decor.getRootWindowInsets();
-		if (insets == null) return "0,0,0,0";
-		DisplayCutout cutout = insets.getDisplayCutout();
-		if (cutout == null) return "0,0,0,0";
-		return cutout.getSafeInsetLeft() + "," + cutout.getSafeInsetTop() + "," + cutout.getSafeInsetRight() + "," + cutout.getSafeInsetBottom();
 	}
 
 	private static void useCutoutArea()
