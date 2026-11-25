@@ -1,4 +1,6 @@
 #define MINIAUDIO_IMPLEMENTATION
+#define MA_API static
+#define ma_atomic_global_lock funkin_ma_atomic_global_lock
 #define MA_NO_GENERATION
 #if defined(__APPLE__)
 #define MA_NO_RUNTIME_LINKING
