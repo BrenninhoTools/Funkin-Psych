@@ -310,6 +310,7 @@ class Mods
 	{
 		packCache.clear();
 		cachedList = null;
+		Paths.clearPathCache();
 	}
 
 	public static function loadTopMod()

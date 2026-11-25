@@ -23,6 +23,53 @@ class Paths
 	inline public static var SHARED_FOLDER = "shared";
 	inline public static var PRELOAD_FOLDER = "preload";
 
+	public static var SOUND_FALLBACK_EXTS:Array<String> = #if web [] #else ["ogg", "mp3", "wav", "flac"] #end;
+	public static var IMAGE_FALLBACK_EXTS:Array<String> = ["jpg", "jpeg"];
+	public static var cachePaths:Bool = true;
+
+	static var pathCache:Map<String, String> = new Map();
+	static var missingFiles:Map<String, Bool> = new Map();
+	#if target.threaded
+	static var cacheMutex:sys.thread.Mutex = new sys.thread.Mutex();
+	#end
+
+	public static function clearPathCache():Void
+	{
+		lockCache();
+		pathCache.clear();
+		missingFiles.clear();
+		unlockCache();
+	}
+
+	static inline function lockCache():Void
+	{
+		#if target.threaded
+		cacheMutex.acquire();
+		#end
+	}
+
+	static inline function unlockCache():Void
+	{
+		#if target.threaded
+		cacheMutex.release();
+		#end
+	}
+
+	static function isMissing(file:String):Bool
+	{
+		lockCache();
+		var missing:Bool = missingFiles.exists(file);
+		unlockCache();
+		return missing;
+	}
+
+	static function markMissing(file:String):Void
+	{
+		lockCache();
+		missingFiles.set(file, true);
+		unlockCache();
+	}
+
 	public static var dumpExclusions(get, set):Array<String>;
 	public static var localTrackedAssets(get, set):Array<String>;
 	public static var currentTrackedAssets(get, set):Map<String, FlxGraphic>;
@@ -44,7 +91,10 @@ class Paths
 		AssetCache.clearUnused();
 
 	public static inline function clearStoredMemory()
+	{
 		AssetCache.clearStored();
+		clearPathCache();
+	}
 
 	public static inline function freeGraphicsFromMemory()
 		AssetCache.freeGraphics();
@@ -55,6 +105,27 @@ class Paths
 		currentLevel = name != null ? name.toLowerCase() : null;
 
 	public static function getPath(file:String, ?type:AssetType = TEXT, ?parentfolder:String, ?modsAllowed:Bool = true):String
+	{
+		if (file == null) return null;
+		if (!cachePaths) return resolvePath(file, type, parentfolder, modsAllowed);
+
+		var cacheKey:String = '$file|$type|$parentfolder|$modsAllowed|$currentLevel' #if MODS_ALLOWED + '|' + Mods.currentModDirectory #end;
+		lockCache();
+		var cached:String = pathCache.get(cacheKey);
+		unlockCache();
+		if (cached != null) return cached;
+
+		var resolved:String = resolvePath(file, type, parentfolder, modsAllowed);
+		if (resolved != null)
+		{
+			lockCache();
+			pathCache.set(cacheKey, resolved);
+			unlockCache();
+		}
+		return resolved;
+	}
+
+	static function resolvePath(file:String, type:AssetType, parentfolder:String, modsAllowed:Bool):String
 	{
 		var alias:Null<String> = AssetAliases.get(file);
 
@@ -224,9 +295,20 @@ class Paths
 		if (bitmap == null)
 		{
 			var file:String = getPath(key, IMAGE, parentFolder, true);
+			if (isMissing(file)) return null;
 			bitmap = loadBitmap(file);
+			if (bitmap == null && key.endsWith('.$IMAGE_EXT'))
+			{
+				var base:String = key.substr(0, key.length - IMAGE_EXT.length);
+				for (ext in IMAGE_FALLBACK_EXTS)
+				{
+					bitmap = loadBitmap(getPath(base + ext, IMAGE, parentFolder, true));
+					if (bitmap != null) break;
+				}
+			}
 			if (bitmap == null)
 			{
+				markMissing(file);
 				FlxG.log.warn('Bitmap not found: $file | key: $key');
 				return null;
 			}
@@ -331,7 +413,38 @@ class Paths
 		return type != null ? OpenFlAssets.exists(path, type) : OpenFlAssets.exists(path);
 
 	inline static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
-		return getContent(getPath(key, TEXT, !ignoreMods));
+		return getContent(getPath(key, TEXT, null, !ignoreMods));
+
+	public static function parseJson(key:String, ?folder:String):Dynamic
+	{
+		var path:String = json(key, folder);
+		var raw:String = getContent(path);
+		if (raw == null || raw.trim().length == 0) return null;
+		try
+		{
+			return tjson.TJSON.parse(raw, path);
+		}
+		catch (e:Dynamic)
+		{
+			FlxG.log.error('Invalid JSON: $e');
+			return null;
+		}
+	}
+
+	public static function extension(path:String):String
+	{
+		if (path == null) return '';
+		var dot:Int = path.lastIndexOf('.');
+		var slash:Int = path.lastIndexOf('/');
+		return dot > slash ? path.substr(dot + 1).toLowerCase() : '';
+	}
+
+	public static function withoutExtension(path:String):String
+	{
+		if (path == null) return null;
+		var dot:Int = path.lastIndexOf('.');
+		return dot > path.lastIndexOf('/') ? path.substr(0, dot) : path;
+	}
 
 	public static function readDirectory(folder:String, ?extension:String, ?modsAllowed:Bool = true):Array<String>
 	{
@@ -343,17 +456,24 @@ class Paths
 			if (!found.contains(name)) found.push(name);
 		}
 
-		var base:String = getSharedPath(folder);
-		#if sys
-		if (FileSystem.exists(base) && FileSystem.isDirectory(base))
-			for (file in FileSystem.readDirectory(base)) add(file);
-		#end
-		for (asset in OpenFlAssets.list())
-			if (asset.startsWith(base))
-			{
-				var rest:String = asset.substr(base.length);
-				if (rest.indexOf('/') == -1) add(rest);
-			}
+		var bases:Array<String> = [];
+		if (currentLevel != null && currentLevel != SHARED_FOLDER && currentLevel != PRELOAD_FOLDER) bases.push(getFolderPath(folder, currentLevel));
+		bases.push(getSharedPath(folder));
+		bases.push(getPreloadPath(folder));
+		var assets:Array<String> = OpenFlAssets.list();
+		for (base in bases)
+		{
+			#if sys
+			if (FileSystem.exists(base) && FileSystem.isDirectory(base))
+				for (file in FileSystem.readDirectory(base)) add(file);
+			#end
+			for (asset in assets)
+				if (asset.startsWith(base))
+				{
+					var rest:String = asset.substr(base.length);
+					if (rest.indexOf('/') == -1) add(rest);
+				}
+		}
 
 		#if MODS_ALLOWED
 		if (modsAllowed)
@@ -489,11 +609,27 @@ class Paths
 
 	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true):Sound
 	{
-		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
+		var translated:String = Language.getFileTranslation(key);
+		var file:String = getPath('$translated.$SOUND_EXT', SOUND, path, modsAllowed);
 		var cached:Sound = AssetCache.getSound(file);
 		if (cached != null) return cached;
 
-		var sound:Sound = loadSound(file);
+		var sound:Sound = isMissing(file) ? null : loadSound(file);
+		if (sound == null)
+		{
+			for (ext in SOUND_FALLBACK_EXTS)
+			{
+				if (ext == SOUND_EXT) continue;
+				var alternate:String = getPath('$translated.$ext', SOUND, path, modsAllowed);
+				var alternateCached:Sound = AssetCache.getSound(alternate);
+				if (alternateCached != null) return alternateCached;
+				if (isMissing(alternate)) continue;
+				var loaded:Sound = loadSound(alternate);
+				if (loaded != null) return AssetCache.addSound(alternate, loaded);
+				markMissing(alternate);
+			}
+			markMissing(file);
+		}
 		if (sound == null)
 		{
 			if (!beepOnNull) return null;
