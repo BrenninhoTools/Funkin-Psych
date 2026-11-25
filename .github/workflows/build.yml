@@ -3,11 +3,29 @@ name: Build
 on:
   push:
     branches: [main, experimental]
-    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**']
+    tags: ['v*']
+    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**', 'LICENSE', '.github/ISSUE_TEMPLATE/**']
   pull_request:
     branches: [main, experimental]
-    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**']
+    paths-ignore: ['**.md', 'docs/**', 'documents-mobile/**', 'art/**', '.vscode/**', 'LICENSE', '.github/ISSUE_TEMPLATE/**']
   workflow_dispatch:
+    inputs:
+      targets:
+        description: 'Targets to build, separated by commas (android, linux, windows, mac, ios) or all'
+        type: string
+        default: all
+      build_type:
+        description: 'Build type'
+        type: choice
+        options: [release, debug]
+        default: release
+      fresh_caches:
+        description: 'Ignore every cache for this run'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,33 +39,66 @@ env:
   APT_PACKAGES: g++ pkg-config libx11-dev libxi-dev libxext-dev libxfixes-dev libxinerama-dev libxrandr-dev libxcursor-dev libxss-dev libxtst-dev libgl-dev libgl1-mesa-dev libegl-dev libgles-dev libasound2-dev libpulse-dev libpipewire-0.3-dev libspa-0.2-dev libwayland-bin libwayland-dev wayland-protocols libxkbcommon-dev libdecor-0-dev libdbus-1-dev libudev-dev libdrm-dev libgbm-dev
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      build-type: ${{ steps.matrix.outputs.build-type }}
+      cache-rev: ${{ steps.matrix.outputs.cache-rev }}
+    steps:
+      - name: Matrix
+        id: matrix
+        env:
+          TARGETS: ${{ github.event.inputs.targets || 'all' }}
+          BUILD_TYPE: ${{ github.event.inputs.build_type || 'release' }}
+          FRESH: ${{ github.event.inputs.fresh_caches || 'false' }}
+        run: |
+          set -euo pipefail
+          ALL='[
+            {"target":"android","os":"ubuntu-latest","host":"linux","artifact":"androidBuild"},
+            {"target":"linux","os":"ubuntu-latest","host":"linux","artifact":"linuxBuild"},
+            {"target":"windows","os":"windows-2022","host":"windows","artifact":"windowsBuild"},
+            {"target":"mac","os":"macos-15","host":"mac","artifact":"macBuild"},
+            {"target":"ios","os":"macos-15","host":"mac","artifact":"iOSBuild"}
+          ]'
+          WANTED="$(printf '%s' "$TARGETS" | tr 'A-Z' 'a-z' | tr -d ' ')"
+          if [ -z "$WANTED" ] || [ "$WANTED" = all ]; then
+            MATRIX="$(jq -c '{include: .}' <<< "$ALL")"
+          else
+            MATRIX="$(jq -c --arg wanted "$WANTED" '{include: [.[] | select(.target as $t | ($wanted | split(",")) | index($t))]}' <<< "$ALL")"
+          fi
+          if [ "$(jq '.include | length' <<< "$MATRIX")" = 0 ]; then
+            echo "::error::No valid targets in '$TARGETS'"
+            exit 1
+          fi
+          case "$BUILD_TYPE" in release|debug) ;; *) BUILD_TYPE=release ;; esac
+          CACHE_REV="${CACHE_REV:-v7}"
+          if [ "$FRESH" = true ]; then
+            CACHE_REV="fresh-${{ github.run_id }}"
+          fi
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "build-type=$BUILD_TYPE" >> "$GITHUB_OUTPUT"
+          echo "cache-rev=$CACHE_REV" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Build plan"
+            echo
+            echo "- Targets: $(jq -r '[.include[].target] | join(", ")' <<< "$MATRIX")"
+            echo "- Type: $BUILD_TYPE"
+            echo "- Cache revision: $CACHE_REV"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: ${{ matrix.target }}
+    needs: setup
     timeout-minutes: 150
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - target: android
-            os: ubuntu-latest
-            host: linux
-            artifact: androidBuild
-          - target: linux
-            os: ubuntu-latest
-            host: linux
-            artifact: linuxBuild
-          - target: windows
-            os: windows-2022
-            host: windows
-            artifact: windowsBuild
-          - target: mac
-            os: macos-15
-            host: mac
-            artifact: macBuild
-          - target: ios
-            os: macos-15
-            host: mac
-            artifact: iOSBuild
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    env:
+      BUILD_TYPE: ${{ needs.setup.outputs.build-type }}
+      CACHE_REV: ${{ needs.setup.outputs.cache-rev }}
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -472,7 +523,7 @@ jobs:
           PLAY_GAMES_APP_ID: ${{ secrets.PLAY_GAMES_APP_ID }}
         run: |
           set -euo pipefail
-          FLAGS=(-release -D officialBuild)
+          FLAGS=("-$BUILD_TYPE" -D officialBuild)
           if [ '${{ matrix.target }}' = android ] && [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > release.keystore
             FLAGS+=(-D ANDROID_SIGNING)
@@ -489,15 +540,15 @@ jobs:
         if: matrix.target == 'ios'
         run: |
           set -euo pipefail
-          haxelib run lime update ios -release -D officialBuild 2>&1 | tee compile.log
-          test -n "$(find export/release/ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
+          haxelib run lime update ios "-$BUILD_TYPE" -D officialBuild 2>&1 | tee compile.log
+          test -n "$(find "export/$BUILD_TYPE/ios" -maxdepth 1 -name '*.xcodeproj' -print -quit)"
 
       - name: Build iOS
         if: matrix.target == 'ios'
         run: |
           set -euo pipefail
-          PROJECT="$(find export/release/ios -maxdepth 1 -name '*.xcodeproj' -print -quit)"
-          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -arch arm64 -jobs "$HXCPP_COMPILE_THREADS" -quiet \
+          PROJECT="$(find "export/$BUILD_TYPE/ios" -maxdepth 1 -name '*.xcodeproj' -print -quit)"
+          xcodebuild -project "$PROJECT" -configuration "$([ "$BUILD_TYPE" = debug ] && echo Debug || echo Release)" -sdk iphoneos -arch arm64 -jobs "$HXCPP_COMPILE_THREADS" -quiet \
             -parallelizeTargets -skipPackagePluginValidation -skipMacroValidation \
             ONLY_ACTIVE_ARCH=YES COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf GCC_OPTIMIZATION_LEVEL=s \
             ENABLE_BITCODE=NO VALIDATE_PRODUCT=NO \
@@ -509,21 +560,21 @@ jobs:
           mkdir -p dist
           case '${{ matrix.target }}' in
             android)
-              find export/release/android/bin/app/build/outputs/apk -type f -name '*.apk' -exec cp {} dist/ \;
+              find "export/$BUILD_TYPE/android"/bin/app/build/outputs/apk -type f -name '*.apk' -exec cp {} dist/ \;
               ;;
             linux)
-              tar -czf dist/PsychEngine-Linux.tar.gz -C export/release/linux/bin .
+              tar -czf dist/PsychEngine-Linux.tar.gz -C "export/$BUILD_TYPE/linux/bin" .
               ;;
             windows)
-              cp -R export/release/windows/bin/. dist/
+              cp -R "export/$BUILD_TYPE/windows/bin/." dist/
               ;;
             mac)
-              APP="$(find export/release/macos/bin -maxdepth 1 -type d -name '*.app' -print -quit)"
+              APP="$(find "export/$BUILD_TYPE/macos/bin" -maxdepth 1 -type d -name '*.app' -print -quit)"
               test -n "$APP"
               ditto -c -k --keepParent "$APP" dist/PsychEngine-macOS.zip
               ;;
             ios)
-              APP="$(find export/release/ios -type d -name '*.app' -path '*iphoneos*' -print -quit)"
+              APP="$(find "export/$BUILD_TYPE/ios" -type d -name '*.app' -path '*iphoneos*' -print -quit)"
               test -n "$APP"
               mkdir -p ipa/Payload
               cp -R "$APP" ipa/Payload/
@@ -573,12 +624,62 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ env.CACHE_REV }}-${{ github.run_id }}
 
+      - name: Summary
+        if: always()
+        run: |
+          set +e
+          {
+            echo "### ${{ matrix.target }} (${BUILD_TYPE})"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`${GITHUB_SHA::7}\` |"
+            echo "| Toolchain | ${TOOLCHAIN_ID:-unknown} |"
+            echo "| Lime | \`${LIME_REF::7}\` |"
+            echo "| Lime rebuilt | ${{ steps.lime-state.outputs.rebuild || 'unknown' }} |"
+            echo "| Haxelibs installed | ${{ steps.install-haxelibs.outputs.installed || 'unknown' }} |"
+            if [ -d dist ]; then
+              for FILE in dist/*; do
+                [ -e "$FILE" ] || continue
+                echo "| $(basename "$FILE") | $(du -sh "$FILE" | cut -f1) |"
+              done
+            fi
+            if [ -n "${HXCPP_COMPILE_CACHE:-}" ] && [ -d "$HXCPP_COMPILE_CACHE" ]; then
+              echo "| hxcpp cache | $(du -sh "$HXCPP_COMPILE_CACHE" | cut -f1) |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report errors
+        if: failure()
+        run: |
+          set +e
+          for LOG in lime-host.log lime-target.log compile.log xcode.log; do
+            [ -f "$LOG" ] || continue
+            grep -E '(^|[^a-zA-Z])(error|Error)( |:|\[)|: characters [0-9]+-[0-9]+ :|FAILURE:|BUILD FAILED' "$LOG" | grep -v -E 'warning|-Werror|error_reporting' | head -n 25 | while IFS= read -r LINE; do
+              echo "::error title=${{ matrix.target }} ($LOG)::${LINE:0:900}"
+            done
+          done
+          {
+            echo "### ${{ matrix.target }} failed"
+            echo
+            for LOG in lime-host.log lime-target.log compile.log xcode.log; do
+              [ -f "$LOG" ] || continue
+              echo "<details><summary>$LOG (last 60 lines)</summary>"
+              echo
+              echo '```'
+              tail -n 60 "$LOG"
+              echo '```'
+              echo "</details>"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload build
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: dist/
           if-no-files-found: error
+          retention-days: 14
           compression-level: ${{ matrix.target == 'windows' && 1 || 0 }}
 
       - name: Upload logs
@@ -586,9 +687,59 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: logs-${{ matrix.target }}
+          retention-days: 7
           path: |
             lime-host.log
             lime-target.log
             compile.log
             xcode.log
           if-no-files-found: ignore
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Download builds
+        uses: actions/download-artifact@v7
+        with:
+          path: builds
+          pattern: '*Build'
+
+      - name: Package release files
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          TAG="${GITHUB_REF_NAME}"
+          for DIR in builds/*; do
+            [ -d "$DIR" ] || continue
+            NAME="$(basename "$DIR")"
+            case "$NAME" in
+              windowsBuild) (cd "$DIR" && zip -qry "../../release/FunkinPsych-$TAG-Windows.zip" .) ;;
+              *)
+                for FILE in "$DIR"/*; do
+                  [ -f "$FILE" ] || continue
+                  BASE="$(basename "$FILE")"
+                  case "$BASE" in
+                    *.tar.gz) OUT="${BASE%.tar.gz}-$TAG.tar.gz" ;;
+                    *.*) OUT="${BASE%.*}-$TAG.${BASE##*.}" ;;
+                    *) OUT="$BASE-$TAG" ;;
+                  esac
+                  cp "$FILE" "release/$OUT"
+                done
+                ;;
+            esac
+          done
+          (cd release && sha256sum * > SHA256SUMS.txt)
+          ls -la release
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
