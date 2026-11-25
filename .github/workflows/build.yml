@@ -316,6 +316,7 @@ jobs:
               haxelib --global run hxpkg install
             fi
           fi
+          export GIT_TERMINAL_PROMPT=0
           checkout_ok() {
             local DIR="$1" REF="$2"
             [ -e "$DIR/.git" ] || return 1
@@ -324,10 +325,16 @@ jobs:
             local CP
             CP="$(tr -d '\r\n\t ' < "$DIR/haxelib.json" | grep -o '"classPath":"[^"]*"' | cut -d'"' -f4 || true)"
             if [ -n "$CP" ] && [ ! -d "$DIR/$CP" ]; then return 1; fi
-            if [ -f "$DIR/.gitmodules" ]; then
+            if [ "$3" = required ] && [ -f "$DIR/.gitmodules" ]; then
               git -C "$DIR" submodule status --recursive 2>/dev/null | grep -q '^-' && return 1
             fi
             return 0
+          }
+          needs_submodules() {
+            case "$1" in
+              lime) echo required ;;
+              *) echo optional ;;
+            esac
           }
           repair() {
             local NAME="$1" URL="$2" REF="$3"
@@ -346,7 +353,11 @@ jobs:
                 git clone -q --filter=blob:none --no-checkout "$URL" "$DIR" && git -C "$DIR" checkout -q "$REF" || { [ "$TRY" = 3 ] && return 1; sleep 10; continue; }
               fi
               if [ -f "$DIR/.gitmodules" ]; then
-                git -C "$DIR" submodule update -q --init --recursive --depth 1 || git -C "$DIR" submodule update -q --init --recursive || { [ "$TRY" = 3 ] && return 1; sleep 10; continue; }
+                if [ "$(needs_submodules "$NAME")" = required ]; then
+                  git -C "$DIR" submodule update -q --init --recursive --depth 1 || git -C "$DIR" submodule update -q --init --recursive || { [ "$TRY" = 3 ] && return 1; sleep 10; continue; }
+                else
+                  GIT_TERMINAL_PROMPT=0 git -C "$DIR" submodule update -q --init --recursive --depth 1 2>/dev/null || echo "::notice::Skipped submodules of $NAME that could not be fetched"
+                fi
               fi
               printf 'git' > "$ROOT/.current"
               return 0
@@ -360,7 +371,7 @@ jobs:
             URL="$(printf '%s' "$ENTRY" | cut -d'"' -f8)"
             REF="$(printf '%s' "$ENTRY" | cut -d'"' -f12)"
             DIR=".haxelib/${NAME//./,}/git"
-            if ! checkout_ok "$DIR" "$REF"; then
+            if ! checkout_ok "$DIR" "$REF" "$(needs_submodules "$NAME")"; then
               repair "$NAME" "$URL" "$REF" || { echo "::error::Could not install $NAME from $URL at $REF"; exit 1; }
               NEED_INSTALL=1
             fi
