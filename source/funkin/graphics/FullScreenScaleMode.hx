@@ -64,6 +64,17 @@ class FullScreenScaleMode extends BaseScaleMode
 
 	public static function refreshSafeArea():Void
 	{
+		var area:flixel.math.FlxRect = FlxG.safeArea;
+		var full:Bool = area.x <= 0 && area.y <= 0 && area.width >= FlxG.width && area.height >= FlxG.height;
+		if (!full)
+		{
+			safeInsets = [area.x, area.y, FlxG.width - area.right, FlxG.height - area.bottom];
+			safeArea.set(area.x, area.y, area.width, area.height);
+			area.put();
+			return;
+		}
+		area.put();
+
 		var insets:Array<Float> = deviceInsets();
 		var scaleX:Float = FlxG.scaleMode != null && FlxG.scaleMode.scale.x > 0 ? FlxG.scaleMode.scale.x : 1;
 		var scaleY:Float = FlxG.scaleMode != null && FlxG.scaleMode.scale.y > 0 ? FlxG.scaleMode.scale.y : 1;

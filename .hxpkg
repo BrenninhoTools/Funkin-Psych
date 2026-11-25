@@ -10,7 +10,7 @@
 			{
 				"name": "lime",
 				"link": "https://github.com/BrenninhoTools/lime",
-				"branch": "be79e437cc97b48dac25862f7a6a5bf2386fcb5f"
+				"branch": "d5e2864c831a537b37147290afdebb20921abb8b"
 			},
 			{
 				"name": "hxp",
@@ -19,13 +19,13 @@
 			},
 			{
 				"name": "openfl",
-				"link": "https://github.com/FunkinCrew/openfl",
-				"branch": "9bbda2ab65d14e42491c26b58ba9e3362f19b9eb"
+				"link": "https://github.com/BrenninhoTools/openfl",
+				"branch": "855f3b0196a72628637dee2953fb5a320d110d84"
 			},
 			{
 				"name": "flixel",
-				"link": "https://github.com/FunkinCrew/flixel",
-				"branch": "15eff1c71750ba97d5f77f46dbc2c5873bd56810"
+				"link": "https://github.com/BrenninhoTools/flixel",
+				"branch": "1d04eb178108240a0c63ba7e95a41888e6e3ca4d"
 			},
 			{
 				"name": "flixel-addons",
