@@ -340,10 +340,14 @@ jobs:
           set -euo pipefail
           LIME="$LIME_DIR"
           test -d "$LIME/.git"
-          REQUIRED="project/Build.xml project/lib/cairo-files.xml project/lib/cairo/src/cairo.h project/lib/pixman/pixman/pixman.h project/lib/dr_libs/dr_flac.h project/lib/sdl/include project/lib/openal/include project/lib/freetype/include project/lib/harfbuzz/src"
-          MISSING=0
-          for FILE in $REQUIRED; do [ -e "$LIME/$FILE" ] || MISSING=1; done
-          if [ "$MISSING" = 0 ]; then
+          SUBMODULES="$(git -C "$LIME" config -f .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk '{print $2}' | sort -u || true)"
+          missing() {
+            [ -f "$LIME/project/Build.xml" ] || echo "project/Build.xml"
+            for SUB in $SUBMODULES; do
+              [ -n "$(ls -A "$LIME/$SUB" 2>/dev/null)" ] || echo "$SUB"
+            done
+          }
+          if [ -z "$(missing)" ]; then
             echo "Lime submodules already present"
             exit 0
           fi
@@ -358,12 +362,13 @@ jobs:
             sleep 10
           done
           git -C "$LIME" submodule status --recursive
-          for FILE in project/Build.xml project/lib/cairo-files.xml project/lib/cairo/src/cairo.h project/lib/pixman/pixman/pixman.h project/lib/dr_libs/dr_flac.h project/lib/sdl/include project/lib/openal/include project/lib/freetype/include project/lib/harfbuzz/src; do
-            if [ ! -e "$LIME/$FILE" ]; then
+          MISSING="$(missing)"
+          if [ -n "$MISSING" ]; then
+            for FILE in $MISSING; do
               echo "::error::Lime is missing $FILE"
-              exit 1
-            fi
-          done
+            done
+            exit 1
+          fi
 
       - name: Patch Lime sources
         if: steps.lime-state.outputs.rebuild == 'true'
