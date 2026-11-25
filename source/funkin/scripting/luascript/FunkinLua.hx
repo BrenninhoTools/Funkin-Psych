@@ -1583,6 +1583,7 @@ class FunkinLua {
 		}));
 
 		#if DISCORD_ALLOWED DiscordClient.addLuaCallbacks(lua); #end
+		#if ONLINE_ALLOWED funkin.api.online.Online.addLuaCallbacks(lua); #end
 		#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 		#if TRANSLATIONS_ALLOWED Language.addLuaCallbacks(lua); #end
 		HScript.implement(this);

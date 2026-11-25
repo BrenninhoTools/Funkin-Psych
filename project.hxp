@@ -101,6 +101,7 @@ class Project extends HXProject
 			new Feature("FOXLITE_ALLOWED", native, ["foxlite"], ["NO_FOXLITE"]),
 			new Feature("ACHIEVEMENTS_ALLOWED", true),
 			new Feature("DISCORD_ALLOWED", native, ["hxdiscord_rpc"], ["NO_DISCORD"]),
+			new Feature("ONLINE_ALLOWED", true, ["network"], ["NO_ONLINE"]),
 			new Feature("TRANSLATIONS_ALLOWED", true),
 			new Feature("IRIS_DEBUG", true),
 			new Feature("MULTITHREADED_LOADING", true),

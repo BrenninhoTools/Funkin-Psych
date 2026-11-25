@@ -69,6 +69,11 @@
 				"dir": "src"
 			},
 			{
+				"name": "network",
+				"link": "https://github.com/BrenninhoTools/network",
+				"branch": "048c8653248d49118414434f046dd7eaabf63a02"
+			},
+			{
 				"name": "miniaudio",
 				"link": "https://github.com/BrenninhoTools/miniaudio",
 				"branch": "b48774d0a602d22d4256fc4971ead4c141edfecd"
