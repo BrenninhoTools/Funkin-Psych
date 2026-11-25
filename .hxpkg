@@ -69,6 +69,11 @@
 				"dir": "src"
 			},
 			{
+				"name": "cppia",
+				"link": "https://github.com/BrenninhoTools/cppia",
+				"branch": "d8584633905ad810d99861e8849c3921948ac2db"
+			},
+			{
 				"name": "network",
 				"link": "https://github.com/BrenninhoTools/network",
 				"branch": "048c8653248d49118414434f046dd7eaabf63a02"

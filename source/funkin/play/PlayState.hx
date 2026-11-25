@@ -3366,10 +3366,7 @@ class PlayState extends MusicBeatState
 
 		#if CPPIA_ALLOWED
 		for (script in cppiaArray)
-		{
-			script.call('onDestroy');
 			script.destroy();
-		}
 		cppiaArray = [];
 		#end
 

@@ -2,12 +2,19 @@ package funkin.scripting.cppia;
 
 import flixel.FlxBasic;
 
-class CppiaScript
+class CppiaScript #if CPPIA_ALLOWED extends cppia.CppiaScript #end
 {
 	public var game(get, never):PlayState;
+	#if !CPPIA_ALLOWED
 	public var module:Dynamic;
+	#end
 
-	public function new() {}
+	public function new()
+	{
+		#if CPPIA_ALLOWED
+		super();
+		#end
+	}
 
 	inline function get_game():PlayState
 		return PlayState.instance;

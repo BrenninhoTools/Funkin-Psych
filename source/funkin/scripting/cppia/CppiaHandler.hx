@@ -1,119 +1,77 @@
 package funkin.scripting.cppia;
 
 #if CPPIA_ALLOWED
-import cpp.cppia.Module;
+import cppia.Cppia;
+import cppia.CppiaError;
+import cppia.CppiaGroup;
 import funkin.scripting.cppia.CppiaModule;
 
-@:cppInclude('hx/Scriptable.h')
 class CppiaHandler
 {
-	public static inline final EXTENSION:String = '.cppia';
+	public static inline final EXTENSION:String = Cppia.EXTENSION;
 	public static inline final GLOBAL_FOLDER:String = 'scripts/cppia/';
 
-	public static var globalModules(default, null):Array<CppiaModule> = [];
+	public static var global(default, null):CppiaGroup = new CppiaGroup();
+	public static var globalModules(get, never):Array<CppiaModule>;
 	public static var onError:CppiaModule->String->Dynamic->Void = null;
 
-	static var loading:CppiaModule = null;
+	static var initialized:Bool = false;
 
-	public static function isScript(file:String):Bool
-		return file != null && file.toLowerCase().endsWith(EXTENSION);
+	public static function init():Void
+	{
+		if (initialized) return;
+		initialized = true;
+		Cppia.onError = handleError;
+		#if debug
+		global.hotReload = true;
+		#end
+		global.onReload = function(module) module.call('onLoad');
+		FlxG.signals.postUpdate.add(global.update);
+	}
+
+	public static inline function isScript(file:String):Bool
+		return Cppia.isScript(file);
 
 	public static function load(path:String):CppiaModule
 	{
-		if (path == null || !FileSystem.exists(path)) return null;
-		try
-		{
-			var bytes:haxe.io.Bytes = File.getBytes(path);
-			var module:Module = Module.fromData(bytes.getData());
-			if (module == null) return null;
-			var script:CppiaModule = new CppiaModule(path, module);
-			script.boot();
-			return script;
-		}
-		catch (e:Dynamic)
-		{
-			reportError(null, path, e);
-			return null;
-		}
+		init();
+		return Cppia.load(path, false);
 	}
 
 	public static function start(path:String, ?args:Array<Dynamic>):CppiaModule
 	{
-		var script:CppiaModule = load(path);
-		if (script == null) return null;
-
-		var previous:CppiaModule = loading;
-		loading = script;
-		try
-		{
-			var instance:Dynamic = script.createInstance(script.name, args);
-			if (instance == null) script.run();
-			else if (Std.isOfType(instance, CppiaScript)) (cast instance:CppiaScript).module = script;
-		}
-		catch (e:Dynamic)
-		{
-			reportError(script, 'new', e);
-		}
-		loading = previous;
-		return script;
+		init();
+		return Cppia.load(path, true, args);
 	}
 
-	public static function register(instance:Dynamic):Dynamic
-	{
-		if (loading != null) loading.addInstance(instance);
-		return instance;
-	}
+	public static inline function register(instance:Dynamic):Dynamic
+		return Cppia.register(instance);
 
 	public static function reloadGlobal()
 	{
+		init();
 		clearGlobal();
 		#if MODS_ALLOWED
 		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), GLOBAL_FOLDER))
-		{
-			for (file in FileSystem.readDirectory(folder))
-			{
-				if (!isScript(file)) continue;
-				var script:CppiaModule = start(haxe.io.Path.join([folder, file]));
-				if (script != null)
-				{
-					globalModules.push(script);
-					script.call('onLoad');
-				}
-			}
-		}
+			for (script in global.loadFolder(folder))
+				script.call('onLoad');
 		#end
 	}
 
 	public static function clearGlobal()
 	{
-		for (script in globalModules)
-		{
-			script.call('onUnload');
-			script.destroy();
-		}
-		globalModules = [];
+		global.call('onUnload');
+		global.destroy();
 	}
 
-	public static function callGlobal(field:String, ?args:Array<Dynamic>):Dynamic
-	{
-		var result:Dynamic = null;
-		for (script in globalModules)
-		{
-			var value:Dynamic = script.call(field, args);
-			if (value != null) result = value;
-		}
-		return result;
-	}
+	public static inline function callGlobal(field:String, ?args:Array<Dynamic>):Dynamic
+		return global.call(field, args);
 
-	public static function resolveClass(className:String):Class<Dynamic>
-	{
-		for (script in globalModules)
-		{
-			var cls:Class<Dynamic> = script.resolveClass(className);
-			if (cls != null) return cls;
-		}
-		return null;
-	}
+	public static inline function resolveClass(className:String):Class<Dynamic>
+		return global.resolveClass(className);
+
+	static function handleError(error:CppiaError):Void
+		reportError(error.module, error.field, error.error);
 
 	public static function reportError(script:CppiaModule, field:String, error:Dynamic)
 	{
@@ -130,5 +88,8 @@ class CppiaHandler
 		if (PlayState.instance != null) PlayState.instance.addTextToDebug('$message: $error', FlxColor.RED);
 		#end
 	}
+
+	static inline function get_globalModules():Array<CppiaModule>
+		return global.modules;
 }
 #end
