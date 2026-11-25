@@ -2,7 +2,7 @@ package funkin.audio;
 
 import flixel.FlxG;
 import flixel.sound.FlxSound;
-import funkin.audio.miniaudio.MiniAudio;
+import miniaudio.MiniAudio;
 
 typedef MixerChannel =
 {

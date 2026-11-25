@@ -224,7 +224,7 @@ class Project extends HXProject
 
 	function setupLibraries()
 	{
-		for (lib in ["flixel", "flixel-addons", "tjson", "haxeui-core", "haxeui-flixel", "flxanimate"])
+		for (lib in ["flixel", "flixel-addons", "tjson", "haxeui-core", "haxeui-flixel", "flxanimate", "miniaudio"])
 			addHaxelib(lib);
 
 		for (feature in features)
