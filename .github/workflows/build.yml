@@ -316,26 +316,55 @@ jobs:
               haxelib --global run hxpkg install
             fi
           fi
-          LIME_ROOT="$(haxelib libpath lime 2>/dev/null | head -n 1 | tr -d '\r' || true)"
-          LIME_ROOT="${LIME_ROOT//\\//}"
-          LIME_ROOT="${LIME_ROOT%/}"
-          if [ -z "$LIME_ROOT" ] || [ ! -e "$LIME_ROOT/.git" ] || [ "$(git -C "$LIME_ROOT" rev-parse HEAD 2>/dev/null || true)" != "$LIME_REF" ]; then
-            echo "::warning::Repairing Lime checkout"
-            rm -rf .haxelib/lime
-            mkdir -p .haxelib/lime
+          checkout_ok() {
+            local DIR="$1" REF="$2"
+            [ -e "$DIR/.git" ] || return 1
+            [ "$(git -C "$DIR" rev-parse HEAD 2>/dev/null || true)" = "$REF" ] || return 1
+            [ -f "$DIR/haxelib.json" ] || return 1
+            local CP
+            CP="$(tr -d '\r\n\t ' < "$DIR/haxelib.json" | grep -o '"classPath":"[^"]*"' | cut -d'"' -f4 || true)"
+            if [ -n "$CP" ] && [ ! -d "$DIR/$CP" ]; then return 1; fi
+            if [ -f "$DIR/.gitmodules" ]; then
+              git -C "$DIR" submodule status --recursive 2>/dev/null | grep -q '^-' && return 1
+            fi
+            return 0
+          }
+          repair() {
+            local NAME="$1" URL="$2" REF="$3"
+            local ROOT=".haxelib/${NAME//./,}"
+            local DIR="$ROOT/git"
+            echo "::warning::Repairing $NAME checkout"
+            mkdir -p "$ROOT"
             for TRY in 1 2 3; do
-              rm -rf .haxelib/lime/git
-              if git clone --filter=blob:none --no-checkout "$LIME_URL" .haxelib/lime/git && git -C .haxelib/lime/git checkout -q "$LIME_REF"; then
-                break
+              rm -rf "$DIR"
+              git init -q "$DIR"
+              git -C "$DIR" remote add origin "$URL"
+              if git -C "$DIR" fetch -q --depth 1 origin "$REF" && git -C "$DIR" checkout -q FETCH_HEAD; then
+                :
+              else
+                rm -rf "$DIR"
+                git clone -q --filter=blob:none --no-checkout "$URL" "$DIR" && git -C "$DIR" checkout -q "$REF" || { [ "$TRY" = 3 ] && return 1; sleep 10; continue; }
               fi
-              if [ "$TRY" = 3 ]; then
-                exit 1
+              if [ -f "$DIR/.gitmodules" ]; then
+                git -C "$DIR" submodule update -q --init --recursive --depth 1 || git -C "$DIR" submodule update -q --init --recursive || { [ "$TRY" = 3 ] && return 1; sleep 10; continue; }
               fi
-              sleep 10
+              printf 'git' > "$ROOT/.current"
+              return 0
             done
-            printf 'git' > .haxelib/lime/.current
-            NEED_INSTALL=1
-          fi
+            return 1
+          }
+          GIT_PACKAGES="$(tr -d '\r\n\t ' < .hxpkg | grep -o '{"name":"[^"]*","link":"[^"]*","branch":"[^"]*"' || true)"
+          while IFS= read -r ENTRY; do
+            [ -n "$ENTRY" ] || continue
+            NAME="$(printf '%s' "$ENTRY" | cut -d'"' -f4)"
+            URL="$(printf '%s' "$ENTRY" | cut -d'"' -f8)"
+            REF="$(printf '%s' "$ENTRY" | cut -d'"' -f12)"
+            DIR=".haxelib/${NAME//./,}/git"
+            if ! checkout_ok "$DIR" "$REF"; then
+              repair "$NAME" "$URL" "$REF" || { echo "::error::Could not install $NAME from $URL at $REF"; exit 1; }
+              NEED_INSTALL=1
+            fi
+          done <<< "$GIT_PACKAGES"
           MISSING="$(missing)"
           if [ -n "$MISSING" ]; then
             echo "::error::Missing haxelibs: $(echo "$MISSING" | tr '\n' ' ')"

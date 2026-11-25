@@ -5,7 +5,7 @@
 			{
 				"name": "hxcpp",
 				"link": "https://github.com/BrenninhoTools/hxcpp",
-				"branch": "e9ee6d0511be8cb15469ef8002be7c5b556306e3"
+				"branch": "c9863fe3589e9c017efc03a40aa31f6338cc121a"
 			},
 			{
 				"name": "lime",
@@ -25,7 +25,7 @@
 			{
 				"name": "flixel",
 				"link": "https://github.com/BrenninhoTools/flixel",
-				"branch": "4b73bc30ae9d74a1340348c58b8ec7773be9626f"
+				"branch": "1ad4738994eb6ca3d6a791ca0ee9653d0e7509e8"
 			},
 			{
 				"name": "flixel-addons",
@@ -123,8 +123,8 @@
 			},
 			{
 				"name": "polymod",
-				"link": "https://github.com/FunkinCrew/polymod",
-				"branch": "6854dab7c5739979dbd1e19a345c17b09c80ea7e"
+				"link": "https://github.com/BrenninhoTools/polymod",
+				"branch": "abbde7ac0508d836b541f999a5c31eef9f560658"
 			},
 			{
 				"name": "haxeui-core",
