@@ -69,9 +69,9 @@
 				"dir": "src"
 			},
 			{
-				"name": "cppia",
+				"name": "hxcppia",
 				"link": "https://github.com/BrenninhoTools/cppia",
-				"branch": "d8584633905ad810d99861e8849c3921948ac2db"
+				"branch": "04388e699180fa0f27aa60b28378d023f549f533"
 			},
 			{
 				"name": "network",

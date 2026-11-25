@@ -97,7 +97,7 @@ class Project extends HXProject
 			new Feature("HSCRIPT_ALLOWED", native, ["hscript"]),
 			new Feature("LUA_ALLOWED", native, ["linc_luajit"]),
 			new Feature("POLYMOD_ALLOWED", native, ["polymod", "thx.core", "thx.semver", "jsonpath", "jsonpatch"]),
-			new Feature("CPPIA_ALLOWED", native, ["cppia"], ["NO_CPPIA"]),
+			new Feature("CPPIA_ALLOWED", native, ["hxcppia"], ["NO_CPPIA"]),
 			new Feature("FOXLITE_ALLOWED", native, ["foxlite"], ["NO_FOXLITE"]),
 			new Feature("ACHIEVEMENTS_ALLOWED", true),
 			new Feature("DISCORD_ALLOWED", native, ["hxdiscord_rpc"], ["NO_DISCORD"]),
