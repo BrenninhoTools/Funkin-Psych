@@ -3,6 +3,8 @@ package;
 import hxp.*;
 import lime.tools.*;
 import sys.FileSystem;
+import sys.io.File;
+import sys.io.Process;
 
 using StringTools;
 
@@ -16,6 +18,10 @@ class Project extends HXProject
 	static inline final COMPANY:String = "ShadowMario";
 
 	var excludedAssets:Map<String, Bool>;
+	var features:Array<Feature> = [];
+	var gitHash:String = "";
+	var gitBranch:String = "";
+	var gitDirty:Bool = false;
 
 	static final SKIPPED_ASSET_FOLDERS:Array<String> = ["exclude", "tutorial"];
 	static final SKIPPED_ASSET_PATHS:Array<String> = ["assets/preload/data", "assets/preload/scripts"];
@@ -27,6 +33,7 @@ class Project extends HXProject
 		super();
 
 		setupApplication();
+		setupBuildInfo();
 		setupFeatures();
 		setupWindow();
 		setupPlatforms();
@@ -34,6 +41,7 @@ class Project extends HXProject
 		setupLibraries();
 		setupHaxedefs();
 		setupIcons();
+		printSummary();
 	}
 
 	function setupApplication()
@@ -55,37 +63,63 @@ class Project extends HXProject
 		sources.push("source");
 	}
 
+	function setupBuildInfo()
+	{
+		gitHash = git(["rev-parse", "--short=10", "HEAD"]);
+		gitBranch = Sys.getEnv("GITHUB_REF_NAME");
+		if (gitBranch == null || gitBranch.length == 0) gitBranch = git(["rev-parse", "--abbrev-ref", "HEAD"]);
+		gitDirty = git(["status", "--porcelain", "--untracked-files=no"]).length > 0;
+
+		if (gitHash.length > 0) setHaxedef("GIT_HASH", gitHash);
+		if (gitBranch.length > 0) setHaxedef("GIT_BRANCH", gitBranch);
+		if (gitDirty) setHaxedef("GIT_MODIFIED");
+		setHaxedef("BUILD_DATE", DateTools.format(Date.now(), "%Y-%m-%d"));
+
+		var runNumber:String = Sys.getEnv("GITHUB_RUN_NUMBER");
+		if (Sys.getEnv("GITHUB_ACTIONS") == "true")
+		{
+			enable("CI_BUILD");
+			if (runNumber != null && ~/^[0-9]+$/.match(runNumber))
+			{
+				setHaxedef("BUILD_NUMBER", runNumber);
+				meta.buildNumber = runNumber;
+			}
+		}
+	}
+
 	function setupFeatures()
 	{
-		if (isDesktop() || isMobile())
+		var native:Bool = isDesktop() || isMobile();
+		var officialVideo:Bool = hasDefine("officialBuild") && !hasDefine("32bits") && isTarget([Platform.WINDOWS, Platform.LINUX, Platform.MAC, Platform.ANDROID, Platform.IOS]);
+
+		features = [
+			new Feature("MODS_ALLOWED", native),
+			new Feature("HSCRIPT_ALLOWED", native, ["hscript"]),
+			new Feature("LUA_ALLOWED", native, ["linc_luajit"]),
+			new Feature("POLYMOD_ALLOWED", native, ["polymod", "thx.core", "thx.semver", "jsonpath", "jsonpatch"]),
+			new Feature("CPPIA_ALLOWED", native, [], ["NO_CPPIA"]),
+			new Feature("FOXLITE_ALLOWED", native, ["foxlite"], ["NO_FOXLITE"]),
+			new Feature("ACHIEVEMENTS_ALLOWED", true),
+			new Feature("DISCORD_ALLOWED", native, ["hxdiscord_rpc"], ["NO_DISCORD"]),
+			new Feature("TRANSLATIONS_ALLOWED", true),
+			new Feature("IRIS_DEBUG", true),
+			new Feature("MULTITHREADED_LOADING", true),
+			new Feature("SHOW_LOADING_SCREEN", true),
+			new Feature("PSYCH_WATERMARKS", true),
+			new Feature("TITLE_SCREEN_EASTER_EGG", hasDefine("officialBuild")),
+			new Feature("BASE_GAME_FILES", hasDefine("officialBuild"), ["grig.audio", "funkin.vis"]),
+			new Feature("VIDEOS_ALLOWED", officialVideo, ["hxvlc"], ["NO_VIDEOS"]),
+			new Feature("CRASH_HANDLER", native && !debug),
+			new Feature("CHECK_FOR_UPDATES", isDesktop() && hasDefine("officialBuild")),
+			new Feature("x86_BUILD", hasDefine("32bits"))
+		];
+
+		for (feature in features)
 		{
-			enable("MODS_ALLOWED");
-			enable("HSCRIPT_ALLOWED");
-			enable("LUA_ALLOWED");
-			enable("POLYMOD_ALLOWED");
-			if (!hasDefine("NO_CPPIA")) enable("CPPIA_ALLOWED");
-			if (!hasDefine("NO_FOXLITE")) enable("FOXLITE_ALLOWED");
+			feature.resolve(this);
+			if (feature.enabled) enable(feature.name);
+			else if (feature.forced) Log.warn('Feature ${feature.name} was requested but is disabled');
 		}
-		enable("ACHIEVEMENTS_ALLOWED");
-		if (isDesktop() || isMobile()) enable("DISCORD_ALLOWED");
-		enable("TRANSLATIONS_ALLOWED");
-		enable("IRIS_DEBUG");
-
-		enable("MULTITHREADED_LOADING");
-		enable("SHOW_LOADING_SCREEN");
-		enable("PSYCH_WATERMARKS");
-
-		if (hasDefine("officialBuild"))
-		{
-			enable("TITLE_SCREEN_EASTER_EGG");
-			enable("BASE_GAME_FILES");
-			var videoTarget:Bool = target == Platform.WINDOWS || target == Platform.LINUX || target == Platform.ANDROID || target == Platform.MAC || target == Platform.IOS;
-			if (videoTarget && !hasDefine("32bits")) enable("VIDEOS_ALLOWED");
-		}
-
-		if ((isDesktop() || isMobile()) && !debug) enable("CRASH_HANDLER");
-		if (isDesktop() && hasDefine("officialBuild")) enable("CHECK_FOR_UPDATES");
-		if (hasDefine("32bits")) enable("x86_BUILD");
 	}
 
 	function setupWindow()
@@ -180,7 +214,7 @@ class Project extends HXProject
 		}
 		assets.push(new Asset("art/readme.txt", "do NOT readme.txt"));
 
-		if (isDesktop())
+		if (isDesktop() && FileSystem.exists("alsoft.txt"))
 			assets.push(new Asset("alsoft.txt", target == Platform.WINDOWS ? "plugins/alsoft.ini" : "plugins/alsoft.conf", AssetType.TEXT));
 
 		if (target == Platform.LINUX || target == Platform.MAC)
@@ -189,31 +223,14 @@ class Project extends HXProject
 
 	function setupLibraries()
 	{
-		addHaxelib("flixel");
-		addHaxelib("flixel-addons");
-		addHaxelib("tjson");
-		addHaxelib("haxeui-core");
-		addHaxelib("haxeui-flixel");
+		for (lib in ["flixel", "flixel-addons", "tjson", "haxeui-core", "haxeui-flixel", "flxanimate"])
+			addHaxelib(lib);
 
-		if (hasDefine("LUA_ALLOWED")) addHaxelib("linc_luajit");
-		if (hasDefine("HSCRIPT_ALLOWED")) addHaxelib("hscript");
-		if (hasDefine("POLYMOD_ALLOWED"))
-		{
-			addHaxelib("polymod");
-			addHaxelib("thx.core");
-			addHaxelib("thx.semver");
-			addHaxelib("jsonpath");
-			addHaxelib("jsonpatch");
-		}
-		if (hasDefine("VIDEOS_ALLOWED")) addHaxelib("hxvlc");
-		addHaxelib("flxanimate");
-		if (hasDefine("FOXLITE_ALLOWED")) addHaxelib("foxlite");
-		if (hasDefine("BASE_GAME_FILES"))
-		{
-			addHaxelib("grig.audio");
-			addHaxelib("funkin.vis");
-		}
-		if (hasDefine("DISCORD_ALLOWED")) addHaxelib("hxdiscord_rpc");
+		for (feature in features)
+			if (feature.enabled)
+				for (lib in feature.haxelibs)
+					addHaxelib(lib);
+
 		if (target == Platform.ANDROID) addHaxelib("android-manager");
 		if (target == Platform.IOS) addHaxelib("extension-iostools");
 		if (isMobile()) addHaxelib("extension-haptics");
@@ -291,20 +308,67 @@ class Project extends HXProject
 	{
 		if (hasDefine("NO_PLAY_GAMES")) return;
 
-		var appId:String = hasDefine("PLAY_GAMES_APP_ID") ? defines.get("PLAY_GAMES_APP_ID") : Sys.getEnv("PLAY_GAMES_APP_ID");
-		if (appId == null || appId.length == 0)
-		{
-			var file:String = "project/android/play_games_app_id.txt";
-			if (sys.FileSystem.exists(file)) appId = sys.io.File.getContent(file);
-		}
+		var appId:String = setting("PLAY_GAMES_APP_ID", "project/android/play_games_app_id.txt");
 		if (appId == null) return;
-		appId = StringTools.trim(appId);
-		if (!~/^[0-9]+$/.match(appId)) return;
+		if (!~/^[0-9]+$/.match(appId))
+		{
+			Log.warn('Ignoring PLAY_GAMES_APP_ID "$appId", it must be the numeric project id');
+			return;
+		}
 
 		setDefine("PLAY_GAMES_APP_ID", appId);
 		setHaxedef("PLAY_GAMES_APP_ID", appId);
 		if (!hasDefine("PLAY_GAMES_SIGN_IN")) setDefine("PLAY_GAMES_SIGN_IN", "silent");
 		if (config.getInt("android.minimum-sdk-version", 21) < 23) config.set("android.minimum-sdk-version", 23);
+	}
+
+	function printSummary()
+	{
+		if (!Log.verbose && !hasDefine("BUILD_SUMMARY")) return;
+
+		var enabled:Array<String> = [for (feature in features) if (feature.enabled) feature.name];
+		var disabled:Array<String> = [for (feature in features) if (!feature.enabled) feature.name];
+		Log.info("");
+		Log.info('$TITLE $VERSION (${gitHash.length > 0 ? gitHash : "no git"}${gitDirty ? ", modified" : ""}) for ${Std.string(target).toLowerCase()}${debug ? " debug" : ""}');
+		Log.info("Enabled: " + enabled.join(", "));
+		if (disabled.length > 0) Log.info("Disabled: " + disabled.join(", "));
+		Log.info("Haxelibs: " + [for (lib in haxelibs) lib.name].join(", "));
+		Log.info("");
+	}
+
+	function setting(name:String, ?file:String):Null<String>
+	{
+		var value:String = hasDefine(name) ? defines.get(name) : Sys.getEnv(name);
+		if ((value == null || value.trim().length == 0) && file != null && FileSystem.exists(file)) value = File.getContent(file);
+		if (value == null) return null;
+		value = value.trim();
+		return value.length > 0 ? value : null;
+	}
+
+	function git(args:Array<String>):String
+	{
+		try
+		{
+			var process:Process = new Process("git", args);
+			var output:String = process.stdout.readAll().toString().trim();
+			var code:Int = process.exitCode();
+			process.close();
+			return code == 0 ? output : "";
+		}
+		catch (e:Dynamic)
+		{
+			return "";
+		}
+	}
+
+	function isTarget(platforms:Array<Platform>):Bool
+	{
+		return platforms.indexOf(target) > -1;
+	}
+
+	public function isDefined(name:String):Bool
+	{
+		return defines.exists(name);
 	}
 
 	function enable(name:String)
@@ -328,9 +392,11 @@ class Project extends HXProject
 		return defines.exists(name);
 	}
 
-	function addHaxelib(name:String)
+	function addHaxelib(name:String, ?version:String)
 	{
-		haxelibs.push(new Haxelib(name));
+		for (lib in haxelibs)
+			if (lib.name == name) return;
+		haxelibs.push(new Haxelib(name, version != null ? version : ""));
 	}
 
 	function isMobile():Bool
@@ -381,5 +447,33 @@ class Project extends HXProject
 				assets.push(new Asset(full, renamed, type, embed));
 			}
 		}
+	}
+}
+
+class Feature
+{
+	public var name(default, null):String;
+	public var haxelibs(default, null):Array<String>;
+	public var enabled(default, null):Bool = false;
+	public var forced(default, null):Bool = false;
+
+	var byDefault:Bool;
+	var disableFlags:Array<String>;
+
+	public function new(name:String, byDefault:Bool, ?haxelibs:Array<String>, ?disableFlags:Array<String>)
+	{
+		this.name = name;
+		this.byDefault = byDefault;
+		this.haxelibs = haxelibs != null ? haxelibs : [];
+		this.disableFlags = ["NO_" + name].concat(disableFlags != null ? disableFlags : []);
+	}
+
+	public function resolve(project:Project):Void
+	{
+		forced = project.isDefined(name) || project.isDefined("FORCE_" + name);
+		var disabled:Bool = false;
+		for (flag in disableFlags)
+			if (project.isDefined(flag)) disabled = true;
+		enabled = !disabled && (byDefault || forced);
 	}
 }

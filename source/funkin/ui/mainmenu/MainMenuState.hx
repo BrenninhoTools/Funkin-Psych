@@ -142,7 +142,7 @@ class MainMenuState extends MusicBeatState
 		add(achievementsButton);
 		#end
 
-		var versionText:FlxText = new FlxText(5, FlxG.height - 38, 0, 'Funkin\' Psych v$psychEngineVersion\nFriday Night Funkin\' v${Application.current.meta.get('version')}', 12);
+		var versionText:FlxText = new FlxText(5, FlxG.height - 38, 0, 'Funkin\' Psych v$psychEngineVersion' + (funkin.util.BuildInfo.describe().length > 0 ? ' (' + funkin.util.BuildInfo.describe() + ')' : '') + '\nFriday Night Funkin\' v${Application.current.meta.get('version')}', 12);
 		versionText.setFormat(Paths.font('vcr.ttf'), 16, FlxColor.WHITE, LEFT, flixel.text.FlxText.FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		versionText.scrollFactor.set();
 		add(versionText);
