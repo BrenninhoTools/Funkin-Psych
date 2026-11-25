@@ -29,7 +29,8 @@
 			},
 			{
 				"name": "flixel-addons",
-				"version": "4.0.1"
+				"link": "https://github.com/BrenninhoTools/flixel-addons",
+				"branch": "5643433cb824e6c82451821f446f7e2470b82127"
 			},
 			{
 				"name": "hscript",
