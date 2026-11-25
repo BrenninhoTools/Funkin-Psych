@@ -389,9 +389,9 @@ jobs:
         if: matrix.host == 'linux'
         run: |
           set -euo pipefail
-          if ! command -v wayland-scanner >/dev/null 2>&1 || [ ! -d /usr/share/wayland-protocols ]; then
+          if ! command -v wayland-scanner >/dev/null 2>&1 || [ ! -d /usr/share/wayland-protocols ] || [ ! -f /usr/include/dbus-1.0/dbus/dbus.h ] || [ ! -f /usr/include/libudev.h ]; then
             sudo apt-get update -qq
-            sudo apt-get install -y --no-install-recommends --reinstall libwayland-bin libwayland-dev wayland-protocols
+            sudo apt-get install -y --no-install-recommends --reinstall libwayland-bin libwayland-dev wayland-protocols libdbus-1-dev libudev-dev
           fi
           echo "WAYLAND_SCANNER=$(command -v wayland-scanner)" >> "$GITHUB_ENV"
           wayland-scanner --version
