@@ -67,6 +67,10 @@ class DiscordClient
 	public static var partySize:Int = 0;
 	public static var partyMax:Int = 0;
 	public static var buttons:Array<DiscordButtonData> = [];
+	public static var statusDisplayType:Int = 2;
+	public static var detailsUrl:String = null;
+	public static var stateUrl:String = null;
+	public static var largeImageUrl:String = null;
 
 	static var hooked:Bool = false;
 	static var closeHooked:Bool = false;
@@ -166,6 +170,10 @@ class DiscordClient
 		presence.button1Url = first != null ? first.url : null;
 		presence.button2Label = second != null ? second.label : null;
 		presence.button2Url = second != null ? second.url : null;
+		presence.statusDisplayType = statusDisplayType;
+		presence.detailsUrl = detailsUrl;
+		presence.stateUrl = stateUrl;
+		presence.largeImageUrl = largeImageUrl;
 		RpcEvents.updatePresence(presence);
 	}
 
@@ -282,6 +290,16 @@ class DiscordClient
 		});
 		Lua_helper.add_callback(lua, "setDiscordParty", function(?id:String, size:Int = 0, max:Int = 0) {
 			setParty(id, size, max);
+		});
+		Lua_helper.add_callback(lua, "setDiscordStatusDisplay", function(type:Int = 2) {
+			statusDisplayType = type < 0 || type > 2 ? 0 : type;
+			updatePresence();
+		});
+		Lua_helper.add_callback(lua, "setDiscordUrls", function(?details:String, ?state:String, ?largeImage:String) {
+			detailsUrl = details;
+			stateUrl = state;
+			largeImageUrl = largeImage;
+			updatePresence();
 		});
 		Lua_helper.add_callback(lua, "clearDiscordPresence", clearPresence);
 		Lua_helper.add_callback(lua, "isDiscordConnected", function() return connected);
