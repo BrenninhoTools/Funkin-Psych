@@ -35,6 +35,9 @@ class FPSCounter extends Sprite
 	public var currentFPS(default, null):Int = 0;
 	public var memoryMegas(get, never):Float;
 	public var memoryPeak(default, null):Float = 0;
+
+	var hardwareLine:String = '';
+	var lastHardwareRefresh:Float = -10000;
 	public var textColor(get, set):Int;
 	public var text(get, set):String;
 	public var padding:Float = 6;
@@ -130,6 +133,8 @@ class FPSCounter extends Sprite
 		if (style == ADVANCED)
 		{
 			lines.push(['Task: ${describeTask()}', 'System: $systemName'].join(SEPARATOR));
+			refreshHardware();
+			if (hardwareLine.length > 0) lines.push(hardwareLine);
 			if (funkin.optimize.Optimizer.enabled && funkin.optimize.Optimizer.frameTimeMs() > 0)
 			{
 				var frame:Array<String> = [
@@ -143,6 +148,25 @@ class FPSCounter extends Sprite
 		}
 		label.text = lines.join('\n');
 		label.textColor = currentFPS < funkin.util.FPSManager.warningFPS() ? 0xFFFF4040 : 0xFFFFFFFF;
+	}
+
+	function refreshHardware():Void
+	{
+		var now:Float = haxe.Timer.stamp() * 1000;
+		if (now - lastHardwareRefresh < 1000) return;
+		lastHardwareRefresh = now;
+		var parts:Array<String> = [];
+		var process:Float = lime.system.Hardware.processMemory;
+		if (process > 0) parts.push('Process: ${FlxStringUtil.formatBytes(process)}');
+		var cores:Int = lime.system.Hardware.cpuCount;
+		var ram:Int = lime.system.Hardware.systemRAM;
+		if (cores > 0) parts.push('CPU: $cores threads' + (ram > 0 ? ', ${Math.round(ram / 102.4) / 10} GB RAM' : ''));
+		if (lime.system.Battery.hasBattery)
+		{
+			var percent:Int = lime.system.Battery.percent;
+			parts.push('Battery: ' + (percent >= 0 ? '$percent% ' : '') + lime.system.Battery.state.toString());
+		}
+		hardwareLine = parts.join(SEPARATOR);
 	}
 
 	public function redrawBar()
