@@ -4,13 +4,13 @@
 		"pkgs": [
 			{
 				"name": "hxcpp",
-				"link": "https://github.com/FunkinCrew/hxcpp",
-				"branch": "88242477c3e9ab6e0e0712df7503375d7f0c0b59"
+				"link": "https://github.com/BrenninhoTools/hxcpp",
+				"branch": "e9ee6d0511be8cb15469ef8002be7c5b556306e3"
 			},
 			{
 				"name": "lime",
 				"link": "https://github.com/BrenninhoTools/lime",
-				"branch": "d5e2864c831a537b37147290afdebb20921abb8b"
+				"branch": "864fd4455405be56e98c86c2cfed7b081b4fa046"
 			},
 			{
 				"name": "hxp",

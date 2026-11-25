@@ -50,7 +50,7 @@ class Optimizer
 		tuneGC(true);
 		hook();
 		syncTarget();
-		thermal = OptimizeNative.thermalStatus();
+		thermal = readThermal();
 		#end
 	}
 
@@ -103,10 +103,10 @@ class Optimizer
 		if (!enabled) return;
 		OptimizeNative.frameBegin();
 		thermalTimer += FlxG.elapsed;
-		if (thermalTimer >= THERMAL_POLL && has(FEATURE_THERMAL))
+		if (thermalTimer >= THERMAL_POLL && (#if ios true #else has(FEATURE_THERMAL) #end))
 		{
 			thermalTimer = 0;
-			var status:ThermalStatus = OptimizeNative.thermalStatus();
+			var status:ThermalStatus = readThermal();
 			if (status != thermal)
 			{
 				thermal = status;
@@ -291,6 +291,17 @@ class Optimizer
 		return enabled && OptimizeNative.hintActive() != 0;
 		#else
 		return false;
+		#end
+	}
+
+	static function readThermal():ThermalStatus
+	{
+		#if ios
+		return (lime.system.MobilePerformance.thermalStatus : Int);
+		#elseif cpp
+		return OptimizeNative.thermalStatus();
+		#else
+		return UNKNOWN;
 		#end
 	}
 
