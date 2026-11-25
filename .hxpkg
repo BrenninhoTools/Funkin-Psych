@@ -76,7 +76,7 @@
 			{
 				"name": "miniaudio",
 				"link": "https://github.com/BrenninhoTools/miniaudio",
-				"branch": "b48774d0a602d22d4256fc4971ead4c141edfecd"
+				"branch": "d5038f104feb377d2ff2fc2fb3f96242f6dcfee0"
 			},
 			{
 				"name": "haxe-gifsupport",
