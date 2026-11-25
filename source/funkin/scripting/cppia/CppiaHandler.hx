@@ -24,6 +24,7 @@ class CppiaHandler
 		Cppia.onError = handleError;
 		#if debug
 		global.hotReload = true;
+		Cppia.profiling = true;
 		#end
 		global.onReload = function(module) module.call('onLoad');
 		FlxG.signals.postUpdate.add(global.update);
