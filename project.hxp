@@ -111,6 +111,7 @@ class Project extends HXProject
 			new Feature("VIDEOS_ALLOWED", officialVideo, ["hxvlc"], ["NO_VIDEOS"]),
 			new Feature("CRASH_HANDLER", native && !debug),
 			new Feature("CHECK_FOR_UPDATES", isDesktop() && hasDefine("officialBuild")),
+			new Feature("GIF_ALLOWED", true, ["haxe-gifsupport"], ["NO_GIF"]),
 			new Feature("x86_BUILD", hasDefine("32bits"))
 		];
 

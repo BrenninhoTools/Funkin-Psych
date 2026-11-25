@@ -23,6 +23,7 @@ class FrameLoader
 			case 'grid', 'tiles', 'spritesheet': 'grid';
 			case 'image', 'static', 'png', 'graphic': 'image';
 			case 'atlas', 'animate', 'animateatlas', 'adobeanimate', 'textureatlas': 'atlas';
+			case 'gif', 'animatedgif': 'gif';
 			default: 'auto';
 		}
 	}
@@ -66,6 +67,7 @@ class FrameLoader
 		if (Paths.fileExists('images/$key/Animation.json', TEXT)) return 'atlas';
 		if (Paths.fileExists('images/$key.json', TEXT)) return 'aseprite';
 		if (Paths.fileExists('images/$key.txt', TEXT)) return 'packer';
+		if (GifLoader.onlyGif(key)) return 'gif';
 		return 'image';
 	}
 
@@ -97,6 +99,8 @@ class FrameLoader
 				loadGrid(images[0], frameSize, parentFolder, allowGPU);
 			case 'atlas':
 				null;
+			case 'gif':
+				GifLoader.frames(images[0], parentFolder, allowGPU);
 			default:
 				var graphic:FlxGraphic = Paths.image(images[0], parentFolder, allowGPU);
 				graphic != null ? FlxImageFrame.fromGraphic(graphic) : null;
@@ -142,6 +146,12 @@ class FrameLoader
 	public static function addAnimation(sprite:FlxSprite, name:String, prefix:String, ?indices:Array<Int>, fps:Float = 24, loop:Bool = false, ?type:String, flipX:Bool = false, flipY:Bool = false)
 	{
 		var hasIndices:Bool = indices != null && indices.length > 0;
+		if (normalizeType(type) == 'gif' || GifLoader.isGifFrames(sprite))
+		{
+			if (hasIndices) sprite.animation.addByIndices(name, GifLoader.PREFIX, indices, '', fps, loop, flipX, flipY);
+			else sprite.animation.addByPrefix(name, GifLoader.PREFIX, fps, loop, flipX, flipY);
+			return;
+		}
 		if (usesFrameIndices(type) || (hasIndices && (prefix == null || prefix.length == 0)))
 			sprite.animation.add(name, hasIndices ? indices : [0], fps, loop, flipX, flipY);
 		else if (hasIndices)

@@ -66,6 +66,11 @@
 				"dir": "src"
 			},
 			{
+				"name": "haxe-gifsupport",
+				"link": "https://github.com/BrenninhoTools/haxe-gifsupport",
+				"branch": "e71f50604814bf1323657c422c726d21fc17f0d2"
+			},
+			{
 				"name": "hxdiscord_rpc",
 				"link": "https://github.com/BrenninhoTools/hxdiscord_rpc",
 				"branch": "d678bfc6c0eefb000d14317139de3d382e18f78a"

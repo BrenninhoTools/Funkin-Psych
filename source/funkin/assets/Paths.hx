@@ -209,9 +209,13 @@ class Paths
 
 	static public function image(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxGraphic
 	{
+		var baseKey:String = key;
 		key = Language.getFileTranslation('images/$key') + '.$IMAGE_EXT';
 		var cached:FlxGraphic = AssetCache.getGraphic(key);
 		if (cached != null) return cached;
+		#if GIF_ALLOWED
+		if (funkin.graphics.GifLoader.onlyGif(baseKey, parentFolder)) return funkin.graphics.GifLoader.firstFrame(baseKey, parentFolder, allowGPU);
+		#end
 		return cacheBitmap(key, parentFolder, null, allowGPU);
 	}
 
@@ -389,11 +393,22 @@ class Paths
 		return exists(getPath(key, type, parentFolder, false), type);
 	}
 
+	#if GIF_ALLOWED
+	static public function gif(key:String, ?parentFolder:String = null):gifsupport.Gif
+		return funkin.graphics.GifLoader.load(key, parentFolder);
+
+	static public function getGifAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
+		return funkin.graphics.GifLoader.frames(key, parentFolder, allowGPU);
+	#end
+
 	static function atlasData(key:String, extension:String, ?parentFolder:String):String
 		return getContent(getPath(Language.getFileTranslation('images/$key') + extension, TEXT, parentFolder, true));
 
 	static public function getAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
 	{
+		#if GIF_ALLOWED
+		if (funkin.graphics.GifLoader.onlyGif(key, parentFolder)) return funkin.graphics.GifLoader.frames(key, parentFolder, allowGPU);
+		#end
 		var imageLoaded:FlxGraphic = image(key, parentFolder, allowGPU);
 		if (imageLoaded == null) return null;
 

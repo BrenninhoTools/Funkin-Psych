@@ -961,6 +961,21 @@ class FunkinLua {
 			MusicBeatState.getVariables().set(tag, leSprite);
 		});
 
+		Lua_helper.add_callback(lua, "makeGifSprite", function(tag:String, image:String, ?x:Float = 0, ?y:Float = 0, ?frameRate:Float = 0, ?looped:Null<Bool> = null) {
+			tag = tag.replace('.', '');
+			LuaUtils.destroyObject(tag);
+			var leSprite:ModchartSprite = new ModchartSprite(x, y);
+			var loaded:Bool = image != null && image.length > 0 && funkin.graphics.GifLoader.apply(leSprite, image, 'gif', frameRate > 0 ? frameRate : null, looped);
+			MusicBeatState.getVariables().set(tag, leSprite);
+			leSprite.active = true;
+			return loaded;
+		});
+		Lua_helper.add_callback(lua, "getGifInfo", function(image:String) {
+			var data = funkin.graphics.GifLoader.info(image);
+			if (data == null && funkin.graphics.GifLoader.frames(image) != null) data = funkin.graphics.GifLoader.info(image);
+			return data == null ? null : {frameCount: data.frameCount, frameRate: data.frameRate, looped: data.looped, delays: data.delays};
+		});
+
 		Lua_helper.add_callback(lua, "makeGraphic", function(obj:String, width:Int = 256, height:Int = 256, color:String = 'FFFFFF') {
 			var spr:FlxSprite = LuaUtils.getObjectDirectly(obj);
 			if(spr != null) spr.makeGraphic(width, height, CoolUtil.colorFromString(color));
