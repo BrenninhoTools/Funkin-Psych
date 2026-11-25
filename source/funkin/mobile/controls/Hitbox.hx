@@ -84,13 +84,13 @@ class Hitbox extends FlxSpriteGroup
 			lanes.push(lane);
 			add(lane);
 		}
-		refresh();
+		refreshLanes();
 
 		scrollFactor.set();
 		TouchInput.hitboxEnabled = true;
 	}
 
-	public function refresh()
+	public function refreshLanes()
 	{
 		var laneWidth:Int = Std.int(Math.ceil(FlxG.width / TouchInput.LANES));
 		for (i in 0...lanes.length)

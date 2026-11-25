@@ -5200,7 +5200,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		@:privateAccess
 		if (sound != null && sound._sound != null && sound._sound.__buffer != null)
 		{
-			var bytes:Bytes = sound._sound.__buffer.data.toBytes();
+			var bytes:Bytes = sound._sound.__buffer.data.buffer;
 			wavData = waveformData(sound._sound.__buffer, bytes, cachedSectionTimes[curSec] - Conductor.offset, cachedSectionTimes[curSec+1] - Conductor.offset, 1, wavData, height);
 		}
 

@@ -2,6 +2,7 @@ package funkin.play.stages.objects;
 
 #if funkin.vis
 import funkin.vis.dsp.SpectralAnalyzer;
+import funkin.vis.dsp.Bar;
 #end
 
 class ABotSpeaker extends FlxSpriteGroup
@@ -121,7 +122,7 @@ class ABotSpeaker extends FlxSpriteGroup
 	public function initAnalyzer()
 	{
 		@:privateAccess
-		analyzer = new SpectralAnalyzer(snd._channel.__audioSource, 7, 0.1, 40);
+		analyzer = new SpectralAnalyzer(snd._source, 7, 0.1, 40);
 	
 		#if !html5
 		// On desktop it uses FFT stuff that isn't as optimized as the direct browser stuff we use on HTML5

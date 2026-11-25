@@ -5,12 +5,12 @@
 			{
 				"name": "hxcpp",
 				"link": "https://github.com/FunkinCrew/hxcpp",
-				"branch": "8be3d0fbc0303d85448bf7e7519489f0566125e2"
+				"branch": "88242477c3e9ab6e0e0712df7503375d7f0c0b59"
 			},
 			{
 				"name": "lime",
-				"link": "https://github.com/FunkinCrew/lime",
-				"branch": "268dacfb2609766e14bef9ea5b669e91501852d2"
+				"link": "https://github.com/BrenninhoTools/lime",
+				"branch": "be79e437cc97b48dac25862f7a6a5bf2386fcb5f"
 			},
 			{
 				"name": "hxp",
@@ -20,12 +20,12 @@
 			{
 				"name": "openfl",
 				"link": "https://github.com/FunkinCrew/openfl",
-				"branch": "74a51908a116d6df74be1083e219abb9fa057636"
+				"branch": "9bbda2ab65d14e42491c26b58ba9e3362f19b9eb"
 			},
 			{
 				"name": "flixel",
 				"link": "https://github.com/FunkinCrew/flixel",
-				"branch": "141f23c400c0508c76d5a09a143f5ce6790f8122"
+				"branch": "15eff1c71750ba97d5f77f46dbc2c5873bd56810"
 			},
 			{
 				"name": "flixel-addons",
@@ -58,7 +58,7 @@
 			{
 				"name": "funkin.vis",
 				"link": "https://github.com/FunkinCrew/funkVis",
-				"branch": "22b1ce089dd924f15cdc4632397ef3504d464e90"
+				"branch": "b6717304eb154f7b1201ca56b789c01b6a43439f"
 			},
 			{
 				"name": "grig.audio",

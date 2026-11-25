@@ -38,6 +38,10 @@ class FPSManager
 	public static function displayRate():Int
 	{
 		var rate:Int = 0;
+		#if android
+		var rates:Array<Float> = lime.system.MobilePerformance.supportedRefreshRates;
+		if (rates.length > 0) return Std.int(Math.max(60, Math.round(rates[rates.length - 1])));
+		#end
 		try
 		{
 			var window = FlxG.stage.application.window;
@@ -73,6 +77,13 @@ class FPSManager
 			case DISPLAY, ADAPTIVE: Std.int(Math.max(MIN_FPS, lastDisplayRate));
 			default: Save.data.framerate;
 		}
+		#if android
+		switch (mode())
+		{
+			case UNLOCKED, DISPLAY, ADAPTIVE: lime.system.MobilePerformance.preferredRefreshRate = 1000;
+			default: lime.system.MobilePerformance.matchRefreshRate(Save.data.framerate);
+		}
+		#end
 		resetSamples();
 		refreshFramerate();
 	}

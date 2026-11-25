@@ -349,7 +349,7 @@ class MobileControlsState extends MusicBeatState
 		{
 			FunkinSound.playOnce('confirmMenu');
 			entry.action();
-			hitbox.refresh();
+			hitbox.refreshLanes();
 			updateRows();
 		}
 		else changeValue(1);
@@ -365,7 +365,7 @@ class MobileControlsState extends MusicBeatState
 		}
 		entry.change(dir);
 		if (!quiet) FunkinSound.playOnce('scrollMenu');
-		hitbox.refresh();
+		hitbox.refreshLanes();
 		updateRows();
 	}
 
@@ -379,7 +379,7 @@ class MobileControlsState extends MusicBeatState
 			importing = false;
 			Hitbox.reloadImage();
 			Save.data.hitboxStyle = 'Image';
-			hitbox.refresh();
+			hitbox.refreshLanes();
 			updateThumbnail();
 			updateRows();
 			FunkinSound.playOnce('confirmMenu');

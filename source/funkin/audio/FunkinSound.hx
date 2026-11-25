@@ -139,8 +139,8 @@ class FunkinSound extends FlxSound
 		@:privateAccess
 		{
 			for (sound in FlxG.sound.list)
-				if (sound != null) sound.updateTransform();
-			if (FlxG.sound.music != null) FlxG.sound.music.updateTransform();
+				if (sound != null) sound.updateVolume();
+			if (FlxG.sound.music != null) FlxG.sound.music.updateVolume();
 		}
 	}
 
@@ -168,7 +168,7 @@ class FunkinSound extends FlxSound
 	function set_channel(value:SoundChannel):SoundChannel
 	{
 		channel = value;
-		updateTransform();
+		updateVolume();
 		return channel;
 	}
 

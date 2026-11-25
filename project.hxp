@@ -107,7 +107,7 @@ class Project extends HXProject
 			new Feature("SHOW_LOADING_SCREEN", true),
 			new Feature("PSYCH_WATERMARKS", true),
 			new Feature("TITLE_SCREEN_EASTER_EGG", hasDefine("officialBuild")),
-			new Feature("BASE_GAME_FILES", hasDefine("officialBuild"), ["grig.audio", "funkin.vis"]),
+			new Feature("BASE_GAME_FILES", hasDefine("officialBuild"), ["funkin.vis"]),
 			new Feature("VIDEOS_ALLOWED", officialVideo, ["hxvlc"], ["NO_VIDEOS"]),
 			new Feature("CRASH_HANDLER", native && !debug),
 			new Feature("CHECK_FOR_UPDATES", isDesktop() && hasDefine("officialBuild")),
