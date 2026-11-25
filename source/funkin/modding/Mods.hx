@@ -171,7 +171,7 @@ class Mods
 				#else
 				var rawJson:String = Assets.getText(path);
 				#end
-				if (rawJson != null && rawJson.length > 0) pack = tjson.TJSON.parse(rawJson);
+				if (rawJson != null && rawJson.length > 0) pack = tjson.TJSON.parse(rawJson, path);
 			}
 			catch (e:Dynamic)
 			{

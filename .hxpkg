@@ -39,7 +39,8 @@
 			},
 			{
 				"name": "tjson",
-				"version": "1.4.0"
+				"link": "https://github.com/BrenninhoTools/tjson",
+				"branch": "7b710da5278385da5bd6ed27e22766926b2446e3"
 			},
 			{
 				"name": "hxvlc",
