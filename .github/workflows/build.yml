@@ -425,13 +425,51 @@ jobs:
           packages: ${{ env.APT_PACKAGES }} ${{ matrix.target == 'linux' && 'libvlc-dev libvlccore-dev mold' || '' }}
           version: ${{ env.CACHE_REV }}-${{ matrix.target }}
 
-      - name: Ensure Wayland tools
+      - name: Ensure Linux development files
         if: matrix.host == 'linux'
         run: |
           set -euo pipefail
-          if ! command -v wayland-scanner >/dev/null 2>&1 || [ ! -d /usr/share/wayland-protocols ] || [ ! -f /usr/include/dbus-1.0/dbus/dbus.h ] || [ ! -f /usr/include/libudev.h ]; then
+          REQUIRED=(
+            /usr/include/X11/Xlib.h
+            /usr/include/X11/extensions/XInput2.h
+            /usr/include/X11/extensions/Xrandr.h
+            /usr/include/X11/extensions/Xfixes.h
+            /usr/include/X11/Xcursor/Xcursor.h
+            /usr/include/X11/extensions/scrnsaver.h
+            /usr/include/X11/extensions/Xinerama.h
+            /usr/include/X11/extensions/XTest.h
+            /usr/include/GL/gl.h
+            /usr/include/EGL/egl.h
+            /usr/include/GLES2/gl2.h
+            /usr/include/alsa/asoundlib.h
+            /usr/include/pulse/pulseaudio.h
+            /usr/include/pipewire-0.3/pipewire/pipewire.h
+            /usr/include/wayland-client.h
+            /usr/include/xkbcommon/xkbcommon.h
+            /usr/include/libdecor-0/libdecor.h
+            /usr/include/dbus-1.0/dbus/dbus.h
+            /usr/include/libudev.h
+            /usr/include/libdrm/drm.h
+            /usr/include/gbm.h
+          )
+          MISSING=()
+          for FILE in "${REQUIRED[@]}"; do
+            [ -f "$FILE" ] || MISSING+=("$FILE")
+          done
+          command -v wayland-scanner >/dev/null 2>&1 || MISSING+=(wayland-scanner)
+          [ -d /usr/share/wayland-protocols ] || MISSING+=(/usr/share/wayland-protocols)
+          if [ "${#MISSING[@]}" -gt 0 ]; then
+            echo "::warning::Reinstalling Linux packages, missing: ${MISSING[*]}"
             sudo apt-get update -qq
-            sudo apt-get install -y --no-install-recommends --reinstall libwayland-bin libwayland-dev wayland-protocols libdbus-1-dev libudev-dev
+            # shellcheck disable=SC2086
+            sudo apt-get install -y --no-install-recommends --reinstall $APT_PACKAGES
+          fi
+          STILL=()
+          for FILE in "${REQUIRED[@]}"; do
+            [ -f "$FILE" ] || STILL+=("$FILE")
+          done
+          if [ "${#STILL[@]}" -gt 0 ]; then
+            echo "::warning::Still missing after reinstalling: ${STILL[*]}"
           fi
           echo "WAYLAND_SCANNER=$(command -v wayland-scanner)" >> "$GITHUB_ENV"
           wayland-scanner --version
